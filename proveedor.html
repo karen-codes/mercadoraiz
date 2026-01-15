@@ -1,110 +1,132 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Proveedor | Mercado Raíz</title>
-  <meta name="description" content="Conoce a los productores locales de Cayambe, su historia, ubicación y productos disponibles en Mercado Raíz.">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <link rel="stylesheet" href="css/styles.css">
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet/dist/leaflet.css"
-  />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil del Productor | Mercado Raíz</title>
+    <meta name="description" content="Conoce la historia y el origen de los productos de Cayambe.">
+    
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 </head>
 <body>
 
-<!-- ================= HEADER ================= -->
 <header class="header">
-  <div class="logo">Mercado Raíz</div>
-  <nav>
-    <a href="index.html">Inicio</a>
-    <a href="productos.html">Productos</a>
-    <a href="proveedor.html" class="active">Proveedores</a>
-    <a href="carrito.html">Carrito</a>
-    <a href="#contacto">Contacto</a>
-  </nav>
+    <div class="logo">Mercado <span>Raíz</span></div>
+    <nav>
+        <a href="index.html">Inicio</a>
+        <a href="productos.html">Productos</a>
+        <a href="proveedor.html" class="active">Proveedores</a>
+        <a href="contacto.html">Contacto</a>
+        <span id="authContainer">
+            <a href="login.html" id="loginLink" class="btn-login">Iniciar Sesión</a>
+            <a href="#" id="logoutLink" onclick="cerrarSesion()" class="btn-logout hidden">Cerrar Sesión</a>
+        </span>
+    </nav>
 </header>
 
-<!-- ================= HERO ================= -->
-<section class="hero hero-small">
-  <h1 id="proveedorNombre">Proveedor</h1>
-  <p>
-    Conoce la historia, ubicación y productos de este productor local
-    de Cayambe y sus comunidades cercanas.
-  </p>
+<section class="hero-organic-small">
+    <div class="hero-content">
+        <h1 id="proveedorNombre">Cargando Productor...</h1>
+        <p id="proveedorComunidad" class="badge-comunidad"></p>
+    </div>
 </section>
 
-<!-- ================= MAIN ================= -->
-<main class="provider-container">
+<main class="container-story">
+    
+    <div class="story-grid">
+        <div class="story-main">
+            <section class="card glass-card story-text">
+                <h2><i class="fas fa-seedling"></i> Nuestra Historia</h2>
+                <p id="proveedorHistoria">Cargando el relato de la tierra...</p>
+            </section>
 
-  <!-- HISTORIA -->
-  <section class="provider-info">
-    <h2>Historia del proveedor</h2>
-    <p id="proveedorHistoria"></p>
-  </section>
+            <section class="card glass-card story-video">
+                <h2><i class="fas fa-play-circle"></i> Labores en la Parcela</h2>
+                <div class="video-responsive">
+                    <iframe id="proveedorVideo" frameborder="0" allowfullscreen></iframe>
+                </div>
+            </section>
+        </div>
 
-  <!-- MAPA -->
-  <section class="provider-map">
-    <h2>Ubicación del productor</h2>
-    <div id="map"></div>
-  </section>
+        <aside class="story-sidebar">
+            <section class="card glass-card map-section">
+                <h2><i class="fas fa-map-marked-alt"></i> Ubicación</h2>
+                <div id="map"></div>
+                <p id="proveedorParcela" class="text-muted"></p>
+            </section>
 
-  <!-- VIDEO -->
-  <section class="provider-video">
-    <h2>Nuestra historia</h2>
-    <iframe
-      id="proveedorVideo"
-      width="100%"
-      height="315"
-      frameborder="0"
-      allowfullscreen>
-    </iframe>
-  </section>
-
-  <!-- PRODUCTOS -->
-  <section class="provider-products">
-    <h2>Productos disponibles</h2>
-    <div id="providerProducts" class="products-grid"></div>
-
-    <div class="provider-actions">
-      <a href="carrito.html" class="secondary-btn">
-        Ver carrito
-      </a>
+            <section class="card glass-card info-quick">
+                <h3><i class="fas fa-clock"></i> Horario de Cosecha</h3>
+                <p id="proveedorHorario"></p>
+                <hr>
+                <h3><i class="fas fa-wallet"></i> Formas de Pago</h3>
+                <p id="proveedorPagos"></p>
+            </section>
+        </aside>
     </div>
-  </section>
 
+    <section class="provider-catalog">
+        <h2 class="section-title">Frutos de esta tierra</h2>
+        <div id="providerProducts" class="products-grid">
+            </div>
+    </section>
 </main>
 
-<!-- ================= FOOTER ================= -->
-<footer class="footer" id="contacto">
-
-  <div class="footer-column">
-    <h3>Mercado Raíz</h3>
-    <p>
-      Plataforma de comercio justo que visibiliza a los productores
-      locales de Cayambe y fortalece la economía rural.
-    </p>
-  </div>
-
-  <div class="footer-column">
-    <h3>Enlaces rápidos</h3>
-    <a href="index.html">Inicio</a>
-    <a href="productos.html">Productos</a>
-    <a href="carrito.html">Carrito</a>
-    <a href="#contacto">Contacto</a>
-  </div>
-
-  <div class="footer-bottom">
-    © 2026 Mercado Raíz. Todos los derechos reservados.
-  </div>
-
+<footer class="footer">
+    <div class="footer-column">
+        <h3>Mercado Raíz</h3>
+        <p>Conectando el campo de Cayambe con tu mesa bajo principios de comercio justo y transparencia.</p>
+    </div>
+    <div class="footer-column">
+        <h3>Enlaces</h3>
+        <a href="index.html">Inicio</a>
+        <a href="productos.html">Catálogo</a>
+        <a href="login.html">Administración</a>
+    </div>
+    <div class="footer-bottom">
+        <p>&copy; 2026 Mercado Raíz - Cayambe, Ecuador</p>
+    </div>
 </footer>
 
-<!-- ================= SCRIPTS ================= -->
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script src="js/data.js"></script>
 <script src="js/main.js"></script>
+<script>
+    // Lógica específica para esta página que consume data.js
+    document.addEventListener("DOMContentLoaded", () => {
+        const params = new URLSearchParams(window.location.search);
+        const provId = parseInt(params.get('id')) || 1;
+        const prov = proveedores.find(p => p.id === provId);
 
+        if (prov) {
+            document.getElementById('proveedorNombre').innerText = prov.nombre;
+            document.getElementById('proveedorComunidad').innerText = prov.comunidad;
+            document.getElementById('proveedorHistoria').innerText = prov.historia;
+            document.getElementById('proveedorVideo').src = prov.video;
+            document.getElementById('proveedorParcela').innerText = prov.parcela;
+            document.getElementById('proveedorHorario').innerText = prov.horario;
+            document.getElementById('proveedorPagos').innerText = prov.formasPago;
+
+            // Inicializar Mapa
+            const map = L.map('map').setView([prov.lat, prov.lng], 15);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+            L.marker([prov.lat, prov.lng]).addTo(map).bindPopup(prov.nombre).openPopup();
+
+            // Filtrar productos de este proveedor (Función del main.js adaptada)
+            const grid = document.getElementById('providerProducts');
+            const misProductos = productos.filter(p => p.proveedorId === provId);
+            grid.innerHTML = misProductos.map(p => `
+                <div class="product-card glass-card">
+                    <img src="${p.imagen}" alt="${p.nombre}">
+                    <h3>${p.nombre}</h3>
+                    <p class="price">$${p.precio.toFixed(2)} / ${p.unidad}</p>
+                    <button class="btn-add" onclick="agregarCarrito(${p.id})">Agregar</button>
+                </div>
+            `).join('');
+        }
+    });
+</script>
 </body>
 </html>

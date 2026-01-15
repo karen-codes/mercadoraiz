@@ -1,131 +1,79 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Mercado Raíz | Cayambe</title>
-  <meta name="description" content="Plataforma de comercio justo que conecta productores locales de Cayambe con consumidores responsables.">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <link rel="stylesheet" href="css/styles.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mercado Raíz | Cayambe</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
+    <header class="header">
+        <div class="logo">Mercado Raíz</div>
+        <nav>
+            <a href="index.html" class="active">Inicio</a>
+            <a href="productos.html">Productos</a>
+            <a href="proveedor.html">Proveedores</a>
+            <a href="contacto.html">Contacto</a>
+            <span id="authContainer">
+                <a href="login.html" id="loginLink" class="btn-login">Iniciar Sesión</a>
+                <a href="#" id="logoutLink" onclick="cerrarSesion()" class="btn-logout" style="display:none;">Cerrar Sesión</a>
+            </span>
+        </nav>
+    </header>
 
-<!-- ================= HEADER ================= -->
-<header class="header">
-  <div class="logo">Mercado Raíz</div>
-  <nav>
-    <a href="index.html">Inicio</a>
-    <a href="productos.html">Productos</a>
-    <a href="proveedor.html">Proveedores</a>
-    <a href="#contacto">Contacto</a>
-  </nav>
-</header>
+    <main>
+        <section class="hero">
+            <h1>Conectando productores de Cayambe con mercados justos</h1>
+            <p>Productos frescos de comunidades cercanas, cultivados con responsabilidad.</p>
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Buscar productos o proveedores...">
+                <button onclick="buscarProductos()">Buscar</button>
+            </div>
+        </section>
 
-<!-- ================= MAIN ================= -->
-<main>
+        <section class="carousel-section">
+            <h2>Productos destacados</h2>
+            <div class="carousel">
+                <button class="prev" onclick="moverCarrusel(-1)">&#10094;</button>
+                <div class="carousel-track-container" style="overflow: hidden; width: 100%;">
+                    <div id="carrusel-container" class="carousel-track">
+                        </div>
+                </div>
+                <button class="next" onclick="moverCarrusel(1)">&#10095;</button>
+            </div>
+        </section>
+    </main>
 
-  <!-- HERO + BUSQUEDA -->
-  <section class="hero" id="inicio">
-    <h1>Conectando productores de Cayambe con mercados justos</h1>
-    <p>
-      Productos frescos de comunidades cercanas, cultivados con responsabilidad,
-      sostenibilidad y compromiso social.
-    </p>
+    <footer class="footer">
+        <div class="footer-column">
+            <h3>Mercado Raíz</h3>
+            <p>Plataforma digital que conecta productores locales de Cayambe con consumidores conscientes.</p>
+        </div>
+        <div class="footer-column">
+            <h3>Enlaces rápidos</h3>
+            <a href="index.html">Inicio</a>
+            <a href="productos.html">Productos</a>
+            <a href="proveedores.html">Proveedores</a>
+            <a href="contacto.html">Contacto</a>
+        </div>
+        <div class="footer-column">
+            <h3>Información de contacto</h3>
+            <p><i class="fas fa-map-marker-alt"></i> Cayambe, Pichincha – Ecuador</p>
+            <p><i class="fas fa-phone"></i> +593 99 999 9999</p>
+            <p><i class="fas fa-clock"></i> Lun – Sáb: 8:00 AM – 6:00 PM</p>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 Mercado Raíz. Todos los derechos reservados.</p>
+        </div>
+    </footer>
 
-    <div class="search-box">
-      <input
-        type="text"
-        id="searchInput"
-        placeholder="Buscar productos o proveedores..."
-      >
-      <button id="searchButton">Buscar</button>
-    </div>
-  </section>
+    <a href="carrito.html" class="floating-cart">
+        <i class="fas fa-shopping-cart"></i>
+        <span id="cartCount" class="cart-badge">0</span>
+    </a>
 
-  <!-- MISION Y VISION -->
-  <section class="about" id="mision-vision">
-    <div class="card">
-      <h2>Misión</h2>
-      <p>
-        Impulsar a los pequeños productores de Cayambe y sus comunidades cercanas,
-        promoviendo la comercialización justa y el acceso directo a mercados responsables
-        mediante el uso de herramientas digitales.
-      </p>
-    </div>
-
-    <div class="card">
-      <h2>Visión</h2>
-      <p>
-        Ser una plataforma digital referente en comercio justo local,
-        fortaleciendo la economía rural, la transparencia comercial
-        y la sostenibilidad alimentaria en la región.
-      </p>
-    </div>
-  </section>
-
-  <!-- CARRUSEL DE PRODUCTOS -->
-  <section class="carousel-section" id="destacados">
-    <h2>Productos destacados</h2>
-
-    <div class="carousel">
-      <button class="prev">&#10094;</button>
-
-      <div class="carousel-track">
-        <div class="carousel-item" onclick="irCategoria('tomates')">🍅 Tomates</div>
-        <div class="carousel-item" onclick="irCategoria('hortalizas')">🥬 Hortalizas</div>
-        <div class="carousel-item" onclick="irCategoria('papas')">🥔 Papas</div>
-        <div class="carousel-item" onclick="irCategoria('lacteos')">🧀 Lácteos</div>
-        <div class="carousel-item" onclick="irCategoria('maiz')">🌽 Maíz</div>
-      </div>
-
-      <button class="next">&#10095;</button>
-    </div>
-  </section>
-
-</main>
-
-<!-- ================= FOOTER ================= -->
-<footer class="footer" id="contacto">
-
-  <div class="footer-column">
-    <h3>Mercado Raíz</h3>
-    <p>
-      Plataforma digital que conecta productores locales de Cayambe
-      con consumidores conscientes, promoviendo el comercio justo
-      y el desarrollo rural sostenible.
-    </p>
-  </div>
-
-  <div class="footer-column">
-    <h3>Enlaces rápidos</h3>
-    <a href="index.html">Inicio</a>
-    <a href="productos.html">Productos</a>
-    <a href="proveedor.html">Proveedores</a>
-    <a href="#contacto">Contacto</a>
-  </div>
-
-  <div class="footer-column">
-    <h3>Información de contacto</h3>
-    <p>📍 Cayambe, Pichincha – Ecuador</p>
-    <p>📞 +593 99 999 9999</p>
-    <p>🕒 Lun – Sáb: 8:00 AM – 6:00 PM</p>
-  </div>
-
-  <div class="footer-bottom">
-    © 2026 Mercado Raíz. Todos los derechos reservados.
-  </div>
-
-</footer>
-
-<!-- ================= SCRIPTS ================= -->
-<script src="js/main.js"></script>
-
-<script>
-  function irCategoria(tipo) {
-    window.location.href = `categoria.html?tipo=${tipo}`;
-  }
-</script>
-
+    <script src="js/data.js"></script>
+    <script src="js/main.js"></script>
 </body>
 </html>
-

@@ -1,235 +1,159 @@
 /***********************************
- * VARIABLES GLOBALES
+ * CONFIGURACIÓN DE ESTADO GLOBAL
  ***********************************/
-const urlParams = new URLSearchParams(window.location.search);
-let carrito = window.carrito || [];
+let carrito = JSON.parse(localStorage.getItem('carrito')) || [];
+const productos = JSON.parse(localStorage.getItem('productos')) || [];
+const proveedores = JSON.parse(localStorage.getItem('proveedores')) || [];
+
+document.addEventListener("DOMContentLoaded", () => {
+    // 1. Inicialización de interfaz
+    actualizarInterfazSesion();
+    actualizarContadorCarrito();
+
+    // 2. Enrutador de funciones por ID de contenedor
+    if (document.getElementById("carrusel-container")) renderizarCarrusel();
+    if (document.getElementById("productsGrid")) renderizarPaginaCategoria();
+    if (document.getElementById("cartContainer")) mostrarCarrito();
+});
 
 /***********************************
- * PÁGINA: CATEGORÍA (categoria.html)
+ * GESTIÓN DE SESIÓN (Lógica Limpia)
  ***********************************/
-const categoria = urlParams.get("tipo");
+function actualizarInterfazSesion() {
+    const sesion = JSON.parse(localStorage.getItem('sesionActiva'));
+    const loginLink = document.getElementById('loginLink');
+    const logoutLink = document.getElementById('logoutLink');
 
-if (categoria && document.getElementById("productsGrid")) {
-  const titulo = document.getElementById("categoriaTitulo");
-  titulo.innerText =
-    "Productos de " + categoria.charAt(0).toUpperCase() + categoria.slice(1);
+    if (!loginLink || !logoutLink) return;
 
-  const grid = document.getElementById("productsGrid");
-  grid.innerHTML = "";
+    if (sesion) {
+        // Usamos la clase 'hidden' definida en styles.css
+        loginLink.classList.add('hidden');
+        logoutLink.classList.remove('hidden');
+        logoutLink.innerHTML = `<i class="fas fa-sign-out-alt"></i> Cerrar Sesión (${sesion.nombre.split(' ')[0]})`;
+    } else {
+        loginLink.classList.remove('hidden');
+        logoutLink.classList.add('hidden');
+    }
+}
 
-  productos
-    .filter(p => p.categoria === categoria)
-    .forEach(p => {
-      const proveedor = proveedores.find(pr => pr.id === p.proveedorId);
-
-      const card = document.createElement("div");
-      card.className = "product-card";
-      card.innerHTML = `
-        <img src="${p.imagen}" alt="${p.nombre}">
-        <h3>${p.nombre}</h3>
-        <p><strong>Proveedor:</strong> ${proveedor.nombre}</p>
-        <p><strong>Precio:</strong> $${p.precio.toFixed(2)}</p>
-        <button onclick="agregarCarrito(${p.id})">Agregar al carrito</button>
-        <button class="secondary" onclick="verProveedor(${proveedor.id})">
-          Ver proveedor
-        </button>
-      `;
-
-      grid.appendChild(card);
-    });
+function cerrarSesion() {
+    localStorage.removeItem('sesionActiva');
+    alert("Sesión finalizada correctamente.");
+    window.location.href = 'index.html';
 }
 
 /***********************************
- * FUNCIONES DE CARRITO
+ * CARRUSEL DINÁMICO (INDEX)
+ ***********************************/
+function renderizarCarrusel() {
+    const container = document.getElementById('carrusel-container');
+    // Mostramos los últimos productos con stock disponible
+    const destacados = productos.filter(p => p.stock > 0).slice(-4); 
+
+    if (destacados.length === 0) {
+        container.innerHTML = "<p class='text-muted'>Próximamente nuevos productos frescos...</p>";
+        return;
+    }
+
+    container.innerHTML = destacados.map(p => `
+        <div class="carousel-item">
+            <img src="${p.imagen}" alt="${p.nombre}" class="product-img-card">
+            <div class="product-info">
+                <h3>${p.nombre}</h3>
+                <p class="price">$${p.precio.toFixed(2)} / ${p.unidad}</p>
+                <button class="btn-add" onclick="agregarCarrito(${p.id})">
+                    <i class="fas fa-cart-plus"></i> Agregar
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+
+/***********************************
+ * LÓGICA DE CARRITO E INVENTARIO
  ***********************************/
 function agregarCarrito(id) {
-  const producto = productos.find(p => p.id === id);
-  const existente = carrito.find(item => item.id === id);
-
-  if (existente) {
-    existente.cantidad++;
-  } else {
-    carrito.push({ ...producto, cantidad: 1 });
-  }
-
-  alert(`${producto.nombre} agregado al carrito`);
-}
-
-function mostrarCarrito() {
-  const container = document.getElementById("cartContainer");
-  if (!container) return;
-
-  container.innerHTML = "";
-
-  if (carrito.length === 0) {
-    container.innerHTML = "<p>El carrito está vacío.</p>";
-    return;
-  }
-
-  const pedidosPorProveedor = {};
-
-  carrito.forEach(item => {
-    if (!pedidosPorProveedor[item.proveedorId]) {
-      pedidosPorProveedor[item.proveedorId] = [];
+    const producto = productos.find(p => p.id === id);
+    
+    // Validación de seguridad de stock
+    if (!producto || producto.stock <= 0) {
+        alert("Producto temporalmente agotado.");
+        return;
     }
-    pedidosPorProveedor[item.proveedorId].push(item);
-  });
 
-  Object.keys(pedidosPorProveedor).forEach(proveedorId => {
-    const proveedor = proveedores.find(p => p.id == proveedorId);
-    const items = pedidosPorProveedor[proveedorId];
-    let total = 0;
-
-    const section = document.createElement("section");
-    section.className = "provider-order";
-
-    let html = `
-      <h2>${proveedor.nombre} – ${proveedor.comunidad}</h2>
-      <table class="cart-table">
-        <tr>
-          <th>Producto</th>
-          <th>Cantidad</th>
-          <th>Precio</th>
-          <th>Subtotal</th>
-          <th></th>
-        </tr>
-    `;
-
-    items.forEach(item => {
-      const subtotal = item.precio * item.cantidad;
-      total += subtotal;
-
-      html += `
-        <tr>
-          <td>${item.nombre}</td>
-          <td>
-            <input type="number" min="1" value="${item.cantidad}"
-              onchange="actualizarCantidad(${item.id}, this.value)">
-          </td>
-          <td>$${item.precio.toFixed(2)}</td>
-          <td>$${subtotal.toFixed(2)}</td>
-          <td>
-            <button onclick="eliminarDelCarrito(${item.id})">❌</button>
-          </td>
-        </tr>
-      `;
-    });
-
-    html += `
-        <tr class="total-row">
-          <td colspan="3"><strong>Total</strong></td>
-          <td colspan="2"><strong>$${total.toFixed(2)}</strong></td>
-        </tr>
-      </table>
-    `;
-
-    section.innerHTML = html;
-    container.appendChild(section);
-  });
-}
-
-function actualizarCantidad(id, cantidad) {
-  const item = carrito.find(p => p.id === id);
-  if (item) {
-    item.cantidad = parseInt(cantidad);
-    mostrarCarrito();
-  }
-}
-
-function eliminarDelCarrito(id) {
-  carrito = carrito.filter(p => p.id !== id);
-  mostrarCarrito();
-}
-
-/***********************************
- * ORDEN DE PEDIDO POR WHATSAPP
- ***********************************/
-function realizarPedido() {
-  if (carrito.length === 0) {
-    alert("El carrito está vacío");
-    return;
-  }
-
-  const pedidosPorProveedor = {};
-
-  carrito.forEach(item => {
-    if (!pedidosPorProveedor[item.proveedorId]) {
-      pedidosPorProveedor[item.proveedorId] = [];
+    const itemEnCarrito = carrito.find(item => item.id === id);
+    
+    if (itemEnCarrito) {
+        if (itemEnCarrito.cantidad < producto.stock) {
+            itemEnCarrito.cantidad++;
+        } else {
+            alert("Máximo stock alcanzado para este productor.");
+            return;
+        }
+    } else {
+        carrito.push({ ...producto, cantidad: 1 });
     }
-    pedidosPorProveedor[item.proveedorId].push(item);
-  });
 
-  Object.keys(pedidosPorProveedor).forEach(proveedorId => {
-    const proveedor = proveedores.find(p => p.id == proveedorId);
-    const items = pedidosPorProveedor[proveedorId];
-    let total = 0;
+    guardarCarrito();
+    actualizarContadorCarrito();
+    // Feedback visual simple
+    console.log(`Agregado: ${producto.nombre}`);
+}
 
-    let mensaje = `Hola, soy un cliente de Mercado Raíz.%0A%0A`;
-    mensaje += `Deseo realizar el siguiente pedido:%0A`;
+function guardarCarrito() {
+    localStorage.setItem('carrito', JSON.stringify(carrito));
+}
 
-    items.forEach(item => {
-      const subtotal = item.precio * item.cantidad;
-      total += subtotal;
-      mensaje += `• ${item.nombre} x${item.cantidad} = $${subtotal.toFixed(2)}%0A`;
-    });
-
-    mensaje += `%0ATotal: $${total.toFixed(2)}%0A`;
-    mensaje += `%0AGracias.`;
-
-    const url = `https://wa.me/${proveedor.whatsapp}?text=${mensaje}`;
-    window.open(url, "_blank");
-  });
+function actualizarContadorCarrito() {
+    const contador = document.getElementById("cartCount");
+    if (!contador) return;
+    
+    const totalItems = carrito.reduce((sum, item) => sum + item.cantidad, 0);
+    contador.innerText = totalItems;
+    
+    // El CSS maneja la visibilidad según si tiene la clase 'hidden'
+    totalItems > 0 ? contador.classList.remove('hidden') : contador.classList.add('hidden');
 }
 
 /***********************************
- * PÁGINA: PROVEEDOR (proveedor.html)
+ * PROCESAMIENTO DE COMPRA
  ***********************************/
-const proveedorId = urlParams.get("id");
+function confirmarPedido() {
+    const sesion = JSON.parse(localStorage.getItem('sesionActiva'));
+    if (!sesion) {
+        alert("Por favor, inicia sesión para finalizar tu pedido.");
+        window.location.href = 'login.html';
+        return;
+    }
 
-if (proveedorId && document.getElementById("proveedorNombre")) {
-  const proveedor = proveedores.find(p => p.id == proveedorId);
+    if (carrito.length === 0) return alert("Tu carrito está vacío.");
 
-  document.getElementById("proveedorNombre").innerText = proveedor.nombre;
-  document.getElementById("proveedorHistoria").innerText = proveedor.historia;
-  document.getElementById("proveedorVideo").src = proveedor.video;
-
-  const map = L.map("map").setView([proveedor.lat, proveedor.lng], 13);
-
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    attribution: "© OpenStreetMap"
-  }).addTo(map);
-
-  L.marker([proveedor.lat, proveedor.lng])
-    .addTo(map)
-    .bindPopup(proveedor.nombre)
-    .openPopup();
-
-  const container = document.getElementById("providerProducts");
-
-  productos
-    .filter(p => p.proveedorId == proveedor.id)
-    .forEach(p => {
-      const card = document.createElement("div");
-      card.className = "product-card";
-
-      card.innerHTML = `
-        <img src="${p.imagen}" alt="${p.nombre}">
-        <h3>${p.nombre}</h3>
-        <p>$${p.precio.toFixed(2)}</p>
-        <button onclick="agregarCarrito(${p.id})">
-          Agregar al carrito
-        </button>
-      `;
-
-      container.appendChild(card);
+    // 1. Actualización de Inventario Global
+    carrito.forEach(item => {
+        const index = productos.findIndex(p => p.id === item.id);
+        if (index !== -1) {
+            productos[index].stock -= item.cantidad;
+        }
     });
-}
 
-/***********************************
- * EVENTOS
- ***********************************/
-document.addEventListener("DOMContentLoaded", mostrarCarrito);
+    // 2. Persistencia de datos
+    localStorage.setItem("productos", JSON.stringify(productos));
 
-function verProveedor(id) {
-  window.location.href = `proveedor.html?id=${id}`;
+    // 3. Registro de pedido para el Panel Admin
+    const pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
+    pedidos.push({
+        id: Date.now(),
+        cliente: sesion.nombre,
+        total: carrito.reduce((acc, p) => acc + (p.precio * p.cantidad), 0).toFixed(2),
+        fecha: new Date().toLocaleString(),
+        estado: "Pendiente"
+    });
+    localStorage.setItem('pedidos', JSON.stringify(pedidos));
+
+    // 4. Finalización
+    alert("¡Pedido confirmado! Redirigiendo para coordinar entrega.");
+    carrito = [];
+    guardarCarrito();
+    window.location.href = 'index.html';
 }

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Calidad y Compromiso | Mercado Raíz</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <header class="header">
+        <h1>Mercado Raíz</h1>
+        <nav>
+            <a href="index.html">Inicio</a>
+            <a href="productos.html">Productos</a>
+            <a href="proveedor.html">Proveedores</a>
+            <a href="contacto.html">Contacto</a>
+            <a href="login.html" id="loginLink">Iniciar Sesión</a>
+            <a href="#" id="logoutLink" onclick="cerrarSesion()" style="display:none; color: #ef4444;">Cerrar Sesión</a>
+        </nav>
+    </header>
+
+    <main class="container" style="padding: 50px 20px;">
+        <section style="text-align: center; max-width: 800px; margin: auto; margin-bottom: 50px;">
+            <h2 style="color: #0f172a; font-size: 2.5rem;">Nuestro Compromiso de Calidad</h2>
+            <p style="color: #64748b; font-size: 1.1rem; line-height: 1.6;">
+                En Mercado Raíz, la calidad no solo está en el producto final, sino en todo el proceso de producción y comercialización en el Cantón Cayambe.
+            </p>
+        </section>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px;">
+            <div class="card" style="padding: 30px; text-align: center;">
+                <div style="font-size: 3rem; margin-bottom: 15px;">🤝</div>
+                <h3 style="color: #22c55e;">Comercio Justo</h3>
+                <p style="color: #475569;">
+                    Eliminamos la intermediación excesiva para asegurar que los pequeños productores reciban un pago digno por su trabajo, fortaleciendo su autonomía económica.
+                </p>
+            </div>
+
+            <div class="card" style="padding: 30px; text-align: center;">
+                <div style="font-size: 3rem; margin-bottom: 15px;">🌱</div>
+                <h3 style="color: #22c55e;">Sostenibilidad</h3>
+                <p style="color: #475569;">
+                    Promovemos prácticas agrícolas que respetan la tierra de nuestras comunidades, garantizando productos frescos y saludables de la huerta a tu mesa.
+                </p>
+            </div>
+
+            <div class="card" style="padding: 30px; text-align: center;">
+                <div style="font-size: 3rem; margin-bottom: 15px;">🔍</div>
+                <h3 style="color: #22c55e;">Transparencia</h3>
+                <p style="color: #475569;">
+                    Conoce el origen exacto de lo que consumes. Trabajamos con productores identificados de comunidades como Ayora y Olmedo.
+                </p>
+            </div>
+        </div>
+
+        <section style="margin-top: 60px; background: #f8fafc; padding: 40px; border-radius: 15px; text-align: center;">
+            <h3 style="color: #0f172a;">¿Por qué elegirnos?</h3>
+            <p style="max-width: 700px; margin: 20px auto; color: #64748b;">
+                Al comprar en Mercado Raíz, apoyas directamente a las familias agricultoras de Cayambe y contribuyes a reducir la brecha digital y económica en el sector rural.
+            </p>
+            <a href="productos.html" class="btn-primary" style="display: inline-block; background: #22c55e; color: white; padding: 12px 25px; border-radius: 8px; text-decoration: none; font-weight: bold;">Ver Productos Locales</a>
+        </section>
+    </main>
+
+    <script src="js/main.js"></script>
+</body>
+</html>

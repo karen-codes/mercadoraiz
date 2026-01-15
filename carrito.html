@@ -1,72 +1,66 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Carrito de compras | Mercado Raíz</title>
-  <meta name="description" content="Carrito de compras de Mercado Raíz. Revisa tus productos y genera órdenes de compra por proveedor vía WhatsApp.">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <link rel="stylesheet" href="css/styles.css">
+    <meta charset="UTF-8">
+    <title>Carrito de compras | Mercado Raíz</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
 
-<!-- ================= HEADER ================= -->
 <header class="header">
-  <div class="logo">Mercado Raíz</div>
-  <nav>
-    <a href="index.html">Inicio</a>
-    <a href="productos.html">Productos</a>
-    <a href="carrito.html" class="active">Carrito</a>
-    <a href="#contacto">Contacto</a>
-  </nav>
+    <div class="logo">Mercado Raíz</div>
+    <nav>
+        <a href="index.html">Inicio</a>
+        <a href="productos.html">Productos</a>
+        <a href="proveedor.html">Proveedores</a>
+        <a href="contacto.html">Contacto</a>
+        <a href="login.html" id="loginLink">Iniciar Sesión</a>
+        <a href="#" id="logoutLink" onclick="cerrarSesion()" style="display:none; color: #ef4444;">Cerrar Sesión</a>
+    </nav>
 </header>
 
-<!-- ================= HERO ================= -->
 <section class="hero hero-small">
-  <h1>🛒 Carrito de compras</h1>
-  <p>
-    Revisa los productos seleccionados. El pedido se enviará directamente
-    a cada proveedor a través de WhatsApp.
-  </p>
+    <h1>🛒 Carrito de compras</h1>
+    <p>Revisa tus productos y finaliza tu pedido para apoyar al comercio justo de Cayambe.</p>
 </section>
 
-<!-- ================= MAIN ================= -->
-<main class="cart-container" id="cartContainer">
-  <!-- Contenido dinámico del carrito -->
+<main class="cart-container" id="cartContainer" style="padding: 20px; min-height: 300px;">
+    <div id="lista-carrito"></div>
 </main>
 
-<!-- ================= ACCIONES ================= -->
-<div class="cart-actions">
-  <a href="productos.html" class="secondary-btn">← Seguir comprando</a>
-  <button onclick="realizarPedido()">Realizar pedido por WhatsApp</button>
+<div class="cart-actions" style="text-align: center; padding: 20px;">
+    <a href="productos.html" class="secondary-btn">← Seguir comprando</a>
+    <button onclick="realizarPedido()" class="btn-primary" style="background: #22c55e; color: white; padding: 15px 30px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">
+        Realizar pedido y Pagar
+    </button>
 </div>
 
-<!-- ================= FOOTER ================= -->
-<footer class="footer" id="contacto">
+<div id="modalPago" class="modal-pago">
+    <div class="modal-content">
+        <h3>Finalizar Pedido</h3>
+        <p>Realiza tu transferencia o escanea el QR de Deuna.</p>
+        <div style="background: #f1f5f9; padding: 20px; margin: 15px 0; border-radius: 8px;">
+            <p><strong>Escanea aquí:</strong></p>
+            <div style="width: 150px; height: 150px; background: #333; color: white; margin: auto; display: flex; align-items: center; justify-content: center;">QR DEUNA</div>
+        </div>
+        <div style="text-align:left; font-size:13px; background:#f8fafc; padding:12px; border: 1px solid #e2e8f0; border-radius:8px;">
+            <strong>Datos Bancarios:</strong><br>
+            Banco Pichincha (Ahorros)<br>
+            Cuenta: 2200XXXXXX<br>
+            A nombre de: Mercado Raíz Cayambe
+        </div>
+        <button onclick="confirmarPedido()" style="margin-top:20px; width: 100%; background:#22c55e; color:white; border:none; padding:12px; border-radius:6px; cursor:pointer;">
+            He realizado el pago
+        </button>
+        <button onclick="cerrarModal()" style="background:none; border:none; color:gray; cursor:pointer; display:block; margin:10px auto;">Cancelar</button>
+    </div>
+</div>
 
-  <div class="footer-column">
-    <h3>Mercado Raíz</h3>
-    <p>
-      Plataforma de comercio justo que conecta productores locales
-      de Cayambe con consumidores responsables.
-    </p>
-  </div>
-
-  <div class="footer-column">
-    <h3>Enlaces rápidos</h3>
-    <a href="index.html">Inicio</a>
-    <a href="productos.html">Productos</a>
-    <a href="carrito.html">Carrito</a>
-    <a href="#contacto">Contacto</a>
-  </div>
-
-  <div class="footer-bottom">
-    © 2026 Mercado Raíz. Todos los derechos reservados.
-  </div>
-
+<footer class="footer">
+    <div class="footer-bottom">© 2026 Mercado Raíz. Cayambe - Ecuador</div>
 </footer>
 
-<!-- ================= SCRIPTS ================= -->
 <script src="js/data.js"></script>
 <script src="js/main.js"></script>
 

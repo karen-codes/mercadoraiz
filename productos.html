@@ -1,133 +1,60 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Productos | Mercado Raíz</title>
-  <meta name="description" content="Explora categorías de productos agrícolas de Cayambe y comunidades cercanas, cultivados por pequeños productores locales.">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <link rel="stylesheet" href="css/styles.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo de Productos | Mercado Raíz</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
+    <header class="header">
+        <div class="logo">Mercado <span>Raíz</span></div>
+        <nav>
+            <a href="index.html">Inicio</a>
+            <a href="productos.html" class="active">Productos</a>
+            <a href="proveedor.html">Proveedores</a>
+            <a href="contacto.html">Contacto</a>
+            <span id="authContainer">
+                <a href="login.html" id="loginLink" class="btn-login">Iniciar Sesión</a>
+                <a href="#" id="logoutLink" onclick="cerrarSesion()" class="btn-logout hidden">Cerrar Sesión</a>
+            </span>
+        </nav>
+    </header>
 
-<!-- ================= HEADER ================= -->
-<header class="header">
-  <div class="logo">Mercado Raíz</div>
-  <nav>
-    <a href="index.html">Inicio</a>
-    <a href="productos.html" class="active">Productos</a>
-    <a href="proveedor.html">Proveedores</a>
-    <a href="#contacto">Contacto</a>
-  </nav>
-</header>
+    <main>
+        <section class="category-header">
+            <h1 id="categoriaTitulo">Nuestra Cosecha</h1>
+            <div class="filter-chips">
+                <button onclick="filtrar('todos')" class="chip active">Todos</button>
+                <button onclick="filtrar('papas')" class="chip">Papas y Tubérculos</button>
+                <button onclick="filtrar('hortalizas')" class="chip">Hortalizas</button>
+                <button onclick="filtrar('frutas')" class="chip">Frutas</button>
+            </div>
+        </section>
 
-<!-- ================= HERO ================= -->
-<section class="hero hero-small">
-  <h1>Nuestros Productos</h1>
-  <p>
-    Explora productos agrícolas cultivados por pequeños productores
-    de Cayambe y comunidades cercanas.
-  </p>
-</section>
+        <div id="productsGrid" class="products-grid">
+            </div>
+    </main>
 
-<!-- ================= MAIN ================= -->
-<main>
+    <footer class="footer">
+        <div class="footer-column">
+            <h3>Mercado Raíz</h3>
+            <p>Productos directos de la tierra de Cayambe a tu mesa, sin intermediarios.</p>
+        </div>
+        <div class="footer-column">
+            <h3>Contacto</h3>
+            <p><i class="fas fa-map-marker-alt"></i> Cayambe, Ecuador</p>
+            <p><i class="fas fa-whatsapp"></i> +593 99 999 9999</p>
+        </div>
+    </footer>
 
-  <!-- CATEGORÍAS -->
-  <section class="products-section" id="categorias">
-    <div class="products-grid">
+    <a href="carrito.html" class="floating-cart">
+        <i class="fas fa-shopping-cart"></i>
+        <span id="cartCount" class="cart-badge hidden">0</span>
+    </a>
 
-      <div class="product-card">
-        <img src="assets/images/tomates.jpg" alt="Tomates frescos de Cayambe">
-        <h3>Tomates</h3>
-        <p>Tomate riñón, cherry y de mesa.</p>
-        <button onclick="verCategoria('tomates')">
-          Ver productos
-        </button>
-      </div>
-
-      <div class="product-card">
-        <img src="assets/images/hortalizas.jpg" alt="Hortalizas frescas">
-        <h3>Hortalizas</h3>
-        <p>Lechuga, brócoli, zanahoria y más.</p>
-        <button onclick="verCategoria('hortalizas')">
-          Ver productos
-        </button>
-      </div>
-
-      <div class="product-card">
-        <img src="assets/images/papas.jpg" alt="Papas de producción local">
-        <h3>Papas</h3>
-        <p>Papas nativas y de mesa.</p>
-        <button onclick="verCategoria('papas')">
-          Ver productos
-        </button>
-      </div>
-
-      <div class="product-card">
-        <img src="assets/images/lacteos.jpg" alt="Productos lácteos artesanales">
-        <h3>Lácteos</h3>
-        <p>Leche, queso y derivados.</p>
-        <button onclick="verCategoria('lacteos')">
-          Ver productos
-        </button>
-      </div>
-
-      <div class="product-card">
-        <img src="assets/images/maiz.jpg" alt="Maíz de productores locales">
-        <h3>Maíz</h3>
-        <p>Maíz suave y seco.</p>
-        <button onclick="verCategoria('maiz')">
-          Ver productos
-        </button>
-      </div>
-
-    </div>
-  </section>
-
-</main>
-
-<!-- ================= FOOTER ================= -->
-<footer class="footer" id="contacto">
-
-  <div class="footer-column">
-    <h3>Mercado Raíz</h3>
-    <p>
-      Plataforma digital orientada al comercio justo,
-      que fortalece la comercialización de productos agrícolas
-      de Cayambe y sus comunidades cercanas.
-    </p>
-  </div>
-
-  <div class="footer-column">
-    <h3>Enlaces rápidos</h3>
-    <a href="index.html">Inicio</a>
-    <a href="productos.html">Productos</a>
-    <a href="proveedor.html">Proveedores</a>
-    <a href="#contacto">Contacto</a>
-  </div>
-
-  <div class="footer-column">
-    <h3>Contacto</h3>
-    <p>📍 Cayambe, Pichincha – Ecuador</p>
-    <p>📞 +593 99 999 9999</p>
-  </div>
-
-  <div class="footer-bottom">
-    © 2026 Mercado Raíz. Todos los derechos reservados.
-  </div>
-
-</footer>
-
-<!-- ================= SCRIPTS ================= -->
-<script src="js/main.js"></script>
-
-<script>
-  function verCategoria(tipo) {
-    window.location.href = `categoria.html?tipo=${tipo}`;
-  }
-</script>
-
+    <script src="js/data.js"></script>
+    <script src="js/main.js"></script>
 </body>
 </html>
-

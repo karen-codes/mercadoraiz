@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración | Mercado Raíz</title>
+    
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <style>
+        /* Ajustes específicos para el Dashboard que no interfieren con la tienda */
+        .admin-body { background: var(--bg-main); display: flex; min-height: 100vh; overflow-x: hidden; }
+        .sidebar-divider { border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 20px 0; }
+        #mapAdmin { height: 300px; width: 100%; border-radius: 8px; margin-top: 10px; border: 2px solid var(--accent-soft); }
+        .modal-pago { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 2000; 
+        }
+        .modal-content { background: white; padding: 30px; border-radius: var(--radius); width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto; }
+    </style>
+</head>
+<body class="admin-body">
+
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2 class="logo">Admin<span>Raíz</span></h2>
+            <p class="admin-role">Gestor de Cayambe</p>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <a onclick="cargarSeccion('dashboard')" id="link-dashboard" class="active">
+                <i class="fas fa-chart-line"></i> Dashboard Alcance
+            </a>
+            <a onclick="cargarSeccion('productos')" id="link-productos">
+                <i class="fas fa-box"></i> Inventario Productos
+            </a>
+            <a onclick="cargarSeccion('proveedores')" id="link-proveedores">
+                <i class="fas fa-tractor"></i> Red de Proveedores
+            </a>
+            <a onclick="cargarSeccion('usuarios')" id="link-usuarios">
+                <i class="fas fa-users"></i> Base de Clientes
+            </a>
+            <a onclick="cargarSeccion('pedidos')" id="link-pedidos">
+                <i class="fas fa-shopping-basket"></i> Pedidos y Pagos
+            </a>
+            <a onclick="cargarSeccion('mensajes')" id="link-mensajes">
+                <i class="fas fa-envelope"></i> Mensajería
+            </a>
+            
+            <hr class="sidebar-divider">
+            
+            <a href="index.html" class="link-back">
+                <i class="fas fa-store"></i> Ver Tienda Pública
+            </a>
+            <a onclick="cerrarSesion()" class="btn-logout-admin">
+                <i class="fas fa-power-off"></i> Cerrar Sesión
+            </a>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <header class="header-admin">
+            <div class="welcome-text">
+                <h1 id="seccion-titulo">Cargando Panel...</h1>
+                <p id="fecha-actual" class="text-muted"></p>
+            </div>
+            <button id="btn-accion-principal" class="btn-primary-admin" onclick="abrirModal()">
+                <i class="fas fa-plus-circle"></i> Nuevo Registro
+            </button>
+        </header>
+        
+        <section id="tabla-contenedor" class="card admin-card-container">
+            </section>
+    </main>
+
+    <div id="modalRegistro" class="modal-pago">
+        <div class="modal-content glass-card">
+            <h2 id="modalTitulo" class="section-title">Detalles del Registro</h2>
+            <form id="formRegistro" class="admin-form">
+                <div id="camposDinamicos">
+                    </div>
+                
+                <div id="areaMultimedia" class="multimedia-section">
+                    <div class="form-group">
+                        <label id="labelMultimedia">Imagen Principal:</label>
+                        <input type="file" id="fileInput" accept="image/*" class="admin-input">
+                    </div>
+                    <div id="campoVideo" class="hidden form-group">
+                        <label>Video Promocional (Link YouTube):</label>
+                        <input type="text" id="videoInput" placeholder="https://youtube.com/..." class="admin-input">
+                    </div>
+                </div>
+
+                <div id="mapArea" class="hidden form-group">
+                    <label>Ubicación Geográfica:</label>
+                    <div id="mapAdmin"></div>
+                    <input type="hidden" id="reg_coords">
+                </div>
+
+                <div class="modal-actions">
+                    <button type="submit" class="btn-save">
+                        <i class="fas fa-check"></i> Guardar Cambios
+                    </button>
+                    <button type="button" onclick="cerrarModal()" class="btn-cancel">
+                        Cancelar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/main.js"></script>
+    
+    <script>
+        const sesion = JSON.parse(localStorage.getItem('sesionActiva'));
+        if (!sesion || sesion.rol !== 'admin') {
+            alert("Acceso restringido a administradores.");
+            window.location.href = 'index.html';
+        }
+        document.getElementById('fecha-actual').innerText = new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    </script>
+
+    <script src="js/admin.js"></script>
+</body>
+</html>

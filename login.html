@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceso | Mercado Raíz</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="admin-body"> <div class="card auth-container"> <h2 id="authTitle">Iniciar Sesión</h2>
+        
+        <form id="loginForm">
+            <div id="groupNombre" class="form-group hidden">
+                <label for="nombre">Nombre Completo</label>
+                <input type="text" id="nombre" class="admin-input">
+            </div>
+
+            <div class="form-group">
+                <label for="email">Correo Electrónico</label>
+                <input type="email" id="email" class="admin-input" required>
+            </div>
+
+            <div class="form-group">
+                <label for="pass">Contraseña</label>
+                <input type="password" id="pass" class="admin-input" required>
+            </div>
+
+            <button type="submit" id="btnSubmit" class="btn-primary-admin">
+                Ingresar
+            </button>
+        </form>
+
+        <p class="auth-switch">
+            <span id="toggleText">¿No tienes cuenta?</span> 
+            <a href="#" onclick="toggleAuth()" id="toggleLink">Regístrate aquí</a>
+        </p>
+        
+        <div class="auth-back">
+            <a href="index.html">← Volver a la tienda</a>
+        </div>
+    </div>
+
+    <script src="js/data.js"></script>
+    <script>
+        const loginForm = document.getElementById('loginForm');
+        const authTitle = document.getElementById('authTitle');
+        const groupNombre = document.getElementById('groupNombre');
+        const btnSubmit = document.getElementById('btnSubmit');
+        const toggleText = document.getElementById('toggleText');
+        const toggleLink = document.getElementById('toggleLink');
+        
+        let isLogin = true;
+
+        function toggleAuth() {
+            isLogin = !isLogin;
+            authTitle.innerText = isLogin ? "Iniciar Sesión" : "Crear Cuenta";
+            btnSubmit.innerText = isLogin ? "Ingresar" : "Registrarse";
+            toggleText.innerText = isLogin ? "¿No tienes cuenta?" : "¿Ya tienes cuenta?";
+            toggleLink.innerText = isLogin ? "Regístrate aquí" : "Inicia sesión";
+            
+            groupNombre.classList.toggle('hidden', isLogin);
+            document.getElementById('nombre').required = !isLogin;
+        }
+
+        loginForm.onsubmit = function(e) {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const pass = document.getElementById('pass').value;
+            const nombre = document.getElementById('nombre').value;
+            
+            const usuarios = JSON.parse(localStorage.getItem('usuarios')) || [];
+
+            if (isLogin) {
+                const usuarioEncontrado = usuarios.find(u => u.email === email && u.password === pass);
+                if (usuarioEncontrado) {
+                    localStorage.setItem('sesionActiva', JSON.stringify(usuarioEncontrado));
+                    window.location.href = (usuarioEncontrado.rol === 'admin') ? 'admin.html' : 'index.html';
+                } else {
+                    alert('Correo o contraseña incorrectos');
+                }
+            } else {
+                if (usuarios.find(u => u.email === email)) {
+                    alert('Este correo ya está registrado');
+                    return;
+                }
+                usuarios.push({ id: Date.now(), nombre, email, password: pass, rol: "cliente" });
+                localStorage.setItem('usuarios', JSON.stringify(usuarios));
+                alert('¡Cuenta creada con éxito!');
+                toggleAuth();
+            }
+        };
+    </script>
+</body>
+</html>

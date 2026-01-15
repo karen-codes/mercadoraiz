@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Contacto | Mercado Raíz</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <header class="header">
+        <h1>Mercado Raíz</h1>
+        <nav>
+            <a href="index.html">Inicio</a>
+            <a href="productos.html">Productos</a>
+            <a href="proveedor.html">Proveedores</a>
+            <a href="contacto.html" class="active">Contacto</a>
+            <a href="login.html" id="loginLink">Iniciar Sesión</a>
+            <a href="#" id="logoutLink" onclick="cerrarSesion()" style="display:none; color: #ef4444;">Cerrar Sesión</a>
+        </nav>
+    </header>
+
+    <section class="container" style="padding: 50px 20px; max-width: 800px; margin: auto;">
+        <h2 style="text-align: center; color: #0f172a;">Formulario de Contacto</h2>
+        <p style="text-align: center; color: #64748b; margin-bottom: 30px;">
+            ¿Tienes alguna duda o reclamo? Tu opinión nos ayuda a mejorar el comercio justo en Cayambe.
+        </p>
+
+        <div class="card" style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <form id="contactForm">
+                <div style="margin-bottom: 15px;">
+                    <label>Nombre Completo</label>
+                    <input type="text" id="nombreMsg" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <label>Correo Electrónico</label>
+                    <input type="email" id="correoMsg" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <label>Asunto</label>
+                    <select id="asuntoMsg" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
+                        <option value="Consulta">Consulta General</option>
+                        <option value="Reclamo">Reclamo</option>
+                        <option value="Agradecer">Agradecer</option>
+                    </select>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <label>Mensaje</label>
+                    <textarea id="mensajeBody" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; height: 120px;"></textarea>
+                </div>
+
+                <button type="submit" style="width: 100%; padding: 12px; background: #22c55e; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">
+                    Enviar Mensaje
+                </button>
+            </form>
+        </div>
+    </section>
+
+    <script src="js/main.js"></script>
+    <script>
+        document.getElementById('contactForm').onsubmit = function(e) {
+            e.preventDefault();
+            
+            // 1. Obtener mensajes actuales o crear lista vacía
+            const mensajes = JSON.parse(localStorage.getItem('mensajes')) || [];
+            
+            // 2. Crear el nuevo mensaje (siguiendo el formato de tu PDF)
+            const nuevoMensaje = {
+                id: mensajes.length + 1,
+                nombre: document.getElementById('nombreMsg').value,
+                correo: document.getElementById('correoMsg').value,
+                asunto: document.getElementById('asuntoMsg').value,
+                mensaje: document.getElementById('mensajeBody').value,
+                fecha: new Date().toISOString().split('T')[0] // Guarda YYYY-MM-DD
+            };
+
+            // 3. Guardar en LocalStorage
+            mensajes.push(nuevoMensaje);
+            localStorage.setItem('mensajes', JSON.stringify(mensajes));
+
+            alert('¡Gracias! Tu mensaje ha sido enviado al administrador.');
+            this.reset();
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+function renderizarUsuarios(cont) {
+    const usuarios = JSON.parse(localStorage.getItem('usuarios_registrados')) || [];
+    let html = `<table class="admin-table">
+        <thead>
+            <tr>
+                <th>NOMBRE</th>
+                <th>CORREO ELECTRÓNICO</th>
+                <th>FECHA DE REGISTRO</th>
+            </tr>
+        </thead>
+        <tbody>`;
+
+    usuarios.forEach(u => {
+        // Nota: La propiedad u.password existe en el objeto pero NO se muestra aquí
+        html += `<tr>
+            <td>${u.nombre}</td>
+            <td>${u.email}</td>
+            <td>${u.fecha}</td>
+        </tr>`;
+    });
+    cont.innerHTML = html + "</tbody></table>";
+}
