@@ -2,7 +2,6 @@
  * CONFIGURACIÓN DE ESTADO GLOBAL
  ***********************************/
 let carrito = JSON.parse(localStorage.getItem('carrito')) || [];
-// Priorizamos datos de localStorage; si no existen, se cargarán de data.js (si está incluido)
 const productos = JSON.parse(localStorage.getItem('productos')) || [];
 const proveedores = JSON.parse(localStorage.getItem('proveedores')) || [];
 
@@ -11,11 +10,10 @@ document.addEventListener("DOMContentLoaded", () => {
     actualizarContadorCarrito();
 
     // Enrutador de funciones por ID
-    if (document.getElementById("carrusel-container")) renderizarCarrusel();
+    // Cambiamos "productsGrid" por la nueva lógica de renderizado
     if (document.getElementById("productsGrid")) renderizarPaginaCategoria();
     if (document.getElementById("cartContainer")) mostrarCarrito();
     
-    // Inicializar formularios de contacto si existen
     setupFormulariosContacto();
 });
 
@@ -46,7 +44,7 @@ function cerrarSesion() {
 }
 
 /***********************************
- * RENDERIZADO DE PRODUCTOS Y FILTROS
+ * RENDERIZADO DE PRODUCTOS (3 COLUMNAS)
  ***********************************/
 function renderizarPaginaCategoria(filtro = 'todos') {
     const grid = document.getElementById("productsGrid");
@@ -56,31 +54,147 @@ function renderizarPaginaCategoria(filtro = 'todos') {
         ? productos 
         : productos.filter(p => p.categoria === filtro);
 
-    grid.innerHTML = productosFiltrados.map(p => `
-        <div class="product-card glass-card">
-            <div class="product-badge">${p.stock > 0 ? 'Disponible' : 'Agotado'}</div>
-            <img src="${p.imagen}" alt="${p.nombre}">
-            <div class="product-info">
-                <h3>${p.nombre}</h3>
-                <p class="price">$${p.precio.toFixed(2)} / ${p.unidad}</p>
-                <button class="btn-add" onclick="agregarCarrito(${p.id})" ${p.stock <= 0 ? 'disabled' : ''}>
-                    ${p.stock > 0 ? '<i class="fas fa-cart-plus"></i> Agregar' : 'Agotado'}
-                </button>
+    grid.innerHTML = productosFiltrados.map(p => {
+        // Buscamos el nombre del proveedor para mostrarlo en la tarjeta
+        const prov = proveedores.find(pr => pr.id === p.proveedorId);
+        const nombreHacienda = prov ? prov.nombre : "Productor Local";
+
+        return `
+        <div class="product-card-v2 glass-card">
+            <div class="product-image">
+                <div class="product-badge ${p.stock > 0 ? 'bg-verde' : 'bg-rojo'}">
+                    ${p.stock > 0 ? 'Disponible' : 'Agotado'}
+                </div>
+                <img src="${p.imagen}" alt="${p.nombre}">
+            </div>
+            
+            <div class="product-content">
+                <h3 class="product-title">${p.nombre}</h3>
+                <p class="product-provider"><i class="fas fa-leaf"></i> ${nombreHacienda}</p>
+                <p class="product-description">${p.descripcion || 'Producto fresco de Cayambe, cultivado con procesos orgánicos.'}</p>
+                
+                <div class="product-footer">
+                    <span class="product-price">$${p.precio.toFixed(2)} / ${p.unidad}</span>
+                    
+                    <div class="purchase-controls">
+                        <div class="quantity-counter">
+                            <button onclick="cambiarCant(${p.id}, -1)">-</button>
+                            <input type="number" id="qty-${p.id}" value="1" min="1" max="${p.stock}" readonly>
+                            <button onclick="cambiarCant(${p.id}, 1)">+</button>
+                        </div>
+                        <button class="btn-add-cart" onclick="procesarCompra(${p.id})" ${p.stock <= 0 ? 'disabled' : ''}>
+                            ${p.stock > 0 ? '<i class="fas fa-shopping-basket"></i> Agregar' : 'Agotado'}
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
-    `).join('');
+    `}).join('');
 }
 
-// Función vinculada a los botones 'chip' de productos.html
+// Lógica para el contador +/- 
+function cambiarCant(id, delta) {
+    const input = document.getElementById(`qty-${id}`);
+    const producto = productos.find(p => p.id === id);
+    let nuevoValor = parseInt(input.value) + delta;
+    
+    // Validar que no sea menor a 1 ni mayor al stock
+    if (nuevoValor < 1) nuevoValor = 1;
+    if (producto && nuevoValor > producto.stock) {
+        alert("Cantidad máxima alcanzada según stock disponible.");
+        nuevoValor = producto.stock;
+    }
+    
+    input.value = nuevoValor;
+}
+
 function filtrar(categoria) {
-    // Actualizar estilo visual de botones
     document.querySelectorAll('.chip').forEach(btn => btn.classList.remove('active'));
-    event.target.classList.add('active');
+    if (event) event.target.classList.add('active');
     renderizarPaginaCategoria(categoria);
 }
 
 /***********************************
- * LÓGICA DE CONTACTO (Doble Formulario)
+ * CARRITO E INVENTARIO
+ ***********************************/
+function procesarCompra(id) {
+    const cantidadSeleccionada = parseInt(document.getElementById(`qty-${id}`).value);
+    agregarCarrito(id, cantidadSeleccionada);
+}
+
+function agregarCarrito(id, cantidad = 1) {
+    const producto = productos.find(p => p.id === id);
+    if (!producto || producto.stock <= 0) return alert("Sin stock disponible.");
+
+    const itemEnCarrito = carrito.find(item => item.id === id);
+    
+    if (itemEnCarrito) {
+        if ((itemEnCarrito.cantidad + cantidad) <= producto.stock) {
+            itemEnCarrito.cantidad += cantidad;
+        } else {
+            return alert("No puedes agregar más de lo que hay en stock.");
+        }
+    } else {
+        carrito.push({ ...producto, cantidad: cantidad });
+    }
+
+    guardarCarrito();
+    actualizarContadorCarrito();
+    alert(`¡Agregado! ${cantidad} unidad(es) de ${producto.nombre}.`);
+}
+
+function guardarCarrito() {
+    localStorage.setItem('carrito', JSON.stringify(carrito));
+}
+
+function actualizarContadorCarrito() {
+    const contador = document.getElementById("cartCount");
+    if (!contador) return;
+    const totalItems = carrito.reduce((sum, item) => sum + item.cantidad, 0);
+    contador.innerText = totalItems;
+    totalItems > 0 ? contador.classList.remove('hidden') : contador.classList.add('hidden');
+}
+
+/***********************************
+ * FINALIZAR PEDIDO
+ ***********************************/
+function confirmarPedido() {
+    const sesion = JSON.parse(localStorage.getItem('sesionActiva'));
+    if (!sesion) {
+        alert("Inicia sesión para finalizar.");
+        window.location.href = 'login.html';
+        return;
+    }
+
+    if (carrito.length === 0) return;
+
+    // Actualizar stock real en el arreglo global
+    carrito.forEach(item => {
+        const pIdx = productos.findIndex(p => p.id === item.id);
+        if (pIdx !== -1) productos[pIdx].stock -= item.cantidad;
+    });
+
+    localStorage.setItem("productos", JSON.stringify(productos));
+
+    // Registrar pedido
+    const pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
+    pedidos.push({
+        id: Date.now(),
+        cliente: sesion.nombre,
+        total: carrito.reduce((acc, p) => acc + (p.precio * p.cantidad), 0),
+        estado: "Pendiente",
+        fecha: new Date().toLocaleString()
+    });
+    localStorage.setItem('pedidos', JSON.stringify(pedidos));
+
+    alert("Pedido procesado con éxito.");
+    carrito = [];
+    guardarCarrito();
+    window.location.href = 'index.html';
+}
+
+/***********************************
+ * CONTACTO Y OTROS
  ***********************************/
 function setupFormulariosContacto() {
     const fCliente = document.getElementById('formCliente');
@@ -122,73 +236,5 @@ function guardarMensaje(tipo, datos) {
         leido: false
     });
     localStorage.setItem('mensajesAdmin', JSON.stringify(mensajes));
-    alert(`¡Gracias! Tu mensaje como ${tipo} ha sido enviado al equipo de Mercado Raíz.`);
-}
-
-/***********************************
- * CARRITO E INVENTARIO
- ***********************************/
-function agregarCarrito(id) {
-    const producto = productos.find(p => p.id === id);
-    if (!producto || producto.stock <= 0) return alert("Sin stock disponible.");
-
-    const itemEnCarrito = carrito.find(item => item.id === id);
-    if (itemEnCarrito) {
-        if (itemEnCarrito.cantidad < producto.stock) {
-            itemEnCarrito.cantidad++;
-        } else {
-            return alert("No hay más stock disponible de este productor.");
-        }
-    } else {
-        carrito.push({ ...producto, cantidad: 1 });
-    }
-
-    guardarCarrito();
-    actualizarContadorCarrito();
-}
-
-function guardarCarrito() {
-    localStorage.setItem('carrito', JSON.stringify(carrito));
-}
-
-function actualizarContadorCarrito() {
-    const contador = document.getElementById("cartCount");
-    if (!contador) return;
-    const totalItems = carrito.reduce((sum, item) => sum + item.cantidad, 0);
-    contador.innerText = totalItems;
-    totalItems > 0 ? contador.classList.remove('hidden') : contador.classList.add('hidden');
-}
-
-function confirmarPedido() {
-    const sesion = JSON.parse(localStorage.getItem('sesionActiva'));
-    if (!sesion) {
-        alert("Inicia sesión para finalizar.");
-        window.location.href = 'login.html';
-        return;
-    }
-
-    if (carrito.length === 0) return;
-
-    // Actualizar stock real
-    carrito.forEach(item => {
-        const pIdx = productos.findIndex(p => p.id === item.id);
-        if (pIdx !== -1) productos[pIdx].stock -= item.cantidad;
-    });
-
-    localStorage.setItem("productos", JSON.stringify(productos));
-
-    // Registrar en pedidos
-    const pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
-    pedidos.push({
-        id: Date.now(),
-        cliente: sesion.nombre,
-        total: carrito.reduce((acc, p) => acc + (p.precio * p.cantidad), 0),
-        estado: "Pendiente"
-    });
-    localStorage.setItem('pedidos', JSON.stringify(pedidos));
-
-    alert("Pedido procesado con éxito.");
-    carrito = [];
-    guardarCarrito();
-    window.location.href = 'index.html';
+    alert(`Tu mensaje ha sido enviado.`);
 }

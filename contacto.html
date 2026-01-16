@@ -15,6 +15,10 @@
             <a href="productos.html">Productos</a>
             <a href="proveedor.html">Proveedores</a>
             <a href="contacto.html" class="active">Contacto</a>
+            <span id="authContainer">
+                <a href="login.html" id="loginLink" class="btn-login">Iniciar Sesión</a>
+                <a href="#" id="logoutLink" onclick="cerrarSesion()" class="btn-logout" style="display:none;">Cerrar Sesión</a>
+            </span>
         </nav>
     </header>
 
@@ -54,8 +58,46 @@
         </section>
     </main>
 
-    <footer class="footer">
-        <div class="footer-bottom">© 2026 Mercado Raíz - Directo del campo</div>
-    </footer>
+    <footer class="main-footer">
+    <div class="newsletter-section">
+        <h2>Suscríbete a Nuestro Boletín</h2>
+        <p>¡Obtén un descuento del 10% en tu primera compra! Recibe noticias y ofertas directamente en tu correo.</p>
+        <form class="newsletter-form">
+            <input type="email" placeholder="tu@email.com" required>
+            <button type="submit">Registrarse</button>
+        </form>
+        <p class="privacy-note">Respetamos tu privacidad. Nunca compartiremos tu información.</p>
+    </div>
+
+    <div class="footer-content">
+        <div class="footer-column brand-col">
+            <h3>Mercado Raíz</h3>
+            <p>Conectando productores locales con consumidores conscientes. Productos frescos, locales y de calidad para tu familia.</p>
+            <div class="social-links">
+                <a href="#"><i class="fab fa-facebook-f"></i></a>
+                <a href="#"><i class="fab fa-instagram"></i></a>
+                <a href="#"><i class="fab fa-twitter"></i></a>
+            </div>
+        </div>
+        <div class="footer-column">
+            <h3>Enlaces Rápidos</h3>
+            <ul>
+                <li><a href="index.html">Inicio</a></li>
+                <li><a href="productos.html">Productos</a></li>
+                <li><a href="proveedores.html">Proveedores</a></li>
+                <li><a href="contacto.html">Contacto</a></li>
+            </ul>
+        </div>
+        <div class="footer-column">
+            <h3>Información de Contacto</h3>
+            <p><i class="fas fa-map-marker-alt"></i> Calle Principal 123, Cayambe, Ecuador</p>
+            <p><i class="fas fa-phone"></i> +593 99 999 9999</p>
+            <p><i class="fas fa-clock"></i> Lun - Sáb: 8:00 AM - 6:00 PM</p>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <p>&copy; 2026 Mercado Raíz. Todos los derechos reservados.</p>
+    </div>
+</footer>
 </body>
 </html>

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración | Mercado Raíz</title>
+    
+    <link rel="stylesheet" href="css/admin.styles.css">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="admin-layout">
+
+    <aside class="admin-sidebar">
+        <div class="logo-container">
+            <h2>Mercado<span>Raíz</span></h2>
+            <p>Panel de Gestión</p>
+        </div>
+        
+        <nav class="admin-nav">
+            <a href="admin.html">
+                <i class="fas fa-chart-line"></i> Dashboard
+            </a>
+            <a href="admin_usuarios.html" class="active">
+                <i class="fas fa-users"></i> Clientes
+            </a>
+            <a href="proveedor.html">
+                <i class="fas fa-tractor"></i> Proveedores
+            </a>
+            <a href="productos.html">
+                <i class="fas fa-box-open"></i> Inventario
+            </a>
+            <div class="nav-divider"></div>
+            <a href="index.html">
+                <i class="fas fa-store"></i> Ver Tienda
+            </a>
+            <a href="#" id="btnLogout">
+                <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+            </a>
+        </nav>
+    </aside>
+
+    <main class="admin-main">
+        <header class="dashboard-header">
+            <div>
+                <h1>Gestión de Clientes</h1>
+                <p id="currentDate">jueves, 15 de enero de 2026</p>
+            </div>
+            
+            <div class="header-actions">
+                <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="userSearch" placeholder="Buscar por nombre o correo...">
+                </div>
+            </div>
+        </header>
+
+        <div id="usuarios-container">
+            </div>
+    </main>
+
+    <script src="js/data.js"></script>
+    <script src="js/admin.js"></script>
+    
+    <script>
+        // Pequeña lógica para el buscador en tiempo real
+        document.getElementById('userSearch')?.addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const filas = document.querySelectorAll('.admin-table tbody tr');
+            
+            filas.forEach(fila => {
+                const texto = fila.innerText.toLowerCase();
+                fila.style.display = texto.includes(term) ? '' : 'none';
+            });
+        });
+    </script>
+</body>
+</html>

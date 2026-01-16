@@ -1,0 +1,113 @@
+/* ==========================================================================
+   ESTILOS ADMINISTRADOR - MERCADO RAÍZ (PALETA PROFESIONAL)
+   ========================================================================== */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Outfit:wght@700;800&display=swap');
+
+:root {
+    --admin-bg-side: #5C5632;     /* Oliva principal */
+    --admin-accent: #AE6E24;      /* Terracota para botones */
+    --admin-soft: #766F46;        /* Musgo para hovers */
+    --admin-light: #f8f6f2;
+    --admin-text: #2d2a1e;
+    --white: #ffffff;
+    --glass: rgba(255, 255, 255, 0.94);
+}
+
+.admin-layout {
+    display: flex;
+    min-height: 100vh;
+    background-color: var(--admin-light);
+}
+
+/* --- SIDEBAR --- */
+.admin-sidebar {
+    width: 280px;
+    background: linear-gradient(180deg, var(--admin-bg-side), #3d3a22);
+    color: var(--white);
+    padding: 40px 20px;
+    position: fixed;
+    height: 100vh;
+}
+
+.admin-sidebar h2 span { color: var(--admin-accent); }
+
+.admin-nav a {
+    color: rgba(255,255,255,0.7);
+    padding: 14px 18px;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-radius: 12px;
+    margin-bottom: 8px;
+    transition: 0.3s;
+}
+
+.admin-nav a:hover, .admin-nav a.active {
+    background: var(--admin-soft);
+    color: var(--white);
+}
+
+/* --- ÁREA PRINCIPAL --- */
+.admin-main {
+    flex: 1;
+    margin-left: 280px;
+    padding: 40px;
+}
+
+.admin-card {
+    background: var(--glass);
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 15px 35px rgba(92, 86, 50, 0.08);
+    border: 1px solid rgba(204, 184, 146, 0.4);
+}
+
+/* --- BOTONES Y ACCIONES --- */
+.btn-nuevo {
+    background: var(--admin-accent);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 10px;
+    border: none;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(174, 110, 36, 0.3);
+}
+
+.btn-nuevo:hover { background: #8e5a1e; }
+
+/* --- TABLAS (Gestión de Usuarios/Proveedores) --- */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+th {
+    text-align: left;
+    padding: 15px;
+    color: var(--admin-bg-side);
+    border-bottom: 2px solid var(--admin-accent);
+    font-size: 0.85rem;
+    letter-spacing: 1px;
+}
+
+td {
+    padding: 18px 15px;
+    border-bottom: 1px solid rgba(204, 184, 146, 0.2);
+}
+
+/* BOTONES DE OPERACIONES (EDITAR/ELIMINAR) */
+.btn-edit { color: var(--admin-soft); background: #f1f3e9; border: none; padding: 8px; border-radius: 6px; cursor: pointer; }
+.btn-delete { color: #c0392b; background: #fdecea; border: none; padding: 8px; border-radius: 6px; cursor: pointer; }
+
+/* --- BADGES DE ESTADO --- */
+.status {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+.status-pendiente { background: #fef3c7; color: #92400e; }
+.status-completado { background: #d1fae5; color: #065f46; }

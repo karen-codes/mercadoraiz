@@ -11,19 +11,16 @@ function cargarSeccion(seccion) {
     const titulo = document.getElementById('seccion-titulo');
     const btnAccion = document.getElementById('btn-accion-principal');
 
-    // Resetear clases de navegación
     document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
     const linkActivo = document.getElementById(`link-${seccion}`);
     if (linkActivo) linkActivo.classList.add('active');
 
     titulo.innerText = seccion.toUpperCase();
     
-    // Mostrar/Ocultar botón de registro según sección
     if(btnAccion) {
         btnAccion.style.display = (seccion === 'productos' || seccion === 'proveedores') ? 'block' : 'none';
     }
 
-    // Enrutador de Renderizado
     switch(seccion) {
         case 'dashboard': renderizarDashboard(contenedor); break;
         case 'productos': renderizarTablaProductos(contenedor); break;
@@ -33,7 +30,7 @@ function cargarSeccion(seccion) {
     }
 }
 
-// 2. TABLA DE PRODUCTOS + ALERTAS
+// 2. TABLA DE PRODUCTOS
 function renderizarTablaProductos(cnt) {
     const productosDB = JSON.parse(localStorage.getItem("productos")) || [];
     
@@ -53,8 +50,8 @@ function renderizarTablaProductos(cnt) {
                     const bajoStock = p.stock < 5; 
                     return `
                     <tr class="${bajoStock ? 'fila-alerta' : ''}">
-                        <td><img src="${p.imagen}" class="img-mini" width="40"></td>
-                        <td><strong>${p.nombre}</strong></td>
+                        <td><img src="${p.imagen}" class="img-mini" width="40" style="border-radius:5px;"></td>
+                        <td><strong>${p.nombre}</strong><br><small class="text-muted">${p.descripcion || ''}</small></td>
                         <td class="${bajoStock ? 'stock-critico' : ''}">
                             ${p.stock} ${p.unidad || 'lb'} ${bajoStock ? '⚠️' : ''}
                         </td>
@@ -92,8 +89,7 @@ function renderizarTablaProveedores(cnt) {
                         <td>${prov.comunidad}</td>
                         <td><a href="https://wa.me/${prov.whatsapp}" target="_blank" class="link-wa">${prov.whatsapp}</a></td>
                         <td>
-                            <span class="badge-tech">${prov.video ? '🎥 Video' : ''}</span>
-                            <span class="badge-tech">${prov.imagen ? '🖼️ Foto' : ''}</span>
+                            <span class="badge-tech">${prov.video ? '📁 ' + prov.video : '❌ Sin Video'}</span>
                         </td>
                         <td>
                             <button onclick="eliminarRegistro('proveedores', ${prov.id})" class="btn-delete">
@@ -106,7 +102,7 @@ function renderizarTablaProveedores(cnt) {
         </table>`;
 }
 
-// 4. RENDERIZAR DASHBOARD (Métricas rápidas)
+// 4. DASHBOARD
 function renderizarDashboard(cnt) {
     const productos = JSON.parse(localStorage.getItem("productos")) || [];
     const pedidos = JSON.parse(localStorage.getItem("pedidos")) || [];
@@ -134,14 +130,13 @@ function renderizarDashboard(cnt) {
     `;
 }
 
-// 5. RENDERIZAR PEDIDOS
+// 5. TABLA DE PEDIDOS
 function renderizarTablaPedidos(cnt) {
     const pedidos = JSON.parse(localStorage.getItem("pedidos")) || [];
     if(pedidos.length === 0) {
         cnt.innerHTML = `<div class="card"><p>No hay pedidos registrados aún.</p></div>`;
         return;
     }
-
     cnt.innerHTML = `
         <table class="admin-table">
             <thead>
@@ -167,14 +162,13 @@ function renderizarTablaPedidos(cnt) {
         </table>`;
 }
 
-// 6. MODAL DINÁMICO (PREPARAR FORMULARIO)
+// 6. MODAL DINÁMICO
 function abrirModal() {
     const campos = document.getElementById('camposDinamicos');
     const modal = document.getElementById('modalRegistro');
     const titulo = document.getElementById('modalTitulo');
     
     if(!modal) return;
-
     modal.style.display = 'flex';
     titulo.innerText = `Registrar ${seccionActual === 'productos' ? 'Producto' : 'Proveedor'}`;
 
@@ -184,6 +178,10 @@ function abrirModal() {
             <div class="form-group">
                 <label>Nombre del Producto</label>
                 <input type="text" id="reg_nombre" class="admin-input" required>
+            </div>
+            <div class="form-group">
+                <label>Descripción del Producto</label>
+                <textarea id="reg_desc" class="admin-input" rows="2" placeholder="Ej: Tomates orgánicos cultivados con métodos tradicionales."></textarea>
             </div>
             <div class="form-grid" style="display:flex; gap:10px;">
                 <div class="form-group" style="flex:1;">
@@ -204,18 +202,50 @@ function abrirModal() {
         `;
     } else {
         campos.innerHTML = `
-            <div class="form-group"><label>Nombre / Hacienda</label><input type="text" id="reg_nombre_prov" class="admin-input" required></div>
-            <div class="form-group"><label>Comunidad</label><input type="text" id="reg_comunidad" class="admin-input" required></div>
-            <div class="form-group"><label>WhatsApp</label><input type="text" id="reg_ws" class="admin-input" required placeholder="593..."></div>
+            <div class="form-group">
+                <label>Nombre de la Hacienda / Productor</label>
+                <input type="text" id="reg_nombre_prov" class="admin-input" required>
+            </div>
+            <div class="form-grid" style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div class="form-group">
+                    <label>Comunidad</label>
+                    <input type="text" id="reg_comunidad" class="admin-input" required>
+                </div>
+                <div class="form-group">
+                    <label>WhatsApp (Sin +)</label>
+                    <input type="text" id="reg_ws" class="admin-input" required>
+                </div>
+            </div>
+            <div class="form-grid" style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div class="form-group">
+                    <label>Latitud</label>
+                    <input type="number" step="any" id="reg_lat" class="admin-input" value="-0.04">
+                </div>
+                <div class="form-group">
+                    <label>Longitud</label>
+                    <input type="number" step="any" id="reg_lng" class="admin-input" value="-78.14">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Historia (Descripción del perfil)</label>
+                <textarea id="reg_historia" class="admin-input" rows="3"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Nombre del archivo de Video (en assets/videos/)</label>
+                <input type="text" id="reg_video_file" class="admin-input" placeholder="ejemplo: finca.mp4">
+            </div>
+            <div class="form-group">
+                <label>Horario de Atención</label>
+                <input type="text" id="reg_horario" class="admin-input" placeholder="08:00 - 17:00">
+            </div>
+            <div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid #eee;">
+                <button type="button" onclick="previsualizarPerfil()" class="btn-primary-admin" style="background:#444;">
+                    <i class="fas fa-eye"></i> Previsualizar
+                </button>
+            </div>
+            <div id="preview-container" class="hidden" style="margin-top:15px; background:#f0f0f0; padding:10px; border-radius:8px;"></div>
         `;
     }
-}
-
-function cerrarModal() {
-    const modal = document.getElementById('modalRegistro');
-    if(modal) modal.style.display = 'none';
-    const form = document.getElementById('formRegistro');
-    if(form) form.reset();
 }
 
 // 7. GUARDAR DATOS
@@ -229,6 +259,7 @@ if(formRegistro) {
             db.push({
                 id: Date.now(),
                 nombre: document.getElementById('reg_nombre').value,
+                descripcion: document.getElementById('reg_desc').value,
                 precio: parseFloat(document.getElementById('reg_precio').value),
                 stock: parseInt(document.getElementById('reg_stock').value),
                 unidad: "lb",
@@ -243,6 +274,11 @@ if(formRegistro) {
                 nombre: document.getElementById('reg_nombre_prov').value,
                 comunidad: document.getElementById('reg_comunidad').value,
                 whatsapp: document.getElementById('reg_ws').value,
+                lat: parseFloat(document.getElementById('reg_lat').value),
+                lng: parseFloat(document.getElementById('reg_lng').value),
+                historia: document.getElementById('reg_historia').value,
+                video: document.getElementById('reg_video_file').value,
+                horario: document.getElementById('reg_horario').value,
                 imagen: 'assets/images/proveedores/default.jpg'
             });
             localStorage.setItem("proveedores", JSON.stringify(db));
@@ -253,7 +289,12 @@ if(formRegistro) {
     };
 }
 
-// 8. ELIMINAR REGISTRO
+// 8. ELIMINAR Y CERRAR
+function cerrarModal() {
+    const modal = document.getElementById('modalRegistro');
+    if(modal) modal.style.display = 'none';
+}
+
 function eliminarRegistro(tipo, id) {
     if (confirm("¿Está seguro de eliminar este registro?")) {
         let db = JSON.parse(localStorage.getItem(tipo));
@@ -263,7 +304,25 @@ function eliminarRegistro(tipo, id) {
     }
 }
 
-// Inicialización automática
+function previsualizarPerfil() {
+    const nombre = document.getElementById('reg_nombre_prov').value;
+    const historia = document.getElementById('reg_historia').value;
+    const videoFile = document.getElementById('reg_video_file').value;
+    const previewArea = document.getElementById('preview-container');
+
+    if (!nombre) return alert("Por favor, ingresa el nombre.");
+
+    previewArea.classList.remove('hidden');
+    previewArea.innerHTML = `
+        <p><strong>Vista Previa:</strong></p>
+        <p><small>${nombre}</small></p>
+        <div style="background:#000; color:#fff; font-size:10px; padding:10px; border-radius:5px; text-align:center;">
+            VIDEO: assets/videos/${videoFile || 'default.mp4'}
+        </div>
+    `;
+}
+
+// Inicialización
 document.addEventListener('DOMContentLoaded', () => {
     cargarSeccion('dashboard');
 });

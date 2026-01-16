@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Perfil del Productor | Mercado Raíz</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <header class="header">
+        <div class="logo">Mercado <span>Raíz</span></div>
+        <nav>
+            <a href="index.html" class="active">Inicio</a>
+            <a href="productos.html">Productos</a>
+            <a href="proveedor.html">Proveedores</a>
+            <a href="contacto.html">Contacto</a>
+            <a href="calidad.html">Calidad</a>
+            <span id="authContainer">
+                <a href="login.html" id="loginLink" class="btn-login">Iniciar Sesión</a>
+                <a href="#" id="logoutLink" onclick="cerrarSesion()" class="btn-logout" style="display:none;">Cerrar Sesión</a>
+            </span>
+        </nav>
+        <nav><a href="proveedor.html">Volver a Proveedores</a></nav>
+    </header>
+
+    <main class="perfil-container">
+        <div class="perfil-header">
+            <h1 id="p-nombre">Cargando...</h1>
+            <span class="badge-comunidad" id="p-comunidad"></span>
+        </div>
+
+        <div class="perfil-grid">
+            <div class="col-main">
+                <section class="glass-card">
+                    <h3>Nuestra Historia</h3>
+                    <p id="p-historia"></p>
+                </section>
+
+                <section class="glass-card">
+                    <h3>Labores en la Parcela</h3>
+                    <video id="p-video-local" controls width="100%" style="border-radius:15px;">
+                        Tu navegador no soporta videos.
+                    </video>
+                </section>
+            </div>
+
+            <div class="col-side">
+                <section class="glass-card">
+                    <h3>Ubicación</h3>
+                    <div id="mapa-prov" style="height: 250px; border-radius: 15px;"></div>
+                    <p id="p-parcela" style="margin-top:10px; font-weight:600;"></p>
+                </section>
+                
+                <section class="glass-card">
+                    <p><i class="fas fa-clock"></i> <strong>Cosecha:</strong> <span id="p-horario"></span></p>
+                    <p><i class="fas fa-wallet"></i> <strong>Pagos:</strong> <span id="p-pagos"></span></p>
+                </section>
+            </div>
+        </div>
+
+        <h2 class="section-title">Productos de esta finca</h2>
+        <div class="products-grid" id="productos-productor-grid"></div>
+    </main>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/proveedor.js"></script>
+</body>
+</html>
