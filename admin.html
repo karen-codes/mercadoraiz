@@ -34,8 +34,11 @@
             <a onclick="cargarSeccion('pedidos')" id="link-pedidos" class="nav-item">
                 <i class="fas fa-shopping-basket"></i> <span>Pedidos y Pagos</span>
             </a>
+            
             <a onclick="cargarSeccion('mensajes')" id="link-mensajes" class="nav-item">
-                <i class="fas fa-envelope"></i> <span>Mensajería</span>
+                <i class="fas fa-envelope"></i> 
+                <span>Mensajería</span>
+                <span id="mensaje-count" class="notif-badge hidden">0</span>
             </a>
             
             <hr class="sidebar-divider">
@@ -43,14 +46,14 @@
             <a href="index.html" class="nav-item">
                 <i class="fas fa-store"></i> <span>Ver Tienda Pública</span>
             </a>
-            <a onclick="cerrarSesion()" class="btn-logout-admin">
+            <a onclick="cerrarSesion()" class="btn-logout-admin" style="cursor:pointer;">
                 <i class="fas fa-power-off"></i> <span>Cerrar Sesión</span>
             </a>
         </nav>
     </aside>
 
     <main class="main-content">
-        <header class="header-admin">
+        <header class="header-admin" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
             <div class="welcome-text">
                 <h1 id="seccion-titulo">Dashboard</h1>
                 <p id="fecha-actual" class="text-muted"></p>
@@ -67,23 +70,22 @@
 
     <div id="modalRegistro" class="modal-pago">
         <div class="glass-card">
-            <div class="header-admin" style="margin-bottom: 20px; border:none; padding-bottom: 0;">
-                <h2 id="modalTitulo">Detalles del Registro</h2>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <h2 id="modalTitulo" style="margin:0; color:var(--admin-primary);">Detalles del Registro</h2>
                 <button onclick="cerrarModal()" style="background:none; border:none; font-size:2rem; cursor:pointer; color:#999;">&times;</button>
             </div>
             
             <form id="formRegistro">
                 <div id="camposDinamicos"></div>
-                <div id="areaMultimedia" class="form-group" style="margin-top:15px;">
-                    <label style="display:block; margin-bottom:8px; font-weight:600; color:var(--admin-primary);">Imagen Principal:</label>
-                    <input type="file" id="fileInput" accept="image/*" class="admin-input-file" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:8px;">
-                </div>
+
                 <div id="mapArea" class="hidden" style="margin-top:15px;">
-                    <div id="mapAdmin" style="height: 200px; border-radius: 10px; border:1px solid #ddd;"></div>
+                    <label style="display:block; margin-bottom:8px; font-weight:600;">Ubicación en Mapa:</label>
+                    <div id="mapAdmin"></div>
                 </div>
+
                 <div style="margin-top: 30px; text-align: right; display: flex; gap: 10px; justify-content: flex-end;">
-                    <button type="button" onclick="cerrarModal()" class="btn-delete" style="background:#eee; color:#333; padding: 10px 20px;">Cancelar</button>
-                    <button type="submit" class="btn-nuevo" style="padding: 10px 20px;">Guardar Cambios</button>
+                    <button type="button" onclick="cerrarModal()" style="background:#eee; color:#333; padding: 10px 20px; border:none; border-radius:8px; cursor:pointer;">Cancelar</button>
+                    <button type="submit" class="btn-nuevo" style="padding: 10px 20px; border:none; border-radius:8px; cursor:pointer; background:var(--admin-primary); color:white;">Guardar Cambios</button>
                 </div>
             </form>
         </div>
