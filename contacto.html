@@ -4,100 +4,130 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contacto | Mercado Raíz</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
     <header class="header">
-        <div class="logo">Mercado <span>Raíz</span></div>
-        <nav>
-            <a href="index.html">Inicio</a>
-            <a href="productos.html">Productos</a>
-            <a href="proveedor.html">Proveedores</a>
-            <a href="contacto.html" class="active">Contacto</a>
-            <span id="authContainer">
-                <a href="login.html" id="loginLink" class="btn-login">Iniciar Sesión</a>
-                <a href="#" id="logoutLink" onclick="cerrarSesion()" class="btn-logout" style="display:none;">Cerrar Sesión</a>
-            </span>
-        </nav>
+        <div class="header-container">
+            <a href="index.html" class="logo">
+                <i class="fas fa-seedling"></i> Mercado Raíz
+            </a>
+
+            <nav class="main-nav">
+                <a href="index.html">Inicio</a>
+                <a href="productos.html">Productos</a>
+                <a href="proveedor.html">Proveedores</a>
+                <a href="contacto.html" class="active">Contacto</a>
+                <a href="calidad.html">Calidad</a>
+                <a href="carrito.html">Carrito</a>
+                
+                <div class="auth-buttons" id="authContainer">
+                    <a href="login.html" id="loginLink" class="btn-login-header">Iniciar Sesión</a>
+                    <a href="#" id="logoutLink" onclick="cerrarSesion()" class="btn-logout hidden">Cerrar Sesión</a>
+                </div>
+            </nav>
+        </div>
     </header>
 
-    <main class="contact-hero">
-        <section class="dual-contact-container">
-            <header class="contact-intro">
-                <h1>Conectemos</h1>
-                <p>No tenemos oficinas, nuestra sede es el campo de Cayambe y nuestra plataforma es tu mercado.</p>
-            </header>
+    <main>
+        <section class="carousel-section">
+            <div class="section-header">
+                <span class="hero-badge" style="margin-bottom: 10px;">Estamos para ti</span>
+                <h1 style="font-family: 'Playfair Display', serif; font-size: 3rem;">Conectemos</h1>
+                <p style="max-width: 600px; margin: 0 auto;">Nuestra sede es el campo de Cayambe y nuestra plataforma es tu mercado directo.</p>
+            </div>
 
-            <div class="dual-grid">
-                <div class="contact-card glass-card">
-                    <div class="card-icon"><i class="fas fa-shopping-basket"></i></div>
-                    <h2>Soy Cliente</h2>
-                    <p>¿Tienes dudas sobre tu pedido o quieres saber más de un producto?</p>
+            <div class="container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 40px; padding: 0 20px;">
+                
+                <div class="category-card" style="text-align: left; padding: 40px; height: auto; cursor: default;">
+                    <div style="background: var(--pueblo-cream); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+                        <i class="fas fa-shopping-basket" style="font-size: 1.5rem; color: var(--pueblo-sage);"></i>
+                    </div>
+                    <h2 style="font-family: 'Playfair Display', serif; margin-bottom: 15px;">Soy Cliente</h2>
+                    <p style="margin-bottom: 25px; font-size: 0.9rem; color: #666;">¿Tienes dudas sobre tu pedido o quieres saber más de un producto?</p>
+                    
                     <form id="formCliente">
-                        <input type="text" placeholder="Tu nombre" required class="admin-input">
-                        <input type="email" placeholder="Tu correo" required class="admin-input">
-                        <textarea placeholder="¿En qué podemos ayudarte?" rows="3" class="admin-input"></textarea>
-                        <button type="submit" class="btn-organic">Enviar Consulta</button>
+                        <div class="form-group">
+                            <input type="text" placeholder="Tu nombre" required class="admin-input">
+                        </div>
+                        <div class="form-group">
+                            <input type="email" placeholder="Tu correo" required class="admin-input">
+                        </div>
+                        <div class="form-group">
+                            <textarea placeholder="¿En qué podemos ayudarte?" rows="4" class="admin-input" style="resize: none;"></textarea>
+                        </div>
+                        <button type="submit" class="btn-primary-admin" style="text-transform: none;">Enviar Consulta</button>
                     </form>
                 </div>
 
-                <div class="contact-card glass-card producer-theme">
-                    <div class="card-icon"><i class="fas fa-tractor"></i></div>
-                    <h2>Soy Productor</h2>
-                    <p>¿Cultivas en Cayambe y quieres vender tus productos con nosotros?</p>
+                <div class="category-card" style="text-align: left; padding: 40px; height: auto; border-color: var(--pueblo-terracotta); cursor: default;">
+                    <div style="background: var(--pueblo-cream); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+                        <i class="fas fa-tractor" style="font-size: 1.5rem; color: var(--pueblo-terracotta);"></i>
+                    </div>
+                    <h2 style="font-family: 'Playfair Display', serif; margin-bottom: 15px;">Soy Productor</h2>
+                    <p style="margin-bottom: 25px; font-size: 0.9rem; color: #666;">¿Cultivas en Cayambe y quieres vender tus productos con nosotros?</p>
+                    
                     <form id="formProductor">
-                        <input type="text" placeholder="Nombre de tu finca/parcela" required class="admin-input">
-                        <input type="text" placeholder="Comunidad (Ej: Juan Montalvo)" required class="admin-input">
-                        <input type="tel" placeholder="WhatsApp de contacto" required class="admin-input">
-                        <textarea placeholder="¿Qué productos cultivas?" rows="3" class="admin-input"></textarea>
-                        <button type="submit" class="btn-organic">Postularme</button>
+                        <div class="form-group">
+                            <input type="text" placeholder="Nombre de tu finca o asociación" required class="admin-input">
+                        </div>
+                        <div class="form-group">
+                            <input type="text" placeholder="Comunidad (Ej: Juan Montalvo)" required class="admin-input">
+                        </div>
+                        <div class="form-group">
+                            <input type="tel" placeholder="WhatsApp de contacto" required class="admin-input">
+                        </div>
+                        <button type="submit" class="btn-primary-admin" style="background: var(--pueblo-terracotta); text-transform: none;">Postularme como Proveedor</button>
                     </form>
                 </div>
+
             </div>
         </section>
     </main>
 
     <footer class="main-footer">
-    <div class="newsletter-section">
-        <h2>Suscríbete a Nuestro Boletín</h2>
-        <p>¡Obtén un descuento del 10% en tu primera compra! Recibe noticias y ofertas directamente en tu correo.</p>
-        <form class="newsletter-form">
-            <input type="email" placeholder="tu@email.com" required>
-            <button type="submit">Registrarse</button>
-        </form>
-        <p class="privacy-note">Respetamos tu privacidad. Nunca compartiremos tu información.</p>
-    </div>
-
-    <div class="footer-content">
-        <div class="footer-column brand-col">
-            <h3>Mercado Raíz</h3>
-            <p>Conectando productores locales con consumidores conscientes. Productos frescos, locales y de calidad para tu familia.</p>
-            <div class="social-links">
-                <a href="#"><i class="fab fa-facebook-f"></i></a>
+        <div class="footer-content">
+            <div class="footer-brand-center">
+                <h3>Mercado Raíz</h3>
+                <p>Conectando el corazón de Cayambe con tu hogar.</p>
+            </div>
+            
+            <div class="footer-socials-center">
+                <a href="#"><i class="fab fa-facebook"></i></a>
                 <a href="#"><i class="fab fa-instagram"></i></a>
-                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-whatsapp"></i></a>
+            </div>
+
+            <div class="footer-copy-center">
+                <p>&copy; 2026 Mercado Raíz - Identidad y Sabor de Nuestra Tierra.</p>
             </div>
         </div>
-        <div class="footer-column">
-            <h3>Enlaces Rápidos</h3>
-            <ul>
-                <li><a href="index.html">Inicio</a></li>
-                <li><a href="productos.html">Productos</a></li>
-                <li><a href="proveedores.html">Proveedores</a></li>
-                <li><a href="contacto.html">Contacto</a></li>
-            </ul>
+    </footer>
+
+    <div id="cart-overlay" class="cart-overlay"></div>
+    <div id="side-cart" class="side-cart">
+        <div class="cart-header">
+            <h3>Tu Cosecha (Carrito)</h3>
+            <button id="close-cart" class="close-btn">&times;</button>
         </div>
-        <div class="footer-column">
-            <h3>Información de Contacto</h3>
-            <p><i class="fas fa-map-marker-alt"></i> Calle Principal 123, Cayambe, Ecuador</p>
-            <p><i class="fas fa-phone"></i> +593 99 999 9999</p>
-            <p><i class="fas fa-clock"></i> Lun - Sáb: 8:00 AM - 6:00 PM</p>
+        <div id="cart-items-container" class="cart-body"></div>
+        <div class="cart-footer">
+            <div class="cart-total">
+                <span>Total:</span>
+                <span id="cart-total-amount">$0.00</span>
+            </div>
+            <button class="btn-checkout">Finalizar Compra</button>
         </div>
     </div>
-    <div class="footer-bottom">
-        <p>&copy; 2026 Mercado Raíz. Todos los derechos reservados.</p>
+
+    <div id="floating-cart-btn" class="floating-cart-trigger">
+        <i class="fas fa-shopping-basket"></i>
+        <span id="cart-count-badge" class="cart-badge">0</span>
     </div>
-</footer>
+
+    <script src="js/data.js"></script>
+    <script src="js/main.js"></script>
 </body>
 </html>

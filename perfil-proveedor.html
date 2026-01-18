@@ -2,66 +2,105 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Perfil del Productor | Mercado Raíz</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
     <header class="header">
-        <div class="logo">Mercado <span>Raíz</span></div>
-        <nav>
-            <a href="index.html" class="active">Inicio</a>
-            <a href="productos.html">Productos</a>
-            <a href="proveedor.html">Proveedores</a>
-            <a href="contacto.html">Contacto</a>
-            <a href="calidad.html">Calidad</a>
-            <span id="authContainer">
-                <a href="login.html" id="loginLink" class="btn-login">Iniciar Sesión</a>
-                <a href="#" id="logoutLink" onclick="cerrarSesion()" class="btn-logout" style="display:none;">Cerrar Sesión</a>
-            </span>
-        </nav>
-        <nav><a href="proveedor.html">Volver a Proveedores</a></nav>
+        <div class="header-container">
+            <a href="index.html" class="logo">
+                <i class="fas fa-seedling"></i> Mercado Raíz
+            </a>
+
+            <nav class="main-nav">
+                <a href="index.html">Inicio</a>
+                <a href="productos.html">Productos</a>
+                <a href="proveedor.html" class="active">Proveedores</a>
+                <a href="contacto.html">Contacto</a>
+                <a href="calidad.html">Calidad</a>
+                <a href="carrito.html">Carrito</a>
+                
+                <div class="auth-buttons" id="authContainer">
+                    <a href="login.html" id="loginLink" class="btn-login-header">Iniciar Sesión</a>
+                    <a href="#" id="logoutLink" onclick="cerrarSesion()" class="btn-logout hidden">Cerrar Sesión</a>
+                </div>
+            </nav>
+        </div>
     </header>
 
-    <main class="perfil-container">
-        <div class="perfil-header">
-            <h1 id="p-nombre">Cargando...</h1>
-            <span class="badge-comunidad" id="p-comunidad"></span>
+    <main class="container" style="padding-top: 40px; padding-bottom: 60px;">
+        <div style="margin-bottom: 30px;">
+            <a href="proveedor.html" style="text-decoration: none; color: var(--pueblo-sage); font-weight: 700;">
+                <i class="fas fa-arrow-left"></i> Volver a Proveedores
+            </a>
         </div>
 
-        <div class="perfil-grid">
+        <div class="section-header" style="text-align: left; margin-bottom: 40px;">
+            <span class="hero-badge" id="p-comunidad" style="margin-bottom: 10px;">Comunidad</span>
+            <h1 id="p-nombre" style="font-family: 'Playfair Display', serif; font-size: 3.5rem; color: var(--pueblo-charcoal);">Cargando...</h1>
+        </div>
+
+        <div class="perfil-grid" style="display: grid; grid-template-columns: 2fr 1fr; gap: 40px;">
             <div class="col-main">
-                <section class="glass-card">
-                    <h3>Nuestra Historia</h3>
-                    <p id="p-historia"></p>
+                <section class="category-card" style="padding: 40px; height: auto; cursor: default; margin-bottom: 30px; text-align: left;">
+                    <h3 style="font-family: 'Playfair Display', serif; color: var(--pueblo-sage); margin-bottom: 20px; font-size: 1.8rem;">Nuestra Historia</h3>
+                    <p id="p-historia" style="line-height: 1.8; color: var(--pueblo-charcoal);"></p>
                 </section>
 
-                <section class="glass-card">
-                    <h3>Labores en la Parcela</h3>
-                    <video id="p-video-local" controls width="100%" style="border-radius:15px;">
-                        Tu navegador no soporta videos.
-                    </video>
+                <section class="category-card" style="padding: 40px; height: auto; cursor: default; text-align: left;">
+                    <h3 style="font-family: 'Playfair Display', serif; color: var(--pueblo-sage); margin-bottom: 20px; font-size: 1.8rem;">Labores en la Parcela</h3>
+                    <div style="border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+                        <video id="p-video-local" controls width="100%" style="display: block;">
+                            Tu navegador no soporta videos.
+                        </video>
+                    </div>
                 </section>
             </div>
 
             <div class="col-side">
-                <section class="glass-card">
-                    <h3>Ubicación</h3>
-                    <div id="mapa-prov" style="height: 250px; border-radius: 15px;"></div>
-                    <p id="p-parcela" style="margin-top:10px; font-weight:600;"></p>
+                <section class="category-card" style="padding: 30px; height: auto; cursor: default; margin-bottom: 30px; text-align: left;">
+                    <h3 style="font-family: 'Playfair Display', serif; color: var(--pueblo-sage); margin-bottom: 15px;">Ubicación</h3>
+                    <div id="mapa-prov" style="height: 300px; border-radius: 15px; margin-bottom: 15px; border: 1px solid var(--pueblo-sand);"></div>
+                    <p id="p-parcela" style="font-weight: 700; color: var(--pueblo-terracotta); font-size: 0.9rem;">
+                        <i class="fas fa-map-marker-alt"></i> Cargando ubicación...
+                    </p>
                 </section>
                 
-                <section class="glass-card">
-                    <p><i class="fas fa-clock"></i> <strong>Cosecha:</strong> <span id="p-horario"></span></p>
+                <section class="category-card" style="padding: 30px; height: auto; cursor: default; text-align: left; background-color: var(--pueblo-sand);">
+                    <h3 style="font-family: 'Playfair Display', serif; color: var(--pueblo-sage); margin-bottom: 15px;">Información de Entrega</h3>
+                    <p style="margin-bottom: 10px;"><i class="fas fa-clock"></i> <strong>Cosecha:</strong> <span id="p-horario"></span></p>
                     <p><i class="fas fa-wallet"></i> <strong>Pagos:</strong> <span id="p-pagos"></span></p>
                 </section>
             </div>
         </div>
 
-        <h2 class="section-title">Productos de esta finca</h2>
-        <div class="products-grid" id="productos-productor-grid"></div>
+        <div style="margin-top: 60px;">
+            <h2 class="section-title" style="font-family: 'Playfair Display', serif; font-size: 2.5rem; margin-bottom: 40px;">Productos de esta finca</h2>
+            <div class="products-grid" id="productos-productor-grid">
+                </div>
+        </div>
     </main>
+
+    <footer class="main-footer">
+        <div class="footer-content">
+            <div class="footer-brand-center">
+                <h3>Mercado Raíz</h3>
+                <p>Cayambe, Ecuador - Conectando el corazón del campo con tu hogar.</p>
+            </div>
+            <div class="footer-socials-center">
+                <a href="#"><i class="fab fa-facebook"></i></a>
+                <a href="#"><i class="fab fa-instagram"></i></a>
+                <a href="#"><i class="fab fa-whatsapp"></i></a>
+            </div>
+            <div class="footer-copy-center">
+                <p>&copy; 2026 Mercado Raíz - Identidad y Sabor de Nuestra Tierra.</p>
+            </div>
+        </div>
+    </footer>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="js/main.js"></script>

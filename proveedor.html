@@ -2,47 +2,111 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nuestros Productores | Mercado Raíz</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
     <header class="header">
-        <div class="logo">Mercado <span>Raíz</span></div>
-        <nav>
-            <a href="index.html" class="active">Inicio</a>
-            <a href="productos.html">Productos</a>
-            <a href="proveedor.html">Proveedores</a>
-            <a href="contacto.html">Contacto</a>
-            <a href="calidad.html">Calidad</a>
-            <span id="authContainer">
-                <a href="login.html" id="loginLink" class="btn-login">Iniciar Sesión</a>
-                <a href="#" id="logoutLink" onclick="cerrarSesion()" class="btn-logout" style="display:none;">Cerrar Sesión</a>
-            </span>
-        </nav>
+        <div class="header-container">
+            <a href="index.html" class="logo">
+                <i class="fas fa-seedling"></i> Mercado Raíz
+            </a>
+
+            <nav class="main-nav">
+                <a href="index.html">Inicio</a>
+                <a href="productos.html">Productos</a>
+                <a href="proveedor.html" class="active">Proveedores</a>
+                <a href="contacto.html">Contacto</a>
+                <a href="calidad.html">Calidad</a>
+                <a href="carrito.html">Carrito</a>
+                
+                <div class="auth-buttons" id="authContainer">
+                    <a href="login.html" id="loginLink" class="btn-login-header">Iniciar Sesión</a>
+                    <a href="#" id="logoutLink" onclick="cerrarSesion()" class="btn-logout hidden">Cerrar Sesión</a>
+                </div>
+            </nav>
+        </div>
     </header>
 
-    <main class="container">
-        <h1 class="section-title">Productores de Cayambe</h1>
-        <div class="providers-grid" id="providersGrid"></div>
+    <main>
+        <section class="carousel-section">
+            <div class="section-header">
+                <span class="hero-badge" style="margin-bottom: 10px;">Comunidad Local</span>
+                <h1 class="section-title">Productores de Cayambe</h1>
+                <p>Conoce a las familias que cultivan tus alimentos con respeto y tradición.</p>
+            </div>
+
+            <div id="providersGrid" class="container" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px; padding: 0 20px;">
+                </div>
+        </section>
     </main>
 
-    <footer class="main-footer" id="footer-placeholder"></footer>
+    <footer class="main-footer">
+        <div class="footer-content">
+            <div class="footer-brand-center">
+                <h3>Mercado Raíz</h3>
+                <p>Conectando el corazón de Cayambe con tu hogar.</p>
+            </div>
+            
+            <div class="footer-socials-center">
+                <a href="#"><i class="fab fa-facebook"></i></a>
+                <a href="#"><i class="fab fa-instagram"></i></a>
+                <a href="#"><i class="fab fa-whatsapp"></i></a>
+            </div>
+
+            <div class="footer-copy-center">
+                <p>&copy; 2026 Mercado Raíz - Identidad y Sabor de Nuestra Tierra.</p>
+            </div>
+        </div>
+    </footer>
+
+    <div id="cart-overlay" class="cart-overlay"></div>
+    <div id="side-cart" class="side-cart">
+        <div class="cart-header">
+            <h3>Tu Cosecha (Carrito)</h3>
+            <button id="close-cart" class="close-btn">&times;</button>
+        </div>
+        <div id="cart-items-container" class="cart-body">
+            </div>
+        <div class="cart-footer">
+            <div class="cart-total">
+                <span>Total:</span>
+                <span id="cart-total-amount">$0.00</span>
+            </div>
+            <button class="btn-checkout">Finalizar Compra</button>
+        </div>
+    </div>
+
+    <div id="floating-cart-btn" class="floating-cart-trigger">
+        <i class="fas fa-shopping-basket"></i>
+        <span id="cart-count-badge" class="cart-badge">0</span>
+    </div>
 
     <script src="js/data.js"></script>
     <script src="js/main.js"></script>
     <script>
-        // Lógica simple para enlistar proveedores
         document.addEventListener("DOMContentLoaded", () => {
-            const proveedores = JSON.parse(localStorage.getItem("proveedores")) || [];
+            // Buscamos proveedores en localStorage o usamos los de data.js como respaldo
+            const proveedores = JSON.parse(localStorage.getItem("proveedores")) || [
+                { id: 1, nombre: "Asociación San Luis", comunidad: "Comunidad Olmedo", imagen: "img/proveedor1.jpg" },
+                { id: 2, nombre: "Finca La Esperanza", comunidad: "Cangahua", imagen: "img/proveedor2.jpg" }
+            ];
+
             const grid = document.getElementById("providersGrid");
             grid.innerHTML = proveedores.map(p => `
-                <div class="provider-card glass-card">
-                    <img src="${p.imagen}" alt="${p.nombre}">
-                    <div class="info">
-                        <h3>${p.nombre}</h3>
-                        <p><i class="fas fa-map-marker-alt"></i> ${p.comunidad}</p>
-                        <a href="perfil-proveedor.html?id=${p.id}" class="btn-organic">Ver Perfil Completo</a>
+                <div class="category-card" style="padding: 0; overflow: hidden; height: auto; text-align: left;">
+                    <div style="width: 100%; height: 200px; overflow: hidden;">
+                        <img src="${p.imagen}" alt="${p.nombre}" style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                    <div style="padding: 20px;">
+                        <h3 style="font-family: 'Playfair Display', serif; margin-bottom: 10px;">${p.nombre}</h3>
+                        <p style="color: #666; font-size: 0.9rem; margin-bottom: 20px;">
+                            <i class="fas fa-map-marker-alt" style="color: #8c9c64;"></i> ${p.comunidad}
+                        </p>
+                        <a href="perfil-proveedor.html?id=${p.id}" class="btn-login-header" style="display: inline-block; text-align: center; width: 100%;">Ver Perfil</a>
                     </div>
                 </div>
             `).join('');

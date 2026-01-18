@@ -207,3 +207,23 @@ function renderizarPaginaCategoria(data = productos, esBusqueda = false) {
 }
 
 // ... resto de funciones de sesión y contacto
+
+const cartBtn = document.getElementById('floating-cart-btn');
+const sideCart = document.getElementById('side-cart');
+const closeCart = document.getElementById('close-cart');
+const overlay = document.getElementById('cart-overlay');
+
+cartBtn.addEventListener('click', () => {
+    sideCart.classList.add('active');
+    overlay.classList.add('active');
+});
+
+closeCart.addEventListener('click', () => {
+    sideCart.classList.remove('active');
+    overlay.classList.remove('active');
+});
+
+overlay.addEventListener('click', () => {
+    sideCart.classList.remove('active');
+    overlay.classList.remove('active');
+});

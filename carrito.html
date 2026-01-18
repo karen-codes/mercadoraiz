@@ -2,99 +2,123 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Carrito de compras | Mercado Raíz</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>Tu Carrito | Mercado Raíz</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
 
-<header class="header">
-    <div class="logo">Mercado Raíz <span>Cayambe</span></div>
-    <nav>
-        <a href="index.html">Inicio</a>
-        <a href="productos.html">Productos</a>
-        <a href="proveedor.html">Proveedores</a> 
-        <a href="contacto.html">Contacto</a>
-        <a href="login.html" id="loginLink">Iniciar Sesión</a>
-        <a href="#" id="logoutLink" onclick="cerrarSesion()" class="hidden" style="color: #ef4444;">Cerrar Sesión</a>
-    </nav>
-</header>
+    <header class="header">
+        <div class="header-container">
+            <a href="index.html" class="logo">
+                <i class="fas fa-seedling"></i> Mercado Raíz
+            </a>
 
-<section class="hero hero-small" style="padding: 60px 5%; min-height: auto;">
-    <h1>🛒 Tu Carrito</h1>
-    <p>Revisa tus productos seleccionados de las fincas de Cayambe.</p>
-</section>
-
-<main class="cart-container" id="cartContainer" style="max-width: 1000px; margin: 0 auto; padding: 40px 20px;">
-    <div id="lista-carrito" class="glass-card">
+            <nav class="main-nav">
+                <a href="index.html">Inicio</a>
+                <a href="productos.html">Productos</a>
+                <a href="proveedor.html">Proveedores</a>
+                <a href="contacto.html">Contacto</a>
+                <a href="calidad.html">Calidad</a>
+                <a href="carrito.html" class="active">Carrito</a>
+                
+                <div class="auth-buttons" id="authContainer">
+                    <a href="login.html" id="loginLink" class="btn-login-header">Iniciar Sesión</a>
+                    <a href="#" id="logoutLink" onclick="cerrarSesion()" class="btn-logout hidden">Cerrar Sesión</a>
+                </div>
+            </nav>
         </div>
-</main>
+    </header>
 
-<div class="cart-actions" style="text-align: center; padding-bottom: 60px;">
-    <a href="productos.html" class="chip" style="text-decoration: none; display: inline-block; margin-right: 15px;">
-        ← Seguir comprando
-    </a>
-    <button onclick="realizarPedido()" class="btn-add" style="width: auto; padding: 15px 40px; background: #22c55e;">
-        Realizar pedido y Pagar
-    </button>
-</div>
+    <main>
+        <section class="carousel-section" style="padding-bottom: 20px;">
+            <div class="section-header">
+                <span class="hero-badge">Revisión de Compra</span>
+                <h1 style="font-family: 'Playfair Display', serif; font-size: 3rem;">🛒 Tu Carrito</h1>
+                <p>Apoyando directamente a los productores de Cayambe.</p>
+            </div>
+        </section>
 
-<div id="modalPago" class="modal-pago">
-    <div class="modal-content">
-        <h3 style="color: var(--primary-forest);">Finalizar Pedido</h3>
-        <p style="margin-bottom: 15px;">Completa tu apoyo al productor mediante transferencia o Deuna.</p>
-        
-        <div style="background: #f1f5f9; padding: 20px; margin: 15px 0; border-radius: 12px; border: 2px dashed #2d9d68;">
-            <p><strong>QR de Pago Rápido:</strong></p>
-            <div style="width: 150px; height: 150px; background: #111; color: white; margin: 15px auto; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 10px;">
-                <i class="fas fa-qrcode fa-4x"></i>
-                <small style="margin-top:5px;">MERCADO RAÍZ</small>
+        <div class="container" style="max-width: 900px; margin-bottom: 60px; padding: 0 20px;">
+            <div id="lista-carrito" class="category-card" style="padding: 30px; height: auto; cursor: default; text-align: left;">
+                <div class="text-center" id="cart-empty-state">
+                    <p style="color: #888;">Cargando tus productos seleccionados...</p>
+                </div>
+            </div>
+
+            <div style="margin-top: 30px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
+                <a href="productos.html" style="text-decoration: none; color: var(--pueblo-sage); font-weight: 700;">
+                    <i class="fas fa-arrow-left"></i> Seguir comprando
+                </a>
+                <button onclick="realizarPedido()" class="btn-primary-admin" style="width: auto; padding: 15px 50px;">
+                    Realizar pedido y Pagar
+                </button>
             </div>
         </div>
+    </main>
 
-        <div style="text-align:left; font-size:13px; background:#f8fafc; padding:15px; border: 1px solid #e2e8f0; border-radius:8px;">
-            <strong>Datos Bancarios:</strong><br>
-            Banco Pichincha (Ahorros)<br>
-            Cuenta: 2200XXXXXX<br>
-            A nombre de: Mercado Raíz Cayambe
-        </div>
+    <div id="modalPago" class="cart-overlay" style="display: none; align-items: center; justify-content: center; z-index: 3000;">
+        <div class="auth-card" style="max-width: 500px; width: 90%; position: relative;">
+            <div class="auth-header">
+                <h3 style="font-family: 'Playfair Display', serif; color: var(--pueblo-sage); font-size: 1.8rem;">Finalizar Pedido</h3>
+                <p class="auth-subtitle">Completa tu pago mediante transferencia o Deuna.</p>
+            </div>
 
-        <button onclick="confirmarPedido()" style="margin-top:20px; width: 100%; background:#22c55e; color:white; border:none; padding:14px; border-radius:8px; cursor:pointer; font-weight: bold;">
-            He realizado el pago
-        </button>
-        <button onclick="cerrarModal()" style="background:none; border:none; color:gray; cursor:pointer; display:block; margin:15px auto; text-decoration: underline;">Cancelar</button>
-    </div>
-</div>
+            <div style="background: var(--pueblo-cream); padding: 20px; border-radius: 15px; border: 2px dashed var(--pueblo-sage); text-align: center; margin-bottom: 20px;">
+                <p style="font-weight: 700; margin-bottom: 10px;">QR de Pago Rápido:</p>
+                <div style="width: 140px; height: 140px; background: var(--pueblo-charcoal); color: white; margin: 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 12px;">
+                    <i class="fas fa-qrcode fa-4x"></i>
+                    <small style="margin-top: 5px; letter-spacing: 1px;">MERCADO RAÍZ</small>
+                </div>
+            </div>
 
-<footer class="main-footer">
-    <div class="newsletter-section">
-        <h2>Suscríbete a Nuestro Boletín</h2>
-        <form class="newsletter-form">
-            <input type="email" placeholder="tu@email.com" required>
-            <button type="submit">Registrarse</button>
-        </form>
-    </div>
+            <div style="font-size: 0.85rem; background: var(--white); padding: 15px; border: 1px solid var(--pueblo-sand); border-radius: 10px; line-height: 1.8;">
+                <strong style="color: var(--pueblo-terracotta);">Datos Bancarios:</strong><br>
+                <strong>Banco Pichincha:</strong> Ahorros #2200XXXXXX<br>
+                <strong>Beneficiario:</strong> Mercado Raíz Cayambe<br>
+                <strong>CI:</strong> 17XXXXXX-X
+            </div>
 
-    <div class="footer-content">
-        <div class="footer-column brand-col">
-            <h3>Mercado Raíz</h3>
-            <p>Conectando el campo de Cayambe con tu mesa bajo principios de comercio justo.</p>
-        </div>
-        <div class="footer-column">
-            <h3>Enlaces</h3>
-            <ul>
-                <li><a href="index.html">Inicio</a></li>
-                <li><a href="productos.html">Productos</a></li>
-                <li><a href="proveedor.html">Proveedores</a></li> </ul>
+            <button onclick="confirmarPedido()" class="btn-primary-admin" style="margin-top: 25px;">
+                He realizado el pago
+            </button>
+            <button onclick="cerrarModal()" style="background:none; border:none; color:#888; cursor:pointer; display:block; margin:15px auto; text-decoration: underline; font-family: 'Montserrat';">
+                Cancelar y revisar carrito
+            </button>
         </div>
     </div>
-    <div class="footer-bottom">
-        <p>&copy; 2026 Mercado Raíz - Cayambe, Ecuador</p>
-    </div>
-</footer>
 
-<script src="js/main.js"></script>
+    <footer class="main-footer">
+        <div class="footer-content">
+            <div class="footer-brand-center">
+                <h3>Mercado Raíz</h3>
+                <p>Cayambe, Ecuador - Identidad y Sabor de Nuestra Tierra.</p>
+            </div>
+            
+            <div class="footer-socials-center">
+                <a href="#"><i class="fab fa-facebook"></i></a>
+                <a href="#"><i class="fab fa-instagram"></i></a>
+                <a href="#"><i class="fab fa-whatsapp"></i></a>
+            </div>
 
+            <div class="footer-copy-center">
+                <p>&copy; 2026 Mercado Raíz - Conectando el campo con tu hogar.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/data.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        // Función específica para este modal con el nuevo estilo de overlay
+        function realizarPedido() {
+            document.getElementById('modalPago').style.display = 'flex';
+        }
+        function cerrarModal() {
+            document.getElementById('modalPago').style.display = 'none';
+        }
+    </script>
 </body>
 </html>

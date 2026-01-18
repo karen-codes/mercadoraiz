@@ -1,115 +1,126 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Categoría | Mercado Raíz</title>
-  <meta name="description" content="Explora productos agrícolas por categoría, ofrecidos por productores locales de Cayambe y comunidades cercanas.">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <link rel="stylesheet" href="css/styles.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Categoría | Mercado Raíz</title>
+    <meta name="description" content="Explora productos agrícolas por categoría, ofrecidos por productores locales de Cayambe.">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
 
-<!-- ================= HEADER ================= -->
-<header class="header">
-  <div class="logo">Mercado Raíz</div>
-  <nav>
-    <a href="index.html">Inicio</a>
-    <a href="productos.html">Productos</a>
-    <a href="proveedor.html">Proveedores</a>
-    <a href="contacto.html">Contacto</a>
-    <a href="login.html" id="loginLink">Iniciar Sesión</a>
-    <a href="#" id="logoutLink" onclick="cerrarSesion()" style="display:none; color: #ef4444;">Cerrar Sesión</a>
-</nav>
-</header>
+    <header class="header">
+        <div class="header-container">
+            <a href="index.html" class="logo">
+                <i class="fas fa-seedling"></i> Mercado Raíz
+            </a>
 
-<!-- ================= HERO ================= -->
-<section class="hero hero-small">
-  <h1 id="categoriaTitulo">Categoría</h1>
-  <p id="categoriaDescripcion">
-    Productos ofrecidos por pequeños productores de Cayambe
-    y comunidades cercanas.
-  </p>
-</section>
+            <nav class="main-nav">
+                <a href="index.html">Inicio</a>
+                <a href="productos.html">Productos</a>
+                <a href="proveedor.html">Proveedores</a>
+                <a href="contacto.html">Contacto</a>
+                <a href="calidad.html">Calidad</a>
+                <a href="carrito.html">Carrito</a>
+                
+                <div class="auth-buttons" id="authContainer">
+                    <a href="login.html" id="loginLink" class="btn-login-header">Iniciar Sesión</a>
+                    <a href="#" id="logoutLink" onclick="cerrarSesion()" class="btn-logout hidden">Cerrar Sesión</a>
+                </div>
+            </nav>
+        </div>
+    </header>
 
-<!-- ================= MAIN ================= -->
-<main>
+    <main>
+        <section class="carousel-section" style="padding-bottom: 0;">
+            <div class="section-header">
+                <span class="hero-badge" id="categoriaBadge">Cosecha Local</span>
+                <h1 id="categoriaTitulo" style="font-family: 'Playfair Display', serif; font-size: 3.5rem; color: var(--pueblo-charcoal);">Categoría</h1>
+                <p id="categoriaDescripcion" style="max-width: 600px; margin: 0 auto;">
+                    Descubre la frescura de los productos cultivados en las tierras altas de Cayambe.
+                </p>
+            </div>
+        </section>
 
-  <!-- LISTADO DE PRODUCTOS -->
-  <section class="products-section" id="productosCategoria">
-    <h2>Productos disponibles</h2>
-    <div id="productsGrid" class="products-grid">
-      <!-- Productos dinámicos desde JS -->
-    </div>
-  </section>
+        <section class="container" style="padding: 40px 20px;">
+            <div id="productsGrid" class="products-grid">
+                <div class="text-center" style="grid-column: 1/-1; padding: 50px;">
+                    <i class="fas fa-spinner fa-spin fa-3x" style="color: var(--pueblo-sage);"></i>
+                    <p style="margin-top: 15px;">Buscando los mejores productos para ti...</p>
+                </div>
+            </div>
+        </section>
 
-  <!-- MAPA GENERAL (OPCIONAL / CONTEXTUAL) -->
-  <section class="map-section">
-    <h2>Ubicación referencial de productores</h2>
-    <p class="map-description">
-      Las ubicaciones mostradas corresponden de manera referencial
-      a las zonas productivas de Cayambe. La ubicación exacta de cada
-      productor puede visualizarse en su perfil individual.
-    </p>
+        <section class="container" style="margin-bottom: 80px; padding: 0 20px;">
+            <div class="category-card" style="padding: 40px; height: auto; cursor: default; background: var(--pueblo-sand);">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 40px; align-items: center;">
+                    <div>
+                        <h2 style="font-family: 'Playfair Display', serif; color: var(--pueblo-sage); margin-bottom: 15px;">Zonas de Origen</h2>
+                        <p style="color: var(--pueblo-charcoal); line-height: 1.6; margin-bottom: 20px;">
+                            Las ubicaciones mostradas corresponden de manera referencial a las zonas productivas de Cayambe. Al comprar aquí, apoyas la biodiversidad de nuestras parroquias.
+                        </p>
+                        <ul style="list-style: none; padding: 0; font-size: 0.9rem;">
+                            <li style="margin-bottom: 8px;"><i class="fas fa-check-circle" style="color: var(--pueblo-sage);"></i> Ayora y Olmedo</li>
+                            <li style="margin-bottom: 8px;"><i class="fas fa-check-circle" style="color: var(--pueblo-sage);"></i> Juan Montalvo</li>
+                            <li><i class="fas fa-check-circle" style="color: var(--pueblo-sage);"></i> Ascázubi</li>
+                        </ul>
+                    </div>
+                    <div style="border-radius: 20px; overflow: hidden; border: 4px solid var(--white); box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
+                        <iframe
+                            id="mapaGeneral"
+                            src="https://www.openstreetmap.org/export/embed.html?bbox=-78.25%2C-0.15%2C-78.05%2C0.05&layer=mapnik"
+                            width="100%"
+                            height="300"
+                            style="border:0; display: block;"
+                            loading="lazy">
+                        </iframe>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
 
-    <iframe
-      id="mapaGeneral"
-      src="https://www.openstreetmap.org/export/embed.html?bbox=-78.25%2C-0.15%2C-78.05%2C0.05&layer=mapnik"
-      width="100%"
-      height="350"
-      style="border:0;"
-      loading="lazy">
-    </iframe>
-  </section>
-
-</main>
-
-<!-- ================= FOOTER ================= -->
-<footer class="main-footer">
-    <div class="newsletter-section">
-        <h2>Suscríbete a Nuestro Boletín</h2>
-        <p>¡Obtén un descuento del 10% en tu primera compra! Recibe noticias y ofertas directamente en tu correo.</p>
-        <form class="newsletter-form">
-            <input type="email" placeholder="tu@email.com" required>
-            <button type="submit">Registrarse</button>
-        </form>
-        <p class="privacy-note">Respetamos tu privacidad. Nunca compartiremos tu información.</p>
-    </div>
-
-    <div class="footer-content">
-        <div class="footer-column brand-col">
-            <h3>Mercado Raíz</h3>
-            <p>Conectando productores locales con consumidores conscientes. Productos frescos, locales y de calidad para tu familia.</p>
-            <div class="social-links">
-                <a href="#"><i class="fab fa-facebook-f"></i></a>
+    <footer class="main-footer">
+        <div class="footer-content">
+            <div class="footer-brand-center">
+                <h3>Mercado Raíz</h3>
+                <p>Conectando el corazón de Cayambe con tu hogar.</p>
+            </div>
+            <div class="footer-socials-center">
+                <a href="#"><i class="fab fa-facebook"></i></a>
                 <a href="#"><i class="fab fa-instagram"></i></a>
-                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-whatsapp"></i></a>
+            </div>
+            <div class="footer-copy-center">
+                <p>&copy; 2026 Mercado Raíz - Identidad y Sabor de Nuestra Tierra.</p>
             </div>
         </div>
-        <div class="footer-column">
-            <h3>Enlaces Rápidos</h3>
-            <ul>
-                <li><a href="index.html">Inicio</a></li>
-                <li><a href="productos.html">Productos</a></li>
-                <li><a href="proveedores.html">Proveedores</a></li>
-                <li><a href="contacto.html">Contacto</a></li>
-            </ul>
+    </footer>
+
+    <div id="cart-overlay" class="cart-overlay"></div>
+    <div id="side-cart" class="side-cart">
+        <div class="cart-header">
+            <h3>Tu Cosecha</h3>
+            <button id="close-cart" class="close-btn">&times;</button>
         </div>
-        <div class="footer-column">
-            <h3>Información de Contacto</h3>
-            <p><i class="fas fa-map-marker-alt"></i> Calle Principal 123, Cayambe, Ecuador</p>
-            <p><i class="fas fa-phone"></i> +593 99 999 9999</p>
-            <p><i class="fas fa-clock"></i> Lun - Sáb: 8:00 AM - 6:00 PM</p>
+        <div id="cart-items-container" class="cart-body"></div>
+        <div class="cart-footer">
+            <div class="cart-total">
+                <span>Total:</span>
+                <span id="cart-total-amount">$0.00</span>
+            </div>
+            <button class="btn-checkout" onclick="window.location.href='carrito.html'">Revisar Pedido</button>
         </div>
     </div>
-    <div class="footer-bottom">
-        <p>&copy; 2026 Mercado Raíz. Todos los derechos reservados.</p>
+
+    <div id="floating-cart-btn" class="floating-cart-trigger">
+        <i class="fas fa-shopping-basket"></i>
+        <span id="cart-count-badge" class="cart-badge">0</span>
     </div>
-</footer>
 
-<!-- ================= SCRIPTS ================= -->
-<script src="js/data.js"></script>
-<script src="js/main.js"></script>
-
+    <script src="js/data.js"></script>
+    <script src="js/main.js"></script>
 </body>
 </html>
