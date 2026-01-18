@@ -11,14 +11,24 @@ document.addEventListener("DOMContentLoaded", () => {
     setupCarritoFlotante(); 
 
     // Renderizado según la página donde estemos
-    if (document.getElementById("productsGrid")) renderizarPaginaCategoria();
-    if (document.getElementById("cartContainer")) mostrarCarritoCompleto(); 
+    if (document.getElementById("productsGrid")) {
+        // Si estamos en categoria.html, filtramos por URL, si no, mostramos todo
+        const params = new URLSearchParams(window.location.search);
+        const cat = params.get('cat');
+        if (cat) {
+            const filtrados = productos.filter(p => p.categoria.toLowerCase() === cat.toLowerCase());
+            renderizarPaginaCategoria(filtrados);
+            if(document.getElementById("categoriaTitulo")) document.getElementById("categoriaTitulo").innerText = cat;
+        } else {
+            renderizarPaginaCategoria();
+        }
+    }
     
-    setupFormulariosContacto();
+    if (document.getElementById("cartContainer")) mostrarCarritoCompleto(); 
 });
 
 /***********************************
- * LÓGICA DEL CARRITO FLOTANTE (UI)
+ * LÓGICA DEL CARRITO (SIDE CART)
  ***********************************/
 function setupCarritoFlotante() {
     const cartBtn = document.getElementById('floating-cart-btn');
@@ -50,8 +60,8 @@ function renderizarCarritoFlotante() {
     if (!container) return;
 
     if (carrito.length === 0) {
-        container.innerHTML = `<p class="empty-msg">Tu cesta está vacía.</p>`;
-        totalElement.innerText = "$0.00";
+        container.innerHTML = `<div class="text-center" style="padding:20px; color:#888;">Tu cesta está vacía.</div>`;
+        if(totalElement) totalElement.innerText = "$0.00";
         return;
     }
 
@@ -59,18 +69,20 @@ function renderizarCarritoFlotante() {
     container.innerHTML = carrito.map(item => {
         total += item.precio * item.cantidad;
         return `
-            <div class="cart-item">
-                <img src="${item.imagen}" alt="${item.nombre}">
-                <div class="item-details">
-                    <h4>${item.nombre}</h4>
-                    <p>${item.cantidad} x $${item.precio.toFixed(2)}</p>
-                    <button class="btn-remove-simple" onclick="eliminarDelCarrito(${item.id})">Quitar</button>
+            <div class="cart-item" style="display:flex; gap:10px; padding:10px; border-bottom:1px solid #eee; align-items:center;">
+                <img src="${item.imagen}" style="width:50px; height:50px; object-fit:cover; border-radius:5px;">
+                <div style="flex:1">
+                    <h4 style="font-size:0.9rem; margin:0;">${item.nombre}</h4>
+                    <p style="font-size:0.8rem; margin:0;">${item.cantidad} x $${item.precio.toFixed(2)}</p>
                 </div>
+                <button onclick="eliminarDelCarrito(${item.id})" style="background:none; border:none; color:var(--pueblo-terracotta); cursor:pointer;">
+                    <i class="fas fa-trash"></i>
+                </button>
             </div>
         `;
     }).join('');
 
-    totalElement.innerText = `$${total.toFixed(2)}`;
+    if(totalElement) totalElement.innerText = `$${total.toFixed(2)}`;
 }
 
 /***********************************
@@ -78,7 +90,7 @@ function renderizarCarritoFlotante() {
  ***********************************/
 function agregarAlCarritoClick(id) {
     const qtyInput = document.getElementById(`qty-${id}`);
-    const cantidad = parseInt(qtyInput.value);
+    const cantidad = parseInt(qtyInput ? qtyInput.value : 1);
     const producto = productos.find(p => p.id === id);
 
     if (!producto || producto.stock <= 0) return alert("Sin existencias.");
@@ -99,17 +111,21 @@ function agregarAlCarritoClick(id) {
 
     guardarYActualizar();
     
-    // Abrir automáticamente el panel lateral
-    document.getElementById('side-cart').classList.add('active');
-    document.getElementById('cart-overlay').classList.add('active');
-    renderizarCarritoFlotante();
+    // Abrir automáticamente el panel lateral para feedback visual
+    const sideCart = document.getElementById('side-cart');
+    const overlay = document.getElementById('cart-overlay');
+    if(sideCart && overlay) {
+        sideCart.classList.add('active');
+        overlay.classList.add('active');
+        renderizarCarritoFlotante();
+    }
 }
 
 function eliminarDelCarrito(id) {
     carrito = carrito.filter(item => item.id !== id);
     guardarYActualizar();
     renderizarCarritoFlotante();
-    if (document.getElementById("cartContainer")) mostrarCarritoCompleto();
+    if (document.getElementById("lista-carrito")) mostrarCarritoCompleto();
 }
 
 function guardarYActualizar() {
@@ -124,67 +140,14 @@ function actualizarContadorCarrito() {
 }
 
 /***********************************
- * FINALIZAR PEDIDO (VITAL PARA EL ADMIN)
+ * RENDERIZADO DE PRODUCTOS
  ***********************************/
-function finalizarCompra() {
-    const sesion = JSON.parse(localStorage.getItem('sesionActiva'));
-    
-    if (!sesion) {
-        alert("Debes iniciar sesión para realizar un pedido.");
-        window.location.href = 'login.html';
-        return;
-    }
-
-    if (carrito.length === 0) return alert("El carrito está vacío.");
-
-    // Crear el objeto del pedido con el desglose de productos (items)
-    const nuevoPedido = {
-        id: Date.now(),
-        cliente: sesion.nombre,
-        email: sesion.email,
-        fecha: new Date().toLocaleString(),
-        total: carrito.reduce((acc, p) => acc + (p.precio * p.cantidad), 0),
-        items: [...carrito], // Copiamos el carrito actual
-        estado: "Pendiente"
-    };
-
-    // Guardar en la base de datos local de pedidos
-    const pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
-    pedidos.push(nuevoPedido);
-    localStorage.setItem('pedidos', JSON.stringify(pedidos));
-
-    // Restar stock de los productos
-    carrito.forEach(item => {
-        const indexProd = productos.findIndex(p => p.id === item.id);
-        if (indexProd !== -1) productos[indexProd].stock -= item.cantidad;
-    });
-    localStorage.setItem('productos', JSON.stringify(productos));
-
-    // Limpiar carrito y avisar
-    carrito = [];
-    guardarYActualizar();
-    alert("¡Pedido realizado con éxito! Gracias por apoyar a los productores de Cayambe.");
-    window.location.href = 'index.html';
-}
-
-/***********************************
- * BUSCADOR
- ***********************************/
-function buscarProductos() {
-    const query = document.getElementById('searchInput').value.toLowerCase();
-    const productosFiltrados = productos.filter(p => 
-        p.nombre.toLowerCase().includes(query) || 
-        p.categoria.toLowerCase().includes(query)
-    );
-    renderizarPaginaCategoria(productosFiltrados, true);
-}
-
-function renderizarPaginaCategoria(data = productos, esBusqueda = false) {
+function renderizarPaginaCategoria(data = productos) {
     const grid = document.getElementById("productsGrid");
     if (!grid) return;
 
     if (data.length === 0) {
-        grid.innerHTML = `<p class="no-results">No se encontraron productos que coincidan.</p>`;
+        grid.innerHTML = `<p style="grid-column:1/-1; text-align:center; padding:50px;">No se encontraron productos en esta categoría.</p>`;
         return;
     }
 
@@ -192,38 +155,46 @@ function renderizarPaginaCategoria(data = productos, esBusqueda = false) {
         const prov = proveedores.find(pr => pr.id === p.proveedorId);
         return `
         <div class="product-card">
-            <div class="product-image"><img src="${p.imagen}" alt="${p.nombre}"></div>
+            <div class="product-image">
+                <img src="${p.imagen}" alt="${p.nombre}">
+                ${p.stock < 5 ? '<span class="stock-tag">Pocas unidades</span>' : ''}
+            </div>
             <div class="product-info">
                 <h3>${p.nombre}</h3>
                 <p class="provider-tag"><i class="fas fa-leaf"></i> ${prov ? prov.nombre : 'Cayambe'}</p>
                 <p class="price">$${p.precio.toFixed(2)} / ${p.unidad}</p>
-                <div class="purchase-row">
-                    <input type="number" id="qty-${p.id}" value="1" min="1" max="${p.stock}">
-                    <button class="btn-buy" onclick="agregarAlCarritoClick(${p.id})">Agregar</button>
+                <div class="purchase-row" style="display:flex; gap:10px; margin-top:15px;">
+                    <input type="number" id="qty-${p.id}" value="1" min="1" max="${p.stock}" style="width:50px; padding:5px; border-radius:5px; border:1px solid #ddd;">
+                    <button class="btn-login-header" style="flex:1; font-size:0.8rem;" onclick="agregarAlCarritoClick(${p.id})">
+                        Agregar
+                    </button>
                 </div>
             </div>
         </div>`;
     }).join('');
 }
 
-// ... resto de funciones de sesión y contacto
+/***********************************
+ * INTERFAZ DE SESIÓN
+ ***********************************/
+function actualizarInterfazSesion() {
+    const sesion = JSON.parse(localStorage.getItem('sesionActiva'));
+    const loginLink = document.getElementById('loginLink');
+    const logoutLink = document.getElementById('logoutLink');
 
-const cartBtn = document.getElementById('floating-cart-btn');
-const sideCart = document.getElementById('side-cart');
-const closeCart = document.getElementById('close-cart');
-const overlay = document.getElementById('cart-overlay');
+    if (sesion) {
+        if(loginLink) loginLink.style.display = 'none';
+        if(logoutLink) {
+            logoutLink.style.display = 'inline-block';
+            logoutLink.innerHTML = `<i class="fas fa-user"></i> Hola, ${sesion.nombre} (Salir)`;
+        }
+    } else {
+        if(loginLink) loginLink.style.display = 'inline-block';
+        if(logoutLink) logoutLink.style.display = 'none';
+    }
+}
 
-cartBtn.addEventListener('click', () => {
-    sideCart.classList.add('active');
-    overlay.classList.add('active');
-});
-
-closeCart.addEventListener('click', () => {
-    sideCart.classList.remove('active');
-    overlay.classList.remove('active');
-});
-
-overlay.addEventListener('click', () => {
-    sideCart.classList.remove('active');
-    overlay.classList.remove('active');
-});
+function cerrarSesion() {
+    localStorage.removeItem('sesionActiva');
+    window.location.href = 'index.html';
+}
