@@ -1,8 +1,9 @@
 /***********************************
  * GESTIÓN ADMINISTRATIVA MAESTRA
  ***********************************/
-
 let seccionActual = 'dashboard';
+let mapaAdmin = null;
+let marcadorAdmin = null;
 
 // 1. CARGA DINÁMICA DE SECCIONES
 function cargarSeccion(seccion) {
@@ -15,288 +16,256 @@ function cargarSeccion(seccion) {
     const linkActivo = document.getElementById(`link-${seccion}`);
     if (linkActivo) linkActivo.classList.add('active');
 
-    titulo.innerText = seccion.toUpperCase();
+    titulo.innerText = seccion.charAt(0).toUpperCase() + seccion.slice(1);
     
     if(btnAccion) {
         btnAccion.style.display = (seccion === 'productos' || seccion === 'proveedores') ? 'block' : 'none';
+        btnAccion.innerHTML = `<i class="fas fa-plus-circle"></i> Nuevo ${seccion === 'productos' ? 'Producto' : 'Proveedor'}`;
     }
 
     switch(seccion) {
         case 'dashboard': renderizarDashboard(contenedor); break;
         case 'productos': renderizarTablaProductos(contenedor); break;
         case 'proveedores': renderizarTablaProveedores(contenedor); break;
-        case 'pedidos': renderizarTablaPedidos(contenedor); break;
-        default: contenedor.innerHTML = `<p class="text-muted">Sección en desarrollo...</p>`;
+        case 'usuarios': renderizarTablaUsuarios(contenedor); break;
+        case 'pedidos': renderizarPedidos(); break; 
+        default: contenedor.innerHTML = `<div class="card"><p class="text-muted">Sección "${seccion}" en desarrollo...</p></div>`;
     }
 }
 
-// 2. TABLA DE PRODUCTOS
+// 2. MODAL DINÁMICO ÚNICO
+function abrirModal() {
+    const modal = document.getElementById('modalRegistro');
+    const campos = document.getElementById('camposDinamicos');
+    const areaMapa = document.getElementById('mapArea');
+    const campoVideo = document.getElementById('campoVideo');
+    const areaMultimedia = document.getElementById("areaMultimedia");
+    const btnGuardar = document.querySelector(".btn-save");
+
+    modal.style.display = 'flex';
+    areaMultimedia.classList.remove("hidden");
+    btnGuardar.classList.remove("hidden");
+
+    if (seccionActual === 'productos') {
+        document.getElementById('modalTitulo').innerText = 'Nuevo Producto';
+        areaMapa.classList.add('hidden');
+        campoVideo.classList.add('hidden');
+        
+        const provs = JSON.parse(localStorage.getItem("proveedores")) || [];
+        campos.innerHTML = `
+            <div class="form-group"><label>Nombre del Producto</label><input type="text" id="reg_nombre" class="admin-input" required></div>
+            <div class="form-group"><label>Descripción</label><textarea id="reg_desc" class="admin-input" rows="2"></textarea></div>
+            <div class="form-grid" style="display:flex; gap:10px;">
+                <div class="form-group"><label>Precio ($)</label><input type="number" step="0.01" id="reg_precio" class="admin-input" required></div>
+                <div class="form-group"><label>Stock (lb/u)</label><input type="number" id="reg_stock" class="admin-input" required></div>
+            </div>
+            <div class="form-group"><label>Proveedor de la Parcela</label>
+                <select id="reg_prov_id" class="admin-input">
+                    ${provs.map(pr => `<option value="${pr.id}">${pr.nombre}</option>`).join('')}
+                </select>
+            </div>`;
+    } 
+    else if (seccionActual === 'proveedores') {
+        document.getElementById('modalTitulo').innerText = 'Registrar Nuevo Productor';
+        areaMapa.classList.remove('hidden');
+        campoVideo.classList.remove('hidden');
+        
+        campos.innerHTML = `
+            <div class="form-group"><label>Nombre de la Parcela / Hacienda</label><input type="text" id="prov_nombre" class="admin-input" required></div>
+            <div class="form-grid" style="display:flex; gap:10px;">
+                <div class="form-group"><label>Comunidad</label><input type="text" id="prov_comunidad" class="admin-input" required></div>
+                <div class="form-group"><label>WhatsApp</label><input type="number" id="prov_ws" class="admin-input" required placeholder="593..."></div>
+            </div>
+            <div class="form-group"><label>Horario de Atención</label><input type="text" id="prov_horario" class="admin-input" placeholder="Ej: 08:00 - 17:00"></div>
+            <div class="form-group"><label>Productos Disponibles</label><textarea id="prov_productos" class="admin-input" rows="2"></textarea></div>
+            <input type="hidden" id="reg_coords">`;
+        
+        setTimeout(inicializarMapaAdmin, 300);
+    }
+}
+
+// 3. GESTIÓN DEL MAPA
+function inicializarMapaAdmin() {
+    if (mapaAdmin) { mapaAdmin.remove(); }
+    mapaAdmin = L.map('mapAdmin').setView([-0.0431, -78.1450], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapaAdmin);
+
+    mapaAdmin.on('click', function(e) {
+        const { lat, lng } = e.latlng;
+        if (marcadorAdmin) { marcadorAdmin.setLatLng(e.latlng); } 
+        else { marcadorAdmin = L.marker(e.latlng, {draggable: true}).addTo(mapaAdmin); }
+        document.getElementById('reg_coords').value = `${lat.toFixed(6)},${lng.toFixed(6)}`;
+    });
+}
+
+// 4. GUARDADO DINÁMICO
+document.getElementById('formRegistro').onsubmit = function(e) {
+    e.preventDefault();
+    
+    if (seccionActual === 'productos') {
+        const nuevoProd = {
+            id: Date.now(),
+            nombre: document.getElementById('reg_nombre').value,
+            descripcion: document.getElementById('reg_desc').value,
+            precio: parseFloat(document.getElementById('reg_precio').value),
+            stock: parseInt(document.getElementById('reg_stock').value),
+            proveedorId: parseInt(document.getElementById('reg_prov_id').value),
+            imagen: "assets/images/default-prod.jpg"
+        };
+        let db = JSON.parse(localStorage.getItem("productos")) || [];
+        db.push(nuevoProd);
+        localStorage.setItem("productos", JSON.stringify(db));
+    } 
+    else if (seccionActual === 'proveedores') {
+        const nuevoProv = {
+            id: Date.now(),
+            nombre: document.getElementById('prov_nombre').value,
+            comunidad: document.getElementById('prov_comunidad').value,
+            whatsapp: document.getElementById('prov_ws').value,
+            horario: document.getElementById('prov_horario').value,
+            productos: document.getElementById('prov_productos').value,
+            coords: document.getElementById('reg_coords').value,
+            video: document.getElementById('videoInput').value,
+            imagen: "assets/images/default-hacienda.jpg"
+        };
+        let db = JSON.parse(localStorage.getItem("proveedores")) || [];
+        db.push(nuevoProv);
+        localStorage.setItem("proveedores", JSON.stringify(db));
+    }
+
+    alert("Registro guardado correctamente");
+    cerrarModal();
+    cargarSeccion(seccionActual);
+};
+
+/***********************************
+ * 5. FUNCIONES DE RENDERIZADO
+ ***********************************/
+
 function renderizarTablaProductos(cnt) {
     const productosDB = JSON.parse(localStorage.getItem("productos")) || [];
-    
     cnt.innerHTML = `
         <table class="admin-table">
             <thead>
-                <tr>
-                    <th>Imagen</th>
-                    <th>Producto</th>
-                    <th>Stock</th>
-                    <th>Precio</th>
-                    <th>Acciones</th>
-                </tr>
+                <tr><th>Imagen</th><th>Producto</th><th>Stock</th><th>Precio</th><th>Acciones</th></tr>
             </thead>
             <tbody>
-                ${productosDB.map(p => {
-                    const bajoStock = p.stock < 5; 
-                    return `
-                    <tr class="${bajoStock ? 'fila-alerta' : ''}">
-                        <td><img src="${p.imagen}" class="img-mini" width="40" style="border-radius:5px;"></td>
-                        <td><strong>${p.nombre}</strong><br><small class="text-muted">${p.descripcion || ''}</small></td>
-                        <td class="${bajoStock ? 'stock-critico' : ''}">
-                            ${p.stock} ${p.unidad || 'lb'} ${bajoStock ? '⚠️' : ''}
-                        </td>
+                ${productosDB.map(p => `
+                    <tr>
+                        <td><img src="${p.imagen}" width="40" style="border-radius:5px"></td>
+                        <td><strong>${p.nombre}</strong></td>
+                        <td><span class="badge ${p.stock < 5 ? 'warning' : ''}">${p.stock}</span></td>
                         <td>$${p.precio.toFixed(2)}</td>
-                        <td>
-                            <button onclick="eliminarRegistro('productos', ${p.id})" class="btn-delete">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </td>
-                    </tr>`;
-                }).join('')}
+                        <td><button onclick="eliminarRegistro('productos', ${p.id})" class="btn-delete"><i class="fas fa-trash"></i></button></td>
+                    </tr>
+                `).join('')}
             </tbody>
         </table>`;
 }
 
-// 3. TABLA DE PROVEEDORES
 function renderizarTablaProveedores(cnt) {
     const proveedoresDB = JSON.parse(localStorage.getItem("proveedores")) || [];
-    
     cnt.innerHTML = `
         <table class="admin-table">
             <thead>
-                <tr>
-                    <th>Nombre</th>
-                    <th>Comunidad</th>
-                    <th>Contacto</th>
-                    <th>Multimedia</th>
-                    <th>Acciones</th>
-                </tr>
+                <tr><th>Hacienda</th><th>Comunidad</th><th>WhatsApp</th><th>Acciones</th></tr>
             </thead>
             <tbody>
                 ${proveedoresDB.map(prov => `
                     <tr>
                         <td><strong>${prov.nombre}</strong></td>
                         <td>${prov.comunidad}</td>
-                        <td><a href="https://wa.me/${prov.whatsapp}" target="_blank" class="link-wa">${prov.whatsapp}</a></td>
-                        <td>
-                            <span class="badge-tech">${prov.video ? '📁 ' + prov.video : '❌ Sin Video'}</span>
-                        </td>
-                        <td>
-                            <button onclick="eliminarRegistro('proveedores', ${prov.id})" class="btn-delete">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </td>
+                        <td><a href="https://wa.me/${prov.whatsapp}" target="_blank">Enlace Directo</a></td>
+                        <td><button onclick="eliminarRegistro('proveedores', ${prov.id})" class="btn-delete"><i class="fas fa-trash"></i></button></td>
                     </tr>
                 `).join('')}
             </tbody>
         </table>`;
 }
 
-// 4. DASHBOARD
-function renderizarDashboard(cnt) {
-    const productos = JSON.parse(localStorage.getItem("productos")) || [];
-    const pedidos = JSON.parse(localStorage.getItem("pedidos")) || [];
-    const criticos = productos.filter(p => p.stock < 5).length;
-
-    cnt.innerHTML = `
-        <div class="dashboard-grid">
-            <div class="card stat-card">
-                <h3>Total Productos</h3>
-                <p class="stat-number">${productos.length}</p>
-            </div>
-            <div class="card stat-card warning">
-                <h3>Stock Crítico</h3>
-                <p class="stat-number">${criticos}</p>
-            </div>
-            <div class="card stat-card success">
-                <h3>Pedidos Recibidos</h3>
-                <p class="stat-number">${pedidos.length}</p>
-            </div>
-        </div>
-        <div class="card glass-card" style="margin-top:20px;">
-            <h3>Actividad Reciente</h3>
-            <p class="text-muted">Hoy es ${new Date().toLocaleDateString()}</p>
-        </div>
-    `;
-}
-
-// 5. TABLA DE PEDIDOS
-function renderizarTablaPedidos(cnt) {
-    const pedidos = JSON.parse(localStorage.getItem("pedidos")) || [];
-    if(pedidos.length === 0) {
-        cnt.innerHTML = `<div class="card"><p>No hay pedidos registrados aún.</p></div>`;
-        return;
-    }
+function renderizarTablaUsuarios(cnt) {
+    const usuarios = JSON.parse(localStorage.getItem('usuarios_registrados')) || [];
     cnt.innerHTML = `
         <table class="admin-table">
-            <thead>
-                <tr>
-                    <th>ID Pedido</th>
-                    <th>Cliente</th>
-                    <th>Total</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
+            <thead><tr><th>Nombre</th><th>Email</th><th>Fecha</th></tr></thead>
             <tbody>
-                ${pedidos.map(ped => `
-                    <tr>
-                        <td>#${ped.id}</td>
-                        <td>${ped.cliente}</td>
-                        <td>$${ped.total.toFixed(2)}</td>
-                        <td><span class="badge-status ${ped.estado}">${ped.estado}</span></td>
-                        <td><button class="btn-primary-admin" style="padding:5px 10px;">Detalles</button></td>
-                    </tr>
-                `).join('')}
+                ${usuarios.map(u => `<tr><td>${u.nombre}</td><td>${u.email}</td><td>${u.fecha || 'Reciente'}</td></tr>`).join('')}
             </tbody>
         </table>`;
 }
 
-// 6. MODAL DINÁMICO
-function abrirModal() {
-    const campos = document.getElementById('camposDinamicos');
-    const modal = document.getElementById('modalRegistro');
-    const titulo = document.getElementById('modalTitulo');
-    
-    if(!modal) return;
-    modal.style.display = 'flex';
-    titulo.innerText = `Registrar ${seccionActual === 'productos' ? 'Producto' : 'Proveedor'}`;
-
-    if (seccionActual === 'productos') {
-        const provs = JSON.parse(localStorage.getItem("proveedores")) || [];
-        campos.innerHTML = `
-            <div class="form-group">
-                <label>Nombre del Producto</label>
-                <input type="text" id="reg_nombre" class="admin-input" required>
-            </div>
-            <div class="form-group">
-                <label>Descripción del Producto</label>
-                <textarea id="reg_desc" class="admin-input" rows="2" placeholder="Ej: Tomates orgánicos cultivados con métodos tradicionales."></textarea>
-            </div>
-            <div class="form-grid" style="display:flex; gap:10px;">
-                <div class="form-group" style="flex:1;">
-                    <label>Precio ($)</label>
-                    <input type="number" step="0.01" id="reg_precio" class="admin-input" required>
-                </div>
-                <div class="form-group" style="flex:1;">
-                    <label>Stock Inicial</label>
-                    <input type="number" id="reg_stock" class="admin-input" required>
-                </div>
-            </div>
-            <div class="form-group">
-                <label>Proveedor Responsable</label>
-                <select id="reg_prov_id" class="admin-input">
-                    ${provs.map(pr => `<option value="${pr.id}">${pr.nombre}</option>`).join('')}
-                </select>
-            </div>
-        `;
-    } else {
-        campos.innerHTML = `
-            <div class="form-group">
-                <label>Nombre de la Hacienda / Productor</label>
-                <input type="text" id="reg_nombre_prov" class="admin-input" required>
-            </div>
-            <div class="form-grid" style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <div class="form-group">
-                    <label>Comunidad</label>
-                    <input type="text" id="reg_comunidad" class="admin-input" required>
-                </div>
-                <div class="form-group">
-                    <label>WhatsApp (Sin +)</label>
-                    <input type="text" id="reg_ws" class="admin-input" required>
-                </div>
-            </div>
-            <div class="form-grid" style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <div class="form-group">
-                    <label>Latitud</label>
-                    <input type="number" step="any" id="reg_lat" class="admin-input" value="-0.04">
-                </div>
-                <div class="form-group">
-                    <label>Longitud</label>
-                    <input type="number" step="any" id="reg_lng" class="admin-input" value="-78.14">
-                </div>
-            </div>
-            <div class="form-group">
-                <label>Historia (Descripción del perfil)</label>
-                <textarea id="reg_historia" class="admin-input" rows="3"></textarea>
-            </div>
-            <div class="form-group">
-                <label>Nombre del archivo de Video (en assets/videos/)</label>
-                <input type="text" id="reg_video_file" class="admin-input" placeholder="ejemplo: finca.mp4">
-            </div>
-            <div class="form-group">
-                <label>Horario de Atención</label>
-                <input type="text" id="reg_horario" class="admin-input" placeholder="08:00 - 17:00">
-            </div>
-            <div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid #eee;">
-                <button type="button" onclick="previsualizarPerfil()" class="btn-primary-admin" style="background:#444;">
-                    <i class="fas fa-eye"></i> Previsualizar
-                </button>
-            </div>
-            <div id="preview-container" class="hidden" style="margin-top:15px; background:#f0f0f0; padding:10px; border-radius:8px;"></div>
-        `;
+function renderizarPedidos() {
+    const contenedor = document.getElementById("tabla-contenedor");
+    const pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
+    if (pedidos.length === 0) {
+        contenedor.innerHTML = `<p class="text-muted">No hay pedidos registrados.</p>`;
+        return;
     }
+    contenedor.innerHTML = `
+        <table class="admin-table">
+            <thead><tr><th>ID</th><th>Cliente</th><th>Total</th><th>Estado</th><th>Acciones</th></tr></thead>
+            <tbody>
+                ${pedidos.map(p => `
+                    <tr>
+                        <td>#${p.id.toString().slice(-5)}</td>
+                        <td>${p.cliente}</td>
+                        <td>$${p.total.toFixed(2)}</td>
+                        <td><span class="status-badge ${p.estado.toLowerCase()}">${p.estado}</span></td>
+                        <td><button class="btn-action view" onclick="verDetallesPedido(${p.id})"><i class="fas fa-eye"></i> Detalles</button></td>
+                    </tr>`).join('')}
+            </tbody>
+        </table>`;
 }
 
-// 7. GUARDAR DATOS
-const formRegistro = document.getElementById('formRegistro');
-if(formRegistro) {
-    formRegistro.onsubmit = function(e) {
-        e.preventDefault();
-        
-        if (seccionActual === 'productos') {
-            let db = JSON.parse(localStorage.getItem("productos")) || [];
-            db.push({
-                id: Date.now(),
-                nombre: document.getElementById('reg_nombre').value,
-                descripcion: document.getElementById('reg_desc').value,
-                precio: parseFloat(document.getElementById('reg_precio').value),
-                stock: parseInt(document.getElementById('reg_stock').value),
-                unidad: "lb",
-                proveedorId: parseInt(document.getElementById('reg_prov_id').value),
-                imagen: 'assets/images/productos/default.jpg'
-            });
-            localStorage.setItem("productos", JSON.stringify(db));
-        } else {
-            let db = JSON.parse(localStorage.getItem("proveedores")) || [];
-            db.push({
-                id: Date.now(),
-                nombre: document.getElementById('reg_nombre_prov').value,
-                comunidad: document.getElementById('reg_comunidad').value,
-                whatsapp: document.getElementById('reg_ws').value,
-                lat: parseFloat(document.getElementById('reg_lat').value),
-                lng: parseFloat(document.getElementById('reg_lng').value),
-                historia: document.getElementById('reg_historia').value,
-                video: document.getElementById('reg_video_file').value,
-                horario: document.getElementById('reg_horario').value,
-                imagen: 'assets/images/proveedores/default.jpg'
-            });
-            localStorage.setItem("proveedores", JSON.stringify(db));
-        }
+function verDetallesPedido(id) {
+    const pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
+    const pedido = pedidos.find(p => p.id === id);
+    if (!pedido) return;
 
-        cerrarModal();
-        cargarSeccion(seccionActual);
-    };
+    const modal = document.getElementById("modalRegistro");
+    const titulo = document.getElementById("modalTitulo");
+    const campos = document.getElementById("camposDinamicos");
+    
+    titulo.innerText = `Pedido #${id.toString().slice(-5)}`;
+    campos.innerHTML = `
+        <div class="order-details-view">
+            <div class="info-grid">
+                <p><strong>Cliente:</strong> ${pedido.cliente}</p>
+                <p><strong>Estado:</strong> 
+                    <select onchange="actualizarEstadoPedido(${pedido.id}, this.value)">
+                        <option value="Pendiente" ${pedido.estado === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
+                        <option value="Completado" ${pedido.estado === 'Completado' ? 'selected' : ''}>Completado</option>
+                    </select>
+                </p>
+            </div>
+            <table class="detail-table" style="width:100%; margin-top:15px;">
+                <thead><tr><th>Producto</th><th>Cant.</th><th>Subtotal</th></tr></thead>
+                <tbody>
+                    ${(pedido.items || []).map(item => `
+                        <tr><td>${item.nombre}</td><td>${item.cantidad}</td><td>$${(item.precio * item.cantidad).toFixed(2)}</td></tr>
+                    `).join('')}
+                </tbody>
+            </table>
+            <h3 style="text-align:right; margin-top:10px;">Total: $${pedido.total.toFixed(2)}</h3>
+        </div>`;
+
+    document.getElementById("areaMultimedia").classList.add("hidden");
+    document.querySelector(".btn-save").classList.add("hidden");
+    modal.style.display = "flex";
 }
 
-// 8. ELIMINAR Y CERRAR
-function cerrarModal() {
-    const modal = document.getElementById('modalRegistro');
-    if(modal) modal.style.display = 'none';
+function actualizarEstadoPedido(id, nuevoEstado) {
+    let pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
+    const idx = pedidos.findIndex(p => p.id === id);
+    if (idx !== -1) {
+        pedidos[idx].estado = nuevoEstado;
+        localStorage.setItem('pedidos', JSON.stringify(pedidos));
+        renderizarPedidos();
+    }
 }
 
 function eliminarRegistro(tipo, id) {
-    if (confirm("¿Está seguro de eliminar este registro?")) {
+    if (confirm("¿Seguro que desea eliminar este registro?")) {
         let db = JSON.parse(localStorage.getItem(tipo));
         db = db.filter(item => item.id !== id);
         localStorage.setItem(tipo, JSON.stringify(db));
@@ -304,25 +273,11 @@ function eliminarRegistro(tipo, id) {
     }
 }
 
-function previsualizarPerfil() {
-    const nombre = document.getElementById('reg_nombre_prov').value;
-    const historia = document.getElementById('reg_historia').value;
-    const videoFile = document.getElementById('reg_video_file').value;
-    const previewArea = document.getElementById('preview-container');
-
-    if (!nombre) return alert("Por favor, ingresa el nombre.");
-
-    previewArea.classList.remove('hidden');
-    previewArea.innerHTML = `
-        <p><strong>Vista Previa:</strong></p>
-        <p><small>${nombre}</small></p>
-        <div style="background:#000; color:#fff; font-size:10px; padding:10px; border-radius:5px; text-align:center;">
-            VIDEO: assets/videos/${videoFile || 'default.mp4'}
-        </div>
-    `;
+function cerrarModal() {
+    document.getElementById('modalRegistro').style.display = 'none';
+    if (marcadorAdmin) { marcadorAdmin = null; }
 }
 
-// Inicialización
 document.addEventListener('DOMContentLoaded', () => {
     cargarSeccion('dashboard');
 });

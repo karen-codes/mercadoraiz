@@ -4,86 +4,106 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Acceso | Mercado Raíz</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="css/styles.css">
 </head>
-<body class="admin-body"> <div class="card auth-container"> <h2 id="authTitle">Iniciar Sesión</h2>
-        
-        <form id="loginForm">
+<body class="auth-body"> 
+    <div id="toast-container"></div>
 
-            <div class="form-group">
-                <label for="email">Correo Electrónico</label>
-                <input type="email" id="email" class="admin-input" required>
+    <div class="auth-wrapper">
+        <div class="card auth-card">
+            <div class="auth-header">
+                <img src="assets/images/logo.png" alt="Mercado Raíz" class="auth-logo">
+                <h2 id="authTitle">Iniciar Sesión</h2>
+                <p class="auth-subtitle">Conectando productores de Cayambe</p>
             </div>
+            
+            <form id="loginForm">
+                <div id="registroExtra" class="hidden">
+                    <div class="form-group">
+                        <label for="reg_nombre"><i class="fas fa-user"></i> Nombre Completo</label>
+                        <input type="text" id="reg_nombre" class="admin-input" placeholder="Ej. Juan Pérez">
+                    </div>
+                </div>
 
-            <div class="form-group">
-                <label for="pass">Contraseña</label>
-                <input type="password" id="pass" class="admin-input" required>
+                <div class="form-group">
+                    <label for="email"><i class="fas fa-envelope"></i> Correo Electrónico</label>
+                    <input type="email" id="email" class="admin-input" required placeholder="tu@correo.com">
+                </div>
+
+                <div class="form-group">
+                    <label for="password"><i class="fas fa-lock"></i> Contraseña</label>
+                    <input type="password" id="password" class="admin-input" required minlength="6" placeholder="Mínimo 6 caracteres">
+                </div>
+
+                <button type="submit" id="btnSubmit" class="btn-primary-admin">
+                    Ingresar
+                </button>
+            </form>
+
+            <div class="auth-footer">
+                <p class="auth-switch">
+                    <span id="toggleText">¿No tienes cuenta?</span> 
+                    <a href="#" onclick="toggleAuth()" id="toggleLink">Regístrate aquí</a>
+                </p>
+                <div class="auth-back">
+                    <a href="index.html"><i class="fas fa-arrow-left"></i> Volver a la tienda</a>
+                </div>
             </div>
-
-            <button type="submit" id="btnSubmit" class="btn-primary-admin">
-                Ingresar
-            </button>
-        </form>
-
-        <p class="auth-switch">
-            <span id="toggleText">¿No tienes cuenta?</span> 
-            <a href="#" onclick="toggleAuth()" id="toggleLink">Regístrate aquí</a>
-        </p>
-        
-        <div class="auth-back">
-            <a href="index.html">← Volver a la tienda</a>
         </div>
     </div>
 
-    <script src="js/data.js"></script>
+    <script src="js/auth.js"></script>
     <script>
-        const loginForm = document.getElementById('loginForm');
-        const authTitle = document.getElementById('authTitle');
-        const groupNombre = document.getElementById('groupNombre');
-        const btnSubmit = document.getElementById('btnSubmit');
-        const toggleText = document.getElementById('toggleText');
-        const toggleLink = document.getElementById('toggleLink');
-        
+        // Sistema de notificaciones flotantes
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+            toast.innerHTML = `<i class="fas ${icon}"></i> <span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.add('fade-out');
+                setTimeout(() => toast.remove(), 500);
+            }, 3000);
+        }
+
+        // Sobrescribimos el alert nativo para que use nuestras notificaciones
+        window.alert = function(msg) {
+            const esExito = msg.includes("exitoso") || msg.includes("Bienvenido");
+            showToast(msg, esExito ? 'success' : 'error');
+        };
+
         let isLogin = true;
 
         function toggleAuth() {
             isLogin = !isLogin;
+            const authTitle = document.getElementById('authTitle');
+            const btnSubmit = document.getElementById('btnSubmit');
+            const toggleText = document.getElementById('toggleText');
+            const toggleLink = document.getElementById('toggleLink');
+            const registroExtra = document.getElementById('registroExtra');
+
             authTitle.innerText = isLogin ? "Iniciar Sesión" : "Crear Cuenta";
             btnSubmit.innerText = isLogin ? "Ingresar" : "Registrarse";
             toggleText.innerText = isLogin ? "¿No tienes cuenta?" : "¿Ya tienes cuenta?";
             toggleLink.innerText = isLogin ? "Regístrate aquí" : "Inicia sesión";
             
-            groupNombre.classList.toggle('hidden', isLogin);
-            document.getElementById('nombre').required = !isLogin;
+            registroExtra.classList.toggle('hidden', isLogin);
+            document.getElementById('reg_nombre').required = !isLogin;
+
+            // Cambiamos el comportamiento del botón si es registro
+            const form = document.getElementById('loginForm');
+            form.onsubmit = isLogin ? null : (e) => {
+                e.preventDefault();
+                registrarUsuario(
+                    document.getElementById('reg_nombre').value,
+                    document.getElementById('email').value,
+                    document.getElementById('password').value
+                );
+            };
         }
-
-        loginForm.onsubmit = function(e) {
-            e.preventDefault();
-            const email = document.getElementById('email').value;
-            const pass = document.getElementById('pass').value;
-            const nombre = document.getElementById('nombre').value;
-            
-            const usuarios = JSON.parse(localStorage.getItem('usuarios')) || [];
-
-            if (isLogin) {
-                const usuarioEncontrado = usuarios.find(u => u.email === email && u.password === pass);
-                if (usuarioEncontrado) {
-                    localStorage.setItem('sesionActiva', JSON.stringify(usuarioEncontrado));
-                    window.location.href = (usuarioEncontrado.rol === 'admin') ? 'admin.html' : 'index.html';
-                } else {
-                    alert('Correo o contraseña incorrectos');
-                }
-            } else {
-                if (usuarios.find(u => u.email === email)) {
-                    alert('Este correo ya está registrado');
-                    return;
-                }
-                usuarios.push({ id: Date.now(), nombre, email, password: pass, rol: "cliente" });
-                localStorage.setItem('usuarios', JSON.stringify(usuarios));
-                alert('¡Cuenta creada con éxito!');
-                toggleAuth();
-            }
-        };
     </script>
 </body>
 </html>

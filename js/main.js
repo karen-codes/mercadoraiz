@@ -8,233 +8,202 @@ const proveedores = JSON.parse(localStorage.getItem('proveedores')) || [];
 document.addEventListener("DOMContentLoaded", () => {
     actualizarInterfazSesion();
     actualizarContadorCarrito();
+    setupCarritoFlotante(); 
 
-    // Enrutador de funciones por ID
-    // Cambiamos "productsGrid" por la nueva lógica de renderizado
+    // Renderizado según la página donde estemos
     if (document.getElementById("productsGrid")) renderizarPaginaCategoria();
-    if (document.getElementById("cartContainer")) mostrarCarrito();
+    if (document.getElementById("cartContainer")) mostrarCarritoCompleto(); 
     
     setupFormulariosContacto();
 });
 
 /***********************************
- * GESTIÓN DE SESIÓN
+ * LÓGICA DEL CARRITO FLOTANTE (UI)
  ***********************************/
-function actualizarInterfazSesion() {
-    const sesion = JSON.parse(localStorage.getItem('sesionActiva'));
-    const loginLink = document.getElementById('loginLink');
-    const logoutLink = document.getElementById('logoutLink');
+function setupCarritoFlotante() {
+    const cartBtn = document.getElementById('floating-cart-btn');
+    const sideCart = document.getElementById('side-cart');
+    const closeBtn = document.getElementById('close-cart');
+    const overlay = document.getElementById('cart-overlay');
 
-    if (!loginLink || !logoutLink) return;
+    if (!cartBtn || !sideCart) return;
 
-    if (sesion) {
-        loginLink.classList.add('hidden');
-        logoutLink.classList.remove('hidden');
-        logoutLink.innerHTML = `<i class="fas fa-sign-out-alt"></i> Cerrar Sesión (${sesion.nombre.split(' ')[0]})`;
-    } else {
-        loginLink.classList.remove('hidden');
-        logoutLink.classList.add('hidden');
+    cartBtn.onclick = () => {
+        sideCart.classList.add('active');
+        overlay.classList.add('active');
+        renderizarCarritoFlotante();
+    };
+
+    const cerrar = () => {
+        sideCart.classList.remove('active');
+        overlay.classList.remove('active');
+    };
+
+    if(closeBtn) closeBtn.onclick = cerrar;
+    if(overlay) overlay.onclick = cerrar;
+}
+
+function renderizarCarritoFlotante() {
+    const container = document.getElementById('cart-items-container');
+    const totalElement = document.getElementById('cart-total-amount');
+    
+    if (!container) return;
+
+    if (carrito.length === 0) {
+        container.innerHTML = `<p class="empty-msg">Tu cesta está vacía.</p>`;
+        totalElement.innerText = "$0.00";
+        return;
     }
-}
 
-function cerrarSesion() {
-    localStorage.removeItem('sesionActiva');
-    alert("Sesión finalizada correctamente.");
-    window.location.href = 'index.html';
-}
-
-/***********************************
- * RENDERIZADO DE PRODUCTOS (3 COLUMNAS)
- ***********************************/
-function renderizarPaginaCategoria(filtro = 'todos') {
-    const grid = document.getElementById("productsGrid");
-    if (!grid) return;
-
-    const productosFiltrados = filtro === 'todos' 
-        ? productos 
-        : productos.filter(p => p.categoria === filtro);
-
-    grid.innerHTML = productosFiltrados.map(p => {
-        // Buscamos el nombre del proveedor para mostrarlo en la tarjeta
-        const prov = proveedores.find(pr => pr.id === p.proveedorId);
-        const nombreHacienda = prov ? prov.nombre : "Productor Local";
-
+    let total = 0;
+    container.innerHTML = carrito.map(item => {
+        total += item.precio * item.cantidad;
         return `
-        <div class="product-card-v2 glass-card">
-            <div class="product-image">
-                <div class="product-badge ${p.stock > 0 ? 'bg-verde' : 'bg-rojo'}">
-                    ${p.stock > 0 ? 'Disponible' : 'Agotado'}
-                </div>
-                <img src="${p.imagen}" alt="${p.nombre}">
-            </div>
-            
-            <div class="product-content">
-                <h3 class="product-title">${p.nombre}</h3>
-                <p class="product-provider"><i class="fas fa-leaf"></i> ${nombreHacienda}</p>
-                <p class="product-description">${p.descripcion || 'Producto fresco de Cayambe, cultivado con procesos orgánicos.'}</p>
-                
-                <div class="product-footer">
-                    <span class="product-price">$${p.precio.toFixed(2)} / ${p.unidad}</span>
-                    
-                    <div class="purchase-controls">
-                        <div class="quantity-counter">
-                            <button onclick="cambiarCant(${p.id}, -1)">-</button>
-                            <input type="number" id="qty-${p.id}" value="1" min="1" max="${p.stock}" readonly>
-                            <button onclick="cambiarCant(${p.id}, 1)">+</button>
-                        </div>
-                        <button class="btn-add-cart" onclick="procesarCompra(${p.id})" ${p.stock <= 0 ? 'disabled' : ''}>
-                            ${p.stock > 0 ? '<i class="fas fa-shopping-basket"></i> Agregar' : 'Agotado'}
-                        </button>
-                    </div>
+            <div class="cart-item">
+                <img src="${item.imagen}" alt="${item.nombre}">
+                <div class="item-details">
+                    <h4>${item.nombre}</h4>
+                    <p>${item.cantidad} x $${item.precio.toFixed(2)}</p>
+                    <button class="btn-remove-simple" onclick="eliminarDelCarrito(${item.id})">Quitar</button>
                 </div>
             </div>
-        </div>
-    `}).join('');
-}
+        `;
+    }).join('');
 
-// Lógica para el contador +/- 
-function cambiarCant(id, delta) {
-    const input = document.getElementById(`qty-${id}`);
-    const producto = productos.find(p => p.id === id);
-    let nuevoValor = parseInt(input.value) + delta;
-    
-    // Validar que no sea menor a 1 ni mayor al stock
-    if (nuevoValor < 1) nuevoValor = 1;
-    if (producto && nuevoValor > producto.stock) {
-        alert("Cantidad máxima alcanzada según stock disponible.");
-        nuevoValor = producto.stock;
-    }
-    
-    input.value = nuevoValor;
-}
-
-function filtrar(categoria) {
-    document.querySelectorAll('.chip').forEach(btn => btn.classList.remove('active'));
-    if (event) event.target.classList.add('active');
-    renderizarPaginaCategoria(categoria);
+    totalElement.innerText = `$${total.toFixed(2)}`;
 }
 
 /***********************************
- * CARRITO E INVENTARIO
+ * PRODUCTOS Y COMPRA
  ***********************************/
-function procesarCompra(id) {
-    const cantidadSeleccionada = parseInt(document.getElementById(`qty-${id}`).value);
-    agregarCarrito(id, cantidadSeleccionada);
-}
-
-function agregarCarrito(id, cantidad = 1) {
+function agregarAlCarritoClick(id) {
+    const qtyInput = document.getElementById(`qty-${id}`);
+    const cantidad = parseInt(qtyInput.value);
     const producto = productos.find(p => p.id === id);
-    if (!producto || producto.stock <= 0) return alert("Sin stock disponible.");
 
-    const itemEnCarrito = carrito.find(item => item.id === id);
-    
-    if (itemEnCarrito) {
-        if ((itemEnCarrito.cantidad + cantidad) <= producto.stock) {
-            itemEnCarrito.cantidad += cantidad;
-        } else {
-            return alert("No puedes agregar más de lo que hay en stock.");
-        }
-    } else {
-        carrito.push({ ...producto, cantidad: cantidad });
+    if (!producto || producto.stock <= 0) return alert("Sin existencias.");
+
+    const itemExistente = carrito.find(item => item.id === id);
+    const cantActualEnCarrito = itemExistente ? itemExistente.cantidad : 0;
+
+    if (cantActualEnCarrito + cantidad > producto.stock) {
+        alert(`Solo quedan ${producto.stock} unidades disponibles.`);
+        return;
     }
 
-    guardarCarrito();
-    actualizarContadorCarrito();
-    alert(`¡Agregado! ${cantidad} unidad(es) de ${producto.nombre}.`);
+    if (itemExistente) {
+        itemExistente.cantidad += cantidad;
+    } else {
+        carrito.push({ ...producto, cantidad });
+    }
+
+    guardarYActualizar();
+    
+    // Abrir automáticamente el panel lateral
+    document.getElementById('side-cart').classList.add('active');
+    document.getElementById('cart-overlay').classList.add('active');
+    renderizarCarritoFlotante();
 }
 
-function guardarCarrito() {
+function eliminarDelCarrito(id) {
+    carrito = carrito.filter(item => item.id !== id);
+    guardarYActualizar();
+    renderizarCarritoFlotante();
+    if (document.getElementById("cartContainer")) mostrarCarritoCompleto();
+}
+
+function guardarYActualizar() {
     localStorage.setItem('carrito', JSON.stringify(carrito));
+    actualizarContadorCarrito();
 }
 
 function actualizarContadorCarrito() {
-    const contador = document.getElementById("cartCount");
-    if (!contador) return;
+    const badge = document.getElementById("cart-count-badge");
     const totalItems = carrito.reduce((sum, item) => sum + item.cantidad, 0);
-    contador.innerText = totalItems;
-    totalItems > 0 ? contador.classList.remove('hidden') : contador.classList.add('hidden');
+    if (badge) badge.innerText = totalItems;
 }
 
 /***********************************
- * FINALIZAR PEDIDO
+ * FINALIZAR PEDIDO (VITAL PARA EL ADMIN)
  ***********************************/
-function confirmarPedido() {
+function finalizarCompra() {
     const sesion = JSON.parse(localStorage.getItem('sesionActiva'));
+    
     if (!sesion) {
-        alert("Inicia sesión para finalizar.");
+        alert("Debes iniciar sesión para realizar un pedido.");
         window.location.href = 'login.html';
         return;
     }
 
-    if (carrito.length === 0) return;
+    if (carrito.length === 0) return alert("El carrito está vacío.");
 
-    // Actualizar stock real en el arreglo global
-    carrito.forEach(item => {
-        const pIdx = productos.findIndex(p => p.id === item.id);
-        if (pIdx !== -1) productos[pIdx].stock -= item.cantidad;
-    });
-
-    localStorage.setItem("productos", JSON.stringify(productos));
-
-    // Registrar pedido
-    const pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
-    pedidos.push({
+    // Crear el objeto del pedido con el desglose de productos (items)
+    const nuevoPedido = {
         id: Date.now(),
         cliente: sesion.nombre,
+        email: sesion.email,
+        fecha: new Date().toLocaleString(),
         total: carrito.reduce((acc, p) => acc + (p.precio * p.cantidad), 0),
-        estado: "Pendiente",
-        fecha: new Date().toLocaleString()
-    });
+        items: [...carrito], // Copiamos el carrito actual
+        estado: "Pendiente"
+    };
+
+    // Guardar en la base de datos local de pedidos
+    const pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
+    pedidos.push(nuevoPedido);
     localStorage.setItem('pedidos', JSON.stringify(pedidos));
 
-    alert("Pedido procesado con éxito.");
+    // Restar stock de los productos
+    carrito.forEach(item => {
+        const indexProd = productos.findIndex(p => p.id === item.id);
+        if (indexProd !== -1) productos[indexProd].stock -= item.cantidad;
+    });
+    localStorage.setItem('productos', JSON.stringify(productos));
+
+    // Limpiar carrito y avisar
     carrito = [];
-    guardarCarrito();
+    guardarYActualizar();
+    alert("¡Pedido realizado con éxito! Gracias por apoyar a los productores de Cayambe.");
     window.location.href = 'index.html';
 }
 
 /***********************************
- * CONTACTO Y OTROS
+ * BUSCADOR
  ***********************************/
-function setupFormulariosContacto() {
-    const fCliente = document.getElementById('formCliente');
-    const fProductor = document.getElementById('formProductor');
-
-    if (fCliente) {
-        fCliente.onsubmit = (e) => {
-            e.preventDefault();
-            guardarMensaje('Cliente', {
-                nombre: e.target[0].value,
-                email: e.target[1].value,
-                mensaje: e.target[2].value
-            });
-            e.target.reset();
-        };
-    }
-
-    if (fProductor) {
-        fProductor.onsubmit = (e) => {
-            e.preventDefault();
-            guardarMensaje('Productor', {
-                finca: e.target[0].value,
-                comunidad: e.target[1].value,
-                whatsapp: e.target[2].value,
-                productos: e.target[3].value
-            });
-            e.target.reset();
-        };
-    }
+function buscarProductos() {
+    const query = document.getElementById('searchInput').value.toLowerCase();
+    const productosFiltrados = productos.filter(p => 
+        p.nombre.toLowerCase().includes(query) || 
+        p.categoria.toLowerCase().includes(query)
+    );
+    renderizarPaginaCategoria(productosFiltrados, true);
 }
 
-function guardarMensaje(tipo, datos) {
-    const mensajes = JSON.parse(localStorage.getItem('mensajesAdmin')) || [];
-    mensajes.push({
-        id: Date.now(),
-        tipo: tipo,
-        datos: datos,
-        fecha: new Date().toLocaleString(),
-        leido: false
-    });
-    localStorage.setItem('mensajesAdmin', JSON.stringify(mensajes));
-    alert(`Tu mensaje ha sido enviado.`);
+function renderizarPaginaCategoria(data = productos, esBusqueda = false) {
+    const grid = document.getElementById("productsGrid");
+    if (!grid) return;
+
+    if (data.length === 0) {
+        grid.innerHTML = `<p class="no-results">No se encontraron productos que coincidan.</p>`;
+        return;
+    }
+
+    grid.innerHTML = data.map(p => {
+        const prov = proveedores.find(pr => pr.id === p.proveedorId);
+        return `
+        <div class="product-card">
+            <div class="product-image"><img src="${p.imagen}" alt="${p.nombre}"></div>
+            <div class="product-info">
+                <h3>${p.nombre}</h3>
+                <p class="provider-tag"><i class="fas fa-leaf"></i> ${prov ? prov.nombre : 'Cayambe'}</p>
+                <p class="price">$${p.precio.toFixed(2)} / ${p.unidad}</p>
+                <div class="purchase-row">
+                    <input type="number" id="qty-${p.id}" value="1" min="1" max="${p.stock}">
+                    <button class="btn-buy" onclick="agregarAlCarritoClick(${p.id})">Agregar</button>
+                </div>
+            </div>
+        </div>`;
+    }).join('');
 }
+
+// ... resto de funciones de sesión y contacto

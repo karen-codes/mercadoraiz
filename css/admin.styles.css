@@ -111,3 +111,73 @@ td {
 }
 .status-pendiente { background: #fef3c7; color: #92400e; }
 .status-completado { background: #d1fae5; color: #065f46; }
+
+.admin-layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+.admin-sidebar {
+    width: 260px;
+    background: var(--primario);
+    color: white;
+    padding: 20px;
+    transition: all 0.3s;
+}
+
+.admin-main {
+    flex: 1;
+    padding: 30px;
+    background: #f4f1ea;
+}
+
+/* Tabla Responsiva */
+.table-container { overflow-x: auto; }
+
+@media (max-width: 992px) {
+    .admin-layout { flex-direction: column; }
+    .admin-sidebar { width: 100%; height: auto; }
+}
+
+.order-details-view {
+    padding: 10px;
+    color: var(--dark-brown);
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 25px;
+    background: var(--light-beige);
+    padding: 15px;
+    border-radius: 8px;
+}
+
+.detail-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+.detail-table th {
+    background: var(--sage);
+    color: white;
+    padding: 10px;
+    text-align: left;
+}
+
+.detail-table td {
+    padding: 10px;
+    border-bottom: 1px solid var(--beige);
+}
+
+.status-badge.pendiente { background: #ffc107; color: #000; }
+.status-badge.enviado { background: #17a2b8; color: #fff; }
+.status-badge.completado { background: #28a745; color: #fff; }
+
+.admin-input-small {
+    padding: 5px;
+    border-radius: 5px;
+    border: 1px solid var(--sage);
+}

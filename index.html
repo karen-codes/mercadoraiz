@@ -4,95 +4,139 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mercado Raíz | Cayambe</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
     <header class="header">
-        <div class="logo">Mercado Raíz</div>
-        <nav>
-            <a href="index.html" class="active">Inicio</a>
-            <a href="productos.html">Productos</a>
-            <a href="proveedor.html">Proveedores</a>
-            <a href="contacto.html">Contacto</a>
-            <a href="calidad.html">Calidad</a>
-            <a href="carrito.html">Carrito</a>
-            <span id="authContainer">
-                <a href="login.html" id="loginLink" class="btn-login">Iniciar Sesión</a>
-                <a href="#" id="logoutLink" onclick="cerrarSesion()" class="btn-logout" style="display:none;">Cerrar Sesión</a>
-            </span>
-        </nav>
+        <div class="header-container">
+            <div class="logo">
+                <i class="fas fa-seedling"></i> Mercado Raíz
+            </div>
+            <nav class="main-nav">
+                <a href="index.html" class="active">Inicio</a>
+                <a href="productos.html">Productos</a>
+                <a href="proveedor.html">Proveedores</a>
+                <a href="contacto.html">Contacto</a>
+                <a href="calidad.html">Calidad</a>
+                <div class="auth-buttons" id="authContainer">
+                    <a href="login.html" id="loginLink" class="btn-primary-outline">Iniciar Sesión</a>
+                    <a href="#" id="logoutLink" onclick="cerrarSesion()" class="btn-logout" style="display:none;">Cerrar Sesión</a>
+                </div>
+            </nav>
+        </div>
     </header>
 
     <main>
-        <section class="hero">
-            <h1>Conectando productores de Cayambe con mercados justos</h1>
-            <p>Productos frescos de comunidades cercanas, cultivados con responsabilidad.</p>
-            <div class="search-box">
-                <input type="text" id="searchInput" placeholder="Buscar productos o proveedores...">
-                <button onclick="buscarProductos()">Buscar</button>
+        <section class="hero-professional">
+            <div class="hero-content">
+                <span class="hero-badge">Directo de la Pacha Mama</span>
+                <h1>Conectando productores de Cayambe con mercados justos</h1>
+                <p>Descubre el sabor real de los productos cultivados con métodos tradicionales y respeto a la tierra.</p>
+                <div class="search-box-professional">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="¿Qué buscas hoy? Ej: Tomates, Asociación...">
+                    <button onclick="buscarProductos()">Buscar</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="quick-categories">
+            <div class="container">
+                <div class="category-card">
+                    <i class="fas fa-apple-alt"></i>
+                    <span>Frutas</span>
+                </div>
+                <div class="category-card">
+                    <i class="fas fa-carrot"></i>
+                    <span>Verduras</span>
+                </div>
+                <div class="category-card">
+                    <i class="fas fa-cheese"></i>
+                    <span>Lácteos</span>
+                </div>
+                <div class="category-card">
+                    <i class="fas fa-mortal-pestle"></i>
+                    <span>Artesanales</span>
+                </div>
             </div>
         </section>
 
         <section class="carousel-section">
-            <h2>Productos destacados</h2>
-            <div class="carousel">
-                <button class="prev" onclick="moverCarrusel(-1)">&#10094;</button>
-                <div class="carousel-track-container" style="overflow: hidden; width: 100%;">
+            <div class="section-header">
+                <h2>Cosecha del Día</h2>
+                <p>Seleccionamos lo mejor de nuestras fincas para ti</p>
+            </div>
+            <div class="carousel-container">
+                <button class="carousel-btn prev" onclick="moverCarrusel(-1)"><i class="fas fa-chevron-left"></i></button>
+                <div class="carousel-window">
                     <div id="carrusel-container" class="carousel-track">
                         </div>
                 </div>
-                <button class="next" onclick="moverCarrusel(1)">&#10095;</button>
+                <button class="carousel-btn next" onclick="moverCarrusel(1)"><i class="fas fa-chevron-right"></i></button>
+            </div>
+            <div class="text-center mt-20">
+                <a href="productos.html" class="btn-terracotta">Ver Todo el Catálogo</a>
             </div>
         </section>
     </main>
 
     <footer class="main-footer">
-    <div class="newsletter-section">
-        <h2>Suscríbete a Nuestro Boletín</h2>
-        <p>¡Obtén un descuento del 10% en tu primera compra! Recibe noticias y ofertas directamente en tu correo.</p>
-        <form class="newsletter-form">
-            <input type="email" placeholder="tu@email.com" required>
-            <button type="submit">Registrarse</button>
-        </form>
-        <p class="privacy-note">Respetamos tu privacidad. Nunca compartiremos tu información.</p>
-    </div>
-
-    <div class="footer-content">
-        <div class="footer-column brand-col">
-            <h3>Mercado Raíz</h3>
-            <p>Conectando productores locales con consumidores conscientes. Productos frescos, locales y de calidad para tu familia.</p>
-            <div class="social-links">
-                <a href="#"><i class="fab fa-facebook-f"></i></a>
-                <a href="#"><i class="fab fa-instagram"></i></a>
-                <a href="#"><i class="fab fa-twitter"></i></a>
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <h3>Mercado Raíz</h3>
+                <p>Apoyamos la economía local de Cayambe mediante el comercio justo y la transparencia digital.</p>
+                <div class="social-icons">
+                    <a href="#"><i class="fab fa-facebook"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-whatsapp"></i></a>
+                </div>
+            </div>
+            <div class="footer-links">
+                <h4>Navegación</h4>
+                <a href="index.html">Inicio</a>
+                <a href="productos.html">Productos</a>
+                <a href="proveedor.html">Proveedores</a>
+                <a href="calidad.html">Garantía de Calidad</a>
+            </div>
+            <div class="footer-contact">
+                <h4>Contacto</h4>
+                <p><i class="fas fa-map-marker-alt"></i> Cayambe, Pichincha, Ecuador</p>
+                <p><i class="fas fa-envelope"></i> info@mercadoraiz.com</p>
             </div>
         </div>
-        <div class="footer-column">
-            <h3>Enlaces Rápidos</h3>
-            <ul>
-                <li><a href="index.html">Inicio</a></li>
-                <li><a href="productos.html">Productos</a></li>
-                <li><a href="proveedores.html">Proveedores</a></li>
-                <li><a href="contacto.html">Contacto</a></li>
-            </ul>
+        <div class="footer-copy">
+            &copy; 2026 Mercado Raíz - Identidad y Sabor de Nuestra Tierra.
         </div>
-        <div class="footer-column">
-            <h3>Información de Contacto</h3>
-            <p><i class="fas fa-map-marker-alt"></i> Calle Principal 123, Cayambe, Ecuador</p>
-            <p><i class="fas fa-phone"></i> +593 99 999 9999</p>
-            <p><i class="fas fa-clock"></i> Lun - Sáb: 8:00 AM - 6:00 PM</p>
-        </div>
-    </div>
-    <div class="footer-bottom">
-        <p>&copy; 2026 Mercado Raíz. Todos los derechos reservados.</p>
-    </div>
-</footer>
+    </footer>
 
-    <a href="carrito.html" class="floating-cart">
-        <i class="fas fa-shopping-cart"></i>
-        <span id="cartCount" class="cart-badge">0</span>
-    </a>
+    <div id="cart-overlay" class="cart-overlay"></div>
+
+<div id="side-cart" class="side-cart">
+    <div class="cart-header">
+        <h3>Tu Cosecha (Carrito)</h3>
+        <button id="close-cart" class="close-btn">&times;</button>
+    </div>
+    
+    <div id="cart-items-container" class="cart-body">
+        <p class="empty-msg">Tu carrito está vacío. ¡Empieza a comprar!</p>
+    </div>
+
+    <div class="cart-footer">
+        <div class="cart-total">
+            <span>Total:</span>
+            <span id="cart-total-amount">$0.00</span>
+        </div>
+        <button class="btn-checkout">Finalizar Compra</button>
+        <a href="carrito.html" class="btn-view-cart">Ver Carrito Completo</a>
+    </div>
+</div>
+
+<div id="floating-cart-btn" class="floating-cart-trigger">
+    <i class="fas fa-shopping-basket"></i>
+    <span id="cart-count-badge" class="cart-badge">0</span>
+</div>
 
     <script src="js/data.js"></script>
     <script src="js/main.js"></script>
