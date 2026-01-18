@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="css/admin.styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body class="admin-body">
@@ -21,31 +20,31 @@
         
         <nav class="sidebar-nav">
             <a onclick="cargarSeccion('dashboard')" id="link-dashboard" class="nav-item active">
-                <i class="fas fa-chart-line"></i> Dashboard Alcance
+                <i class="fas fa-chart-line"></i> <span>Dashboard Alcance</span>
             </a>
             <a onclick="cargarSeccion('productos')" id="link-productos" class="nav-item">
-                <i class="fas fa-box"></i> Inventario Productos
+                <i class="fas fa-box"></i> <span>Inventario Productos</span>
             </a>
             <a onclick="cargarSeccion('proveedores')" id="link-proveedores" class="nav-item">
-                <i class="fas fa-tractor"></i> Red de Proveedores
+                <i class="fas fa-tractor"></i> <span>Red de Proveedores</span>
             </a>
             <a onclick="cargarSeccion('usuarios')" id="link-usuarios" class="nav-item">
-                <i class="fas fa-users"></i> Base de Clientes
+                <i class="fas fa-users"></i> <span>Base de Clientes</span>
             </a>
             <a onclick="cargarSeccion('pedidos')" id="link-pedidos" class="nav-item">
-                <i class="fas fa-shopping-basket"></i> Pedidos y Pagos
+                <i class="fas fa-shopping-basket"></i> <span>Pedidos y Pagos</span>
             </a>
             <a onclick="cargarSeccion('mensajes')" id="link-mensajes" class="nav-item">
-                <i class="fas fa-envelope"></i> Mensajería
+                <i class="fas fa-envelope"></i> <span>Mensajería</span>
             </a>
             
             <hr class="sidebar-divider">
             
-            <a href="index.html" class="link-back">
-                <i class="fas fa-store"></i> Ver Tienda Pública
+            <a href="index.html" class="nav-item">
+                <i class="fas fa-store"></i> <span>Ver Tienda Pública</span>
             </a>
             <a onclick="cerrarSesion()" class="btn-logout-admin">
-                <i class="fas fa-power-off"></i> Cerrar Sesión
+                <i class="fas fa-power-off"></i> <span>Cerrar Sesión</span>
             </a>
         </nav>
     </aside>
@@ -56,61 +55,49 @@
                 <h1 id="seccion-titulo">Dashboard</h1>
                 <p id="fecha-actual" class="text-muted"></p>
             </div>
-            <button id="btn-accion-principal" class="btn-primary-admin" onclick="abrirModal()">
+            <button id="btn-accion-principal" class="btn-nuevo" onclick="abrirModal()">
                 <i class="fas fa-plus-circle"></i> Nuevo Registro
             </button>
         </header>
         
-        <section id="tabla-contenedor" class="admin-card-container">
-            </section>
+        <div id="tabla-contenedor">
+            <div class="loader-placeholder">Cargando panel de Mercado Raíz...</div>
+        </div>
     </main>
 
     <div id="modalRegistro" class="modal-pago">
-        <div class="modal-content glass-card">
-            <div class="modal-header">
+        <div class="glass-card">
+            <div class="header-admin" style="margin-bottom: 20px; border:none; padding-bottom: 0;">
                 <h2 id="modalTitulo">Detalles del Registro</h2>
-                <button onclick="cerrarModal()" class="btn-close">&times;</button>
+                <button onclick="cerrarModal()" style="background:none; border:none; font-size:2rem; cursor:pointer; color:#999;">&times;</button>
             </div>
             
-            <form id="formRegistro" class="admin-form">
-                <div id="camposDinamicos">
-                    </div>
-                
-                <div id="areaMultimedia" class="multimedia-section">
-                    <div class="form-group">
-                        <label id="labelMultimedia">Imagen Principal:</label>
-                        <input type="file" id="fileInput" accept="image/*" class="admin-input">
-                    </div>
-                    <div id="campoVideo" class="hidden form-group">
-                        <label>Video Promocional (YouTube URL):</label>
-                        <input type="text" id="videoInput" placeholder="https://youtube.com/..." class="admin-input">
-                    </div>
+            <form id="formRegistro">
+                <div id="camposDinamicos"></div>
+                <div id="areaMultimedia" class="form-group" style="margin-top:15px;">
+                    <label style="display:block; margin-bottom:8px; font-weight:600; color:var(--admin-primary);">Imagen Principal:</label>
+                    <input type="file" id="fileInput" accept="image/*" class="admin-input-file" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:8px;">
                 </div>
-
-                <div id="mapArea" class="hidden form-group">
-                    <label>Ubicación Geográfica (Hacer clic en el mapa):</label>
-                    <div id="mapAdmin" style="height: 250px; border-radius: 10px;"></div>
-                    <input type="hidden" id="reg_coords">
+                <div id="mapArea" class="hidden" style="margin-top:15px;">
+                    <div id="mapAdmin" style="height: 200px; border-radius: 10px; border:1px solid #ddd;"></div>
                 </div>
-
-                <div class="modal-actions">
-                    <button type="submit" class="btn-save">
-                        <i class="fas fa-check"></i> Guardar Cambios
-                    </button>
+                <div style="margin-top: 30px; text-align: right; display: flex; gap: 10px; justify-content: flex-end;">
+                    <button type="button" onclick="cerrarModal()" class="btn-delete" style="background:#eee; color:#333; padding: 10px 20px;">Cancelar</button>
+                    <button type="submit" class="btn-nuevo" style="padding: 10px 20px;">Guardar Cambios</button>
                 </div>
             </form>
         </div>
     </div>
 
     <script src="js/data.js"></script>
-    <script src="js/auth.js"></script> <script src="js/dashboard.js"></script>
+    <script src="js/auth.js"></script> 
+    <script src="js/usuarios.js"></script>
+    <script src="js/pedidos.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script src="js/mensajes.js"></script>
     <script src="js/admin.js"></script>
     
     <script>
-        // Verificación de seguridad rápida
-        verificarProteccionRuta(); // Función definida en js/auth.js
-        
-        // Fecha actual
         document.getElementById('fecha-actual').innerText = new Date().toLocaleDateString('es-ES', { 
             weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
         });

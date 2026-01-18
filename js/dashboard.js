@@ -1,92 +1,127 @@
-// REGISTRO DE VISITAS (Se ejecuta en index.html)
+// js/dashboard.js
+
 function registrarVisita() {
     let visitas = parseInt(localStorage.getItem('stats_visitas')) || 0;
     visitas++;
     localStorage.setItem('stats_visitas', visitas.toString());
 }
 
-/**
- * Renderiza los cuadros de métricas en admin.html
- * @param {HTMLElement} cont - El contenedor donde se inyectará el dashboard
- */
-function renderizarDashboard(cont) {
+function renderizarDashboard(contenedor) {
+    const cont = contenedor || document.getElementById('tabla-contenedor');
+    if (!cont) return;
+
     const visitas = localStorage.getItem('stats_visitas') || 0;
-    const pedidos = JSON.parse(localStorage.getItem('pedidos_db')) || [];
+    const pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
     const usuarios = JSON.parse(localStorage.getItem('usuarios_registrados')) || [];
-    const productos = JSON.parse(localStorage.getItem('productos')) || [];
+    const proveedores = JSON.parse(localStorage.getItem('proveedores')) || [];
     
-    // Lógica de Negocio
-    const ventasConfirmadas = pedidos.filter(p => p.estado === "Pagado/Confirmado");
-    const totalIngresos = ventasConfirmadas.reduce((sum, p) => sum + parseFloat(p.total), 0);
-    const pedidosPendientes = pedidos.filter(p => p.estado === "Por Confirmar").length;
+    // Filtros de estados
+    const ventasConfirmadas = pedidos.filter(p => p.estado === "Completado");
+    const totalIngresos = ventasConfirmadas.reduce((sum, p) => sum + parseFloat(p.total || 0), 0);
+    const pedidosPendientes = pedidos.filter(p => p.estado === "Pendiente").length;
 
-    let html = `
-        <div class="dashboard-header">
-            <h1>Panel de Control</h1>
-            <p>Resumen operativo de Mercado Raíz</p>
-        </div>
+    // LÓGICA DE RANKING DE PRODUCTORES
+    // Creamos un mapa de ventas por proveedor
+    const ventasPorProveedor = {};
+    ventasConfirmadas.forEach(pedido => {
+        pedido.items.forEach(item => {
+            // Buscamos el nombre del proveedor para que sea legible
+            const prov = proveedores.find(pr => pr.id === item.proveedorId) || { nombre: "Otros" };
+            const nombreProv = prov.nombre;
+            ventasPorProveedor[nombreProv] = (ventasPorProveedor[nombreProv] || 0) + (item.precio * item.cantidad);
+        });
+    });
 
-        <div class="dashboard-grid">
-            <div class="card-metrica">
-                <div class="icon-circle"><i class="fas fa-eye"></i></div>
-                <h3>Visitas Totales</h3>
-                <p class="numero">${visitas}</p>
-                <span class="label">Alcance de la página</span>
+    // Ordenar de mayor a menor y sacar el máximo para la escala de las barras
+    const rankingSorted = Object.entries(ventasPorProveedor).sort((a, b) => b[1] - a[1]);
+    const ventaMaxima = rankingSorted.length > 0 ? rankingSorted[0][1] : 1;
+
+    cont.innerHTML = `
+        <div class="dashboard-container" style="animation: fadeIn 0.4s ease-out;">
+            <div class="dashboard-header" style="margin-bottom: 2rem;">
+                <h2 style="font-family: 'Outfit'; color: var(--admin-primary); font-size: 1.8rem;">Resumen Operativo</h2>
+                <p class="text-muted">Análisis de impacto y ventas en Cayambe</p>
             </div>
 
-            <div class="card-metrica">
-                <div class="icon-circle" style="background: rgba(174, 110, 36, 0.1); color: var(--color-acento);">
-                    <i class="fas fa-hand-holding-usd"></i>
-                </div>
-                <h3>Ventas Confirmadas</h3>
-                <p class="numero">$${totalIngresos.toFixed(2)}</p>
-                <span class="label">${ventasConfirmadas.length} pedidos pagados</span>
-            </div>
-
-            <div class="card-metrica">
-                <div class="icon-circle"><i class="fas fa-users"></i></div>
-                <h3>Clientes</h3>
-                <p class="numero">${usuarios.length}</p>
-                <span class="label">Registrados en la base</span>
-            </div>
-
-            <div class="card-metrica" style="border-left: 5px solid #facc15;">
-                <div class="icon-circle" style="background: #fefce8; color: #a16207;">
-                    <i class="fas fa-clock"></i>
-                </div>
-                <h3>Pendientes</h3>
-                <p class="numero">${pedidosPendientes}</p>
-                <span class="label">Pagos por validar</span>
-            </div>
-        </div>
-
-        <div class="dashboard-charts" style="margin-top: 30px;">
-            <div class="admin-card">
-                <h3>Estado de Pedidos Actuales</h3>
-                <div class="chart-summary">
-                    <div class="stat-item">
-                        <span class="dot" style="background: #10b981;"></span>
-                        Entregados: <strong>${ventasConfirmadas.length}</strong>
+            <div class="dashboard-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px;">
+                <div class="admin-card" style="display: flex; align-items: center; gap: 20px; padding: 25px;">
+                    <div style="background: #e0f2fe; color: #0369a1; width: 55px; height: 55px; border-radius: 12px; display: flex; align-items:center; justify-content:center; font-size: 1.3rem;">
+                        <i class="fas fa-eye"></i>
                     </div>
-                    <div class="stat-item">
-                        <span class="dot" style="background: #facc15;"></span>
-                        Pendientes: <strong>${pedidosPendientes}</strong>
-                    </div>
-                    <div class="stat-item">
-                        <span class="dot" style="background: #ef4444;"></span>
-                        Cancelados: <strong>${pedidos.filter(p => p.estado === "Cancelado").length}</strong>
+                    <div>
+                        <h3 style="font-size: 0.85rem; color: #666; margin: 0;">Visitas</h3>
+                        <p style="font-size: 1.6rem; font-weight: 800; margin: 0;">${visitas}</p>
                     </div>
                 </div>
+
+                <div class="admin-card" style="display: flex; align-items: center; gap: 20px; padding: 25px;">
+                    <div style="background: #dcfce7; color: #15803d; width: 55px; height: 55px; border-radius: 12px; display: flex; align-items:center; justify-content:center; font-size: 1.3rem;">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <div>
+                        <h3 style="font-size: 0.85rem; color: #666; margin: 0;">Ventas Netas</h3>
+                        <p style="font-size: 1.6rem; font-weight: 800; margin: 0;">$${totalIngresos.toFixed(2)}</p>
+                    </div>
+                </div>
+
+                <div class="admin-card" style="display: flex; align-items: center; gap: 20px; padding: 25px;">
+                    <div style="background: #fef3c7; color: #b45309; width: 55px; height: 55px; border-radius: 12px; display: flex; align-items:center; justify-content:center; font-size: 1.3rem;">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div>
+                        <h3 style="font-size: 0.85rem; color: #666; margin: 0;">Clientes</h3>
+                        <p style="font-size: 1.6rem; font-weight: 800; margin: 0;">${usuarios.length}</p>
+                    </div>
+                </div>
+
+                <div class="admin-card" style="display: flex; align-items: center; gap: 20px; padding: 25px; border-bottom: 4px solid #f87171;">
+                    <div style="background: #fee2e2; color: #b91c1c; width: 55px; height: 55px; border-radius: 12px; display: flex; align-items:center; justify-content:center; font-size: 1.3rem;">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                    <div>
+                        <h3 style="font-size: 0.85rem; color: #666; margin: 0;">Pendientes</h3>
+                        <p style="font-size: 1.6rem; font-weight: 800; margin: 0;">${pedidosPendientes}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 25px; margin-top: 25px;">
+                
+                <div class="admin-card" style="padding: 30px;">
+                    <h3 style="margin-bottom: 25px; font-size: 1.1rem;"><i class="fas fa-medal" style="color:#fbbf24;"></i> Rendimiento por Productor ($)</h3>
+                    <div class="chart-bars-container" style="display: flex; flex-direction: column; gap: 20px;">
+                        ${rankingSorted.length > 0 ? rankingSorted.map(([nombre, monto]) => {
+                            const porcentaje = (monto / ventaMaxima) * 100;
+                            return `
+                                <div class="bar-item">
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.9rem;">
+                                        <span><strong>${nombre}</strong></span>
+                                        <span style="color: var(--admin-primary); font-weight: bold;">$${monto.toFixed(2)}</span>
+                                    </div>
+                                    <div style="background: #eee; height: 12px; border-radius: 10px; overflow: hidden;">
+                                        <div style="background: var(--admin-accent); width: ${porcentaje}%; height: 100%; border-radius: 10px; transition: width 1s ease;"></div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('') : '<p class="text-muted">Aún no hay datos de ventas por productor.</p>'}
+                    </div>
+                </div>
+
+                <div class="admin-card" style="padding: 30px; display: flex; flex-direction: column; justify-content: center;">
+                    <h3 style="margin-bottom: 20px; font-size: 1.1rem;">Estados de Orden</h3>
+                    <div style="display: flex; flex-direction: column; gap: 15px;">
+                        <div style="padding: 15px; background: #f0fdf4; border-radius: 10px; border-left: 5px solid #22c55e;">
+                            <small style="color: #16a34a; font-weight: bold;">Completados</small>
+                            <p style="font-size: 1.4rem; font-weight: 800; margin:0;">${ventasConfirmadas.length}</p>
+                        </div>
+                        <div style="padding: 15px; background: #fffbeb; border-radius: 10px; border-left: 5px solid #f59e0b;">
+                            <small style="color: #d97706; font-weight: bold;">Pendientes</small>
+                            <p style="font-size: 1.4rem; font-weight: 800; margin:0;">${pedidosPendientes}</p>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
     `;
-    cont.innerHTML = html;
 }
-
-// Auto-ejecución al cargar admin.html
-document.addEventListener('DOMContentLoaded', () => {
-    const contenedor = document.getElementById('dashboard-container');
-    if (contenedor) {
-        renderizarDashboard(contenedor);
-    }
-});
