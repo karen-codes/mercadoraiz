@@ -7,6 +7,23 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Parche rápido para asegurar que las imágenes no se deformen */
+        .product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover !important;
+        }
+        .product-card {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        .category-card.active {
+            background-color: var(--pueblo-terracotta);
+            color: white;
+        }
+    </style>
 </head>
 <body>
     <header class="header">
@@ -41,10 +58,11 @@
 
             <div class="text-center" style="margin-bottom: 40px;">
                 <div class="filter-chips" style="display: flex; justify-content: center; gap: 15px; flex-wrap: wrap;">
-                    <button onclick="filtrar('todos')" class="category-card" style="padding: 10px 25px; min-width: auto;">Todos</button>
-                    <button onclick="filtrar('papas')" class="category-card" style="padding: 10px 25px; min-width: auto;">Papas y Tubérculos</button>
-                    <button onclick="filtrar('hortalizas')" class="category-card" style="padding: 10px 25px; min-width: auto;">Hortalizas</button>
-                    <button onclick="filtrar('frutas')" class="category-card" style="padding: 10px 25px; min-width: auto;">Frutas</button>
+                    <a href="productos.html?cat=todos" class="category-card" style="padding: 10px 25px; min-width: auto; text-decoration: none; display: inline-block;">Todos</a>
+                    <a href="productos.html?cat=Papas" class="category-card" style="padding: 10px 25px; min-width: auto; text-decoration: none; display: inline-block;">Papas y Tubérculos</a>
+                    <a href="productos.html?cat=Hortalizas" class="category-card" style="padding: 10px 25px; min-width: auto; text-decoration: none; display: inline-block;">Hortalizas</a>
+                    <a href="productos.html?cat=Frutas" class="category-card" style="padding: 10px 25px; min-width: auto; text-decoration: none; display: inline-block;">Frutas</a>
+                    <a href="productos.html?cat=Lácteos" class="category-card" style="padding: 10px 25px; min-width: auto; text-decoration: none; display: inline-block;">Lácteos</a>
                 </div>
             </div>
 

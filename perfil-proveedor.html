@@ -41,7 +41,8 @@
 
         <div class="section-header" style="text-align: left; margin-bottom: 40px;">
             <span class="hero-badge" id="p-comunidad" style="margin-bottom: 10px;">Comunidad</span>
-            <h1 id="p-nombre" style="font-family: 'Playfair Display', serif; font-size: 3.5rem; color: var(--pueblo-charcoal);">Cargando...</h1>
+            <h1 id="p-nombre" style="font-family: 'Playfair Display', serif; font-size: 3.5rem; color: var(--pueblo-charcoal); margin-bottom: 5px;">Cargando...</h1>
+            <p id="p-descripcion" style="font-size: 1.4rem; color: var(--pueblo-sage); font-style: italic; margin-top: 0;"></p>
         </div>
 
         <div class="perfil-grid" style="display: grid; grid-template-columns: 2fr 1fr; gap: 40px;">
@@ -53,7 +54,7 @@
 
                 <section class="category-card" style="padding: 40px; height: auto; cursor: default; text-align: left;">
                     <h3 style="font-family: 'Playfair Display', serif; color: var(--pueblo-sage); margin-bottom: 20px; font-size: 1.8rem;">Labores en la Parcela</h3>
-                    <div style="border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+                    <div id="video-container" style="border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
                         <video id="p-video-local" controls width="100%" style="display: block;">
                             Tu navegador no soporta videos.
                         </video>
@@ -72,7 +73,7 @@
                 
                 <section class="category-card" style="padding: 30px; height: auto; cursor: default; text-align: left; background-color: var(--pueblo-sand);">
                     <h3 style="font-family: 'Playfair Display', serif; color: var(--pueblo-sage); margin-bottom: 15px;">Información de Entrega</h3>
-                    <p style="margin-bottom: 10px;"><i class="fas fa-clock"></i> <strong>Cosecha:</strong> <span id="p-horario"></span></p>
+                    <p style="margin-bottom: 10px;"><i class="fas fa-clock"></i> <strong>Cosecha/Horario:</strong> <span id="p-horario"></span></p>
                     <p><i class="fas fa-wallet"></i> <strong>Pagos:</strong> <span id="p-pagos"></span></p>
                 </section>
             </div>

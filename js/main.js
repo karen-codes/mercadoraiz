@@ -10,17 +10,18 @@ document.addEventListener("DOMContentLoaded", () => {
     actualizarContadorCarrito();
     setupCarritoFlotante(); 
 
-    // Renderizado según la página donde estemos
     if (document.getElementById("productsGrid")) {
-        // Si estamos en categoria.html, filtramos por URL, si no, mostramos todo
         const params = new URLSearchParams(window.location.search);
         const cat = params.get('cat');
-        if (cat) {
-            const filtrados = productos.filter(p => p.categoria.toLowerCase() === cat.toLowerCase());
+        
+        if (cat && cat.toLowerCase() !== 'todos') {
+            const filtrados = productos.filter(p => 
+                p.categoria && p.categoria.trim().toLowerCase() === cat.trim().toLowerCase()
+            );
             renderizarPaginaCategoria(filtrados);
             if(document.getElementById("categoriaTitulo")) document.getElementById("categoriaTitulo").innerText = cat;
         } else {
-            renderizarPaginaCategoria();
+            renderizarPaginaCategoria(productos);
         }
     }
     
@@ -86,20 +87,23 @@ function renderizarCarritoFlotante() {
 }
 
 /***********************************
- * PRODUCTOS Y COMPRA
+ * PRODUCTOS Y COMPRA (MEJORADO)
  ***********************************/
 function agregarAlCarritoClick(id) {
-    const qtyInput = document.getElementById(`qty-${id}`);
+    // Busca el input de cantidad (soporta qty- o cant-)
+    const qtyInput = document.getElementById(`qty-${id}`) || document.getElementById(`cant-${id}`);
     const cantidad = parseInt(qtyInput ? qtyInput.value : 1);
     const producto = productos.find(p => p.id === id);
 
-    if (!producto || producto.stock <= 0) return alert("Sin existencias.");
+    if (!producto) return;
+    if (producto.stock <= 0) return alert("Sin existencias.");
+    if (isNaN(cantidad) || cantidad <= 0) return alert("Cantidad no válida.");
 
     const itemExistente = carrito.find(item => item.id === id);
     const cantActualEnCarrito = itemExistente ? itemExistente.cantidad : 0;
 
     if (cantActualEnCarrito + cantidad > producto.stock) {
-        alert(`Solo quedan ${producto.stock} unidades disponibles.`);
+        alert(`Solo quedan ${producto.stock} unidades disponibles. Tienes ${cantActualEnCarrito} en el carrito.`);
         return;
     }
 
@@ -111,7 +115,7 @@ function agregarAlCarritoClick(id) {
 
     guardarYActualizar();
     
-    // Abrir automáticamente el panel lateral para feedback visual
+    // Abrir carrito lateral automáticamente
     const sideCart = document.getElementById('side-cart');
     const overlay = document.getElementById('cart-overlay');
     if(sideCart && overlay) {
@@ -153,20 +157,31 @@ function renderizarPaginaCategoria(data = productos) {
 
     grid.innerHTML = data.map(p => {
         const prov = proveedores.find(pr => pr.id === p.proveedorId);
+        const nombreMostrar = prov ? prov.nombre : 'Cayambe';
+        const enlaceProveedor = prov 
+            ? `<a href="perfil-proveedor.html?id=${prov.id}" style="color:inherit; text-decoration:underline;">${nombreMostrar}</a>`
+            : nombreMostrar;
+
         return `
-        <div class="product-card">
-            <div class="product-image">
-                <img src="${p.imagen}" alt="${p.nombre}">
-                ${p.stock < 5 ? '<span class="stock-tag">Pocas unidades</span>' : ''}
+        <div class="product-card" style="border:1px solid #eee; border-radius:15px; overflow:hidden; background:#fff; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+            <div class="product-image" style="width:100%; height:200px; overflow:hidden; position:relative;">
+                <img src="${p.imagen}" alt="${p.nombre}" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='assets/images/default-prod.jpg'">
+                ${p.stock < 5 ? '<span style="position:absolute; top:10px; right:10px; background:var(--pueblo-terracotta); color:white; padding:4px 10px; border-radius:20px; font-size:0.7rem; font-weight:bold;">¡Últimas unidades!</span>' : ''}
             </div>
-            <div class="product-info">
-                <h3>${p.nombre}</h3>
-                <p class="provider-tag"><i class="fas fa-leaf"></i> ${prov ? prov.nombre : 'Cayambe'}</p>
-                <p class="price">$${p.precio.toFixed(2)} / ${p.unidad}</p>
-                <div class="purchase-row" style="display:flex; gap:10px; margin-top:15px;">
-                    <input type="number" id="qty-${p.id}" value="1" min="1" max="${p.stock}" style="width:50px; padding:5px; border-radius:5px; border:1px solid #ddd;">
-                    <button class="btn-login-header" style="flex:1; font-size:0.8rem;" onclick="agregarAlCarritoClick(${p.id})">
-                        Agregar
+            <div class="product-info" style="padding:20px;">
+                <h3 style="margin:0 0 5px 0; font-family:'Playfair Display', serif; font-size:1.2rem;">${p.nombre}</h3>
+                <p style="color:#666; font-size:0.85rem; margin-bottom:10px;">
+                    <i class="fas fa-leaf"></i> ${enlaceProveedor}
+                </p>
+                <p style="font-weight:bold; color:var(--pueblo-terracotta); font-size:1.2rem; margin:10px 0;">$${p.precio.toFixed(2)} / ${p.unidad || 'Unidad'}</p>
+                
+                <div class="purchase-row" style="display:flex; gap:10px; align-items:center;">
+                    <div style="display:flex; align-items:center; border:1px solid #ddd; border-radius:8px; padding:2px 5px;">
+                        <input type="number" id="qty-${p.id}" value="1" min="1" max="${p.stock}" 
+                               style="width:45px; border:none; text-align:center; font-weight:bold; outline:none;">
+                    </div>
+                    <button class="btn-login-header" style="flex:1; padding:10px; border-radius:8px; cursor:pointer;" onclick="agregarAlCarritoClick(${p.id})">
+                        <i class="fas fa-cart-plus"></i> Agregar
                     </button>
                 </div>
             </div>

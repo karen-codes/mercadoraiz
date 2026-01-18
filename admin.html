@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración | Mercado Raíz</title>
-    
     <link rel="stylesheet" href="css/admin.styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -34,15 +33,12 @@
             <a onclick="cargarSeccion('pedidos')" id="link-pedidos" class="nav-item">
                 <i class="fas fa-shopping-basket"></i> <span>Pedidos y Pagos</span>
             </a>
-            
             <a onclick="cargarSeccion('mensajes')" id="link-mensajes" class="nav-item">
                 <i class="fas fa-envelope"></i> 
                 <span>Mensajería</span>
                 <span id="mensaje-count" class="notif-badge hidden">0</span>
             </a>
-            
             <hr class="sidebar-divider">
-            
             <a href="index.html" class="nav-item">
                 <i class="fas fa-store"></i> <span>Ver Tienda Pública</span>
             </a>
@@ -88,17 +84,6 @@
                     <button type="submit" class="btn-nuevo" style="padding: 10px 20px; border:none; border-radius:8px; cursor:pointer; background:var(--admin-primary); color:white;">Guardar Cambios</button>
                 </div>
             </form>
-
-            <div class="form-group">
-    <label for="productoCategoria">Categoría</label>
-    <select id="productoCategoria" required>
-        <option value="">Selecciona una categoría</option>
-        <option value="Papas y Tubérculos">Papas y Tubérculos</option>
-        <option value="Hortalizas">Hortalizas</option>
-        <option value="Frutas">Frutas</option>
-        <option value="Lácteos">Lácteos</option>
-    </select>
-</div>
         </div>
     </div>
 

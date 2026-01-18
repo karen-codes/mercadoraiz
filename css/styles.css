@@ -284,3 +284,120 @@ body {
 .hidden { display: none; }
 .text-center { text-align: center; }
 .mt-20 { margin-top: 20px; }
+
+/* Asegura que las imágenes no se salgan de su contenedor */
+.product-image {
+    width: 100%;
+    height: 200px; /* Ajusta la altura a tu gusto */
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f9f9f9;
+}
+
+.product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Esto evita que se estire feo */
+}
+
+.product-card {
+    border: 1px solid #eee;
+    border-radius: 8px;
+    overflow: hidden; /* Corta cualquier cosa que sobresalga */
+}
+
+.link-proveedor {
+    color: #4a5d23; /* Usa el tono verde de tu logo */
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.link-proveedor:hover {
+    text-decoration: underline;
+    color: #2c3614; /* Un verde más oscuro al pasar el mouse */
+}
+
+/* Contenedor de la cuadrícula de productos */
+.products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 30px;
+    padding: 20px 0;
+}
+
+/* Tarjeta de producto */
+.product-card {
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+    transition: transform 0.3s ease;
+    border: 1px solid #eee;
+    display: flex;
+    flex-direction: column;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+}
+
+/* Imagen del producto: Crucial para que no se vea estirada */
+.product-image {
+    width: 100%;
+    height: 200px; /* Altura fija para uniformidad */
+    overflow: hidden;
+    position: relative;
+}
+
+.product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Esto evita que la imagen se estire */
+}
+
+/* Información del producto */
+.product-info {
+    padding: 20px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.product-info h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+    color: var(--pueblo-charcoal);
+}
+
+.product-price {
+    color: var(--pueblo-terracotta);
+    font-weight: 700;
+    font-size: 1.25rem;
+    margin-bottom: 15px;
+}
+
+.product-price .unit {
+    font-size: 0.9rem;
+    color: #888;
+}
+
+/* Botón Agregar */
+.btn-add-cart {
+    background-color: var(--pueblo-sage);
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 700;
+    transition: background 0.3s;
+    width: 100%;
+}
+
+.btn-add-cart:hover {
+    background-color: var(--pueblo-terracotta);
+}

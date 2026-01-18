@@ -38,8 +38,6 @@ function cargarSeccion(seccion) {
     }
 
     contenedor.innerHTML = ''; 
-    
-    // Actualizar contador siempre que se navega
     actualizarContadorMensajes();
 
     switch(seccion) {
@@ -73,6 +71,16 @@ function abrirModal(datos = null) {
         const provs = JSON.parse(localStorage.getItem("proveedores")) || [];
         campos.innerHTML = `
             <div class="form-group"><label>Nombre del Producto</label><input type="text" id="reg_nombre" class="admin-input" value="${datos?.nombre || ''}" required></div>
+            <div class="form-group">
+                <label>Categoría</label>
+                <select id="reg_categoria" class="admin-input" required>
+                    <option value="">Selecciona una categoría</option>
+                    <option value="Papas y Tubérculos" ${datos?.categoria === 'Papas y Tubérculos' ? 'selected' : ''}>Papas y Tubérculos</option>
+                    <option value="Hortalizas" ${datos?.categoria === 'Hortalizas' ? 'selected' : ''}>Hortalizas</option>
+                    <option value="Frutas" ${datos?.categoria === 'Frutas' ? 'selected' : ''}>Frutas</option>
+                    <option value="Lácteos" ${datos?.categoria === 'Lácteos' ? 'selected' : ''}>Lácteos</option>
+                </select>
+            </div>
             <div class="form-group"><label>Descripción</label><textarea id="reg_desc" class="admin-input" rows="2">${datos?.descripcion || ''}</textarea></div>
             <div class="form-grid">
                 <div class="form-group"><label>Precio ($)</label><input type="number" step="0.01" id="reg_precio" class="admin-input" value="${datos?.precio || ''}" required></div>
@@ -103,7 +111,14 @@ function abrirModal(datos = null) {
         const hParts = datos?.horario ? datos.horario.split(' - ') : ["08:00", "17:00"];
 
         campos.innerHTML = `
-            <div class="form-group"><label>Nombre de la Parcela</label><input type="text" id="prov_nombre" class="admin-input" value="${datos?.nombre || ''}" required></div>
+            <div class="form-group">
+                <label>Nombre de la Parcela</label>
+                <input type="text" id="prov_nombre" class="admin-input" value="${datos?.nombre || ''}" required>
+            </div>
+            <div class="form-group">
+                <label>Descripción Corta (Aparece bajo el nombre)</label>
+                <input type="text" id="prov_descripcion" class="admin-input" value="${datos?.descripcion || ''}" placeholder="Ej: Productores de hortalizas orgánicas" required>
+            </div>
             <div class="form-grid">
                 <div class="form-group"><label>Comunidad</label><input type="text" id="prov_comunidad" class="admin-input" value="${datos?.comunidad || ''}" required></div>
                 <div class="form-group"><label>WhatsApp</label><input type="number" id="prov_ws" class="admin-input" value="${datos?.whatsapp || ''}" required></div>
@@ -112,9 +127,48 @@ function abrirModal(datos = null) {
                 <div class="form-group"><label>H. Apertura</label><input type="time" id="prov_h_inicio" value="${hParts[0]}" class="admin-input"></div>
                 <div class="form-group"><label>H. Cierre</label><input type="time" id="prov_h_fin" value="${hParts[1]}" class="admin-input"></div>
             </div>
-            <div class="form-group"><label>URL Video (YouTube)</label><input type="text" id="prov_video" class="admin-input" value="${datos?.video || ''}" placeholder="https://youtube.com/..."></div>
+            
+            <div class="form-group">
+                <label>Historia de la Parcela (Detallada)</label>
+                <textarea id="prov_historia" class="admin-input" rows="3" placeholder="Cuéntanos sobre la tradición de tu tierra...">${datos?.historia || ''}</textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Formas de Pago Aceptadas</label>
+                <div style="display:flex; gap:20px; background:#f9f9f9; padding:10px; border-radius:8px;">
+                    <label style="cursor:pointer;"><input type="checkbox" id="pay_transfer" ${datos?.pagos?.transferencia ? 'checked' : ''}> Transferencia</label>
+                    <label style="cursor:pointer;"><input type="checkbox" id="pay_qr" ${datos?.pagos?.qr ? 'checked' : ''}> QR (Deuna/Otros)</label>
+                </div>
+            </div>
+
+            <div id="qr_upload_section" class="form-group ${datos?.pagos?.qr ? '' : 'hidden'}">
+                <label>Subir Imagen QR de Pago</label>
+                <input type="file" id="prov_qr_img" accept="image/*" class="admin-input" onchange="previsualizarArchivo(event, 'qrPreview')">
+                <img id="qrPreview" src="${datos?.qrImagen || '#'}" style="${datos?.qrImagen ? 'display:block' : 'display:none'}; max-width: 100px; margin-top:5px; border: 1px solid #ddd;">
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Foto de Portada</label>
+                    <input type="file" id="prov_portada" accept="image/*" class="admin-input" onchange="previsualizarArchivo(event, 'portadaPreview')">
+                    <img id="portadaPreview" src="${datos?.imagen || '#'}" style="${datos?.imagen ? 'display:block' : 'display:none'}; max-width: 120px; margin-top:5px; border-radius:8px;">
+                </div>
+                <div class="form-group">
+                    <label>Video de Labores (Local)</label>
+                    <input type="file" id="prov_video_file" accept="video/*" class="admin-input">
+                    <small id="videoStatus" style="display:block; margin-top:5px; color: #666;">
+                        ${datos?.video ? '<i class="fas fa-check-circle" style="color:green"></i> Video guardado' : 'Sin video cargado'}
+                    </small>
+                </div>
+            </div>
+
             <input type="hidden" id="reg_coords" value="${datos?.coords || '-0.0469, -78.1453'}">`;
-        
+
+        // Lógica de visibilidad del QR
+        document.getElementById('pay_qr').addEventListener('change', (e) => {
+            document.getElementById('qr_upload_section').classList.toggle('hidden', !e.target.checked);
+        });
+
         setTimeout(() => inicializarMapaAdmin(datos?.coords), 300);
     }
 }
@@ -148,50 +202,67 @@ function inicializarMapaAdmin(coordsStr) {
 }
 
 // 4. GUARDADO DE DATOS
-document.getElementById('formRegistro').onsubmit = function(e) {
+document.getElementById('formRegistro').onsubmit = async function(e) {
     e.preventDefault();
-    // Si estamos viendo un mensaje, no guardamos nada
+    
     if(document.getElementById('modalTitulo').innerText === "Detalle del Mensaje") {
         cerrarModal();
         return;
     }
 
     let db = JSON.parse(localStorage.getItem(seccionActual)) || [];
-    const fileInput = document.getElementById('reg_foto');
-    let rutaArchivo = "";
-    if (fileInput && fileInput.files[0]) {
-        const carpeta = seccionActual === 'productos' ? 'images' : 'videos';
-        rutaArchivo = `assets/${carpeta}/${fileInput.files[0].name}`;
-    }
-
+    
     if (seccionActual === 'productos') {
+        const previewImg = document.getElementById('imgPreview');
         const item = {
             id: editandoId || Date.now(),
             nombre: document.getElementById('reg_nombre').value,
+            categoria: document.getElementById('reg_categoria').value,
             descripcion: document.getElementById('reg_desc').value,
             precio: parseFloat(document.getElementById('reg_precio').value),
             stock: parseInt(document.getElementById('reg_stock').value),
             unidad: document.getElementById('reg_unidad').value,
             proveedorId: parseInt(document.getElementById('reg_prov_id').value),
-            imagen: rutaArchivo || (editandoId ? db.find(x => x.id === editandoId).imagen : "assets/images/default-prod.jpg")
+            imagen: (previewImg && previewImg.src.startsWith('data:')) ? previewImg.src : (editandoId ? db.find(x => x.id === editandoId).imagen : "assets/images/default-prod.jpg")
         };
         db = editandoId ? db.map(p => p.id === editandoId ? item : p) : [...db, item];
+        localStorage.setItem(seccionActual, JSON.stringify(db));
     } 
     else if (seccionActual === 'proveedores') {
+        const portadaPrev = document.getElementById('portadaPreview');
+        const qrPrev = document.getElementById('qrPreview');
+        const videoInput = document.getElementById('prov_video_file');
+        
+        let videoBase64 = editandoId ? (db.find(x => x.id === editandoId)?.video || "") : "";
+        if (videoInput.files[0]) {
+            videoBase64 = await new Promise(resolve => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.readAsDataURL(videoInput.files[0]);
+            });
+        }
+
         const item = {
             id: editandoId || Date.now(),
             nombre: document.getElementById('prov_nombre').value,
+            descripcion: document.getElementById('prov_descripcion').value, // Guardamos el nuevo item
             comunidad: document.getElementById('prov_comunidad').value,
             whatsapp: document.getElementById('prov_ws').value,
             horario: `${document.getElementById('prov_h_inicio').value} - ${document.getElementById('prov_h_fin').value}`,
-            video: document.getElementById('prov_video').value,
+            historia: document.getElementById('prov_historia').value,
+            video: videoBase64,
             coords: document.getElementById('reg_coords').value,
-            imagen: "assets/images/default-hacienda.jpg"
+            imagen: (portadaPrev && portadaPrev.src.startsWith('data:')) ? portadaPrev.src : (editandoId ? db.find(x => x.id === editandoId).imagen : "assets/images/default-hacienda.jpg"),
+            qrImagen: (qrPrev && qrPrev.src.startsWith('data:')) ? qrPrev.src : (editandoId ? db.find(x => x.id === editandoId).qrImagen : ""),
+            pagos: {
+                transferencia: document.getElementById('pay_transfer').checked,
+                qr: document.getElementById('pay_qr').checked
+            }
         };
         db = editandoId ? db.map(p => p.id === editandoId ? item : p) : [...db, item];
+        localStorage.setItem(seccionActual, JSON.stringify(db));
     }
 
-    localStorage.setItem(seccionActual, JSON.stringify(db));
     mostrarNotificacion(editandoId ? "Actualizado correctamente" : "Guardado correctamente");
     cerrarModal();
     cargarSeccion(seccionActual);
@@ -274,7 +345,6 @@ function verMensajeCompleto(id) {
         </div>
     `;
 
-    // Marcar como leído
     if (msg.estado === 'nuevo') {
         mensajes[msgIndex].estado = 'leido';
         localStorage.setItem("mensajes_db", JSON.stringify(mensajes));
@@ -298,14 +368,15 @@ function actualizarContadorMensajes() {
     }
 }
 
-// 6. TABLAS Y OTROS (PRODUCTOS, PROVEEDORES, USUARIOS)
+// 6. TABLAS
 function renderizarTablaProductos(cnt) {
     const db = JSON.parse(localStorage.getItem("productos")) || [];
     cnt.innerHTML = `<div class="admin-card-container"><div class="table-responsive"><table class="admin-table">
-        <thead><tr><th>Imagen</th><th>Producto</th><th>Stock</th><th>Precio</th><th>Acciones</th></tr></thead>
+        <thead><tr><th>Imagen</th><th>Producto</th><th>Categoría</th><th>Stock</th><th>Precio</th><th>Acciones</th></tr></thead>
         <tbody>${db.map(p => `<tr>
             <td><img src="${p.imagen}" width="45" height="45" style="object-fit:cover; border-radius:8px;"></td>
             <td><strong>${p.nombre}</strong></td>
+            <td><small>${p.categoria || 'Sin cat.'}</small></td>
             <td><span class="badge ${p.stock < 5 ? 'badge-danger' : 'badge-info'}">${p.stock} ${p.unidad}</span></td>
             <td>$${p.precio.toFixed(2)}</td>
             <td class="actions-cell">
@@ -318,12 +389,12 @@ function renderizarTablaProductos(cnt) {
 function renderizarTablaProveedores(cnt) {
     const db = JSON.parse(localStorage.getItem("proveedores")) || [];
     cnt.innerHTML = `<div class="admin-card-container"><div class="table-responsive"><table class="admin-table">
-        <thead><tr><th>Nombre Hacienda</th><th>Comunidad</th><th>WhatsApp</th><th>GPS</th><th>Acciones</th></tr></thead>
+        <thead><tr><th>Portada</th><th>Nombre Hacienda</th><th>Comunidad</th><th>WhatsApp</th><th>Acciones</th></tr></thead>
         <tbody>${db.map(p => `<tr>
+            <td><img src="${p.imagen}" width="45" height="45" style="object-fit:cover; border-radius:8px;"></td>
             <td><strong>${p.nombre}</strong></td>
             <td>${p.comunidad}</td>
             <td>${p.whatsapp}</td>
-            <td><small>${p.coords}</small></td>
             <td class="actions-cell">
                 <button onclick='prepararEdicion("proveedores", ${p.id})' class="btn-edit"><i class="fas fa-edit"></i></button>
                 <button onclick="eliminarRegistro('proveedores', ${p.id})" class="btn-delete"><i class="fas fa-trash"></i></button>
@@ -356,7 +427,7 @@ function renderizarPedidos(cnt) {
         </tr>`).join('')}</tbody></table></div></div>`;
 }
 
-// 7. ELIMINACIÓN Y UTILIDADES FINALES
+// 7. ELIMINACIÓN Y UTILIDADES
 function eliminarRegistro(tipo, id) {
     const modal = document.getElementById('modalRegistro');
     const campos = document.getElementById('camposDinamicos');
@@ -381,8 +452,16 @@ function eliminarRegistro(tipo, id) {
 
 function confirmarBorrado(tipo, id) {
     let db = JSON.parse(localStorage.getItem(tipo)) || [];
+    
+    if (tipo === 'proveedores') {
+        let productosDB = JSON.parse(localStorage.getItem('productos')) || [];
+        const productosRestantes = productosDB.filter(p => p.proveedorId !== id);
+        localStorage.setItem('productos', JSON.stringify(productosRestantes));
+    }
+
     db = db.filter(item => item.id !== id);
     localStorage.setItem(tipo, JSON.stringify(db));
+
     cerrarModal();
     cargarSeccion(seccionActual);
     mostrarNotificacion("Eliminado correctamente", "error");
