@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://www.gstatic.com https://apis.google.com 'unsafe-inline' 'unsafe-eval';">
+    
     <title>Acceso | Mercado Raíz</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="css/styles.css">
@@ -59,7 +61,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-storage-compat.js"></script>
 
     <script>
-      // Configuración extraída de tus capturas de consola de Firebase
       const firebaseConfig = {
         apiKey: "AIzaSyBqakqg919pu0GjMkaJhntman0n4Q1jnw",
         authDomain: "mercado-raiz.firebaseapp.com",
@@ -67,16 +68,13 @@
         projectId: "mercado-raiz",
         storageBucket: "mercado-raiz.firebasestorage.app",
         messagingSenderId: "886584284411",
-        // Se corrigió el appId basado en tus capturas anteriores
         appId: "1:886584284411:web:NDI3ZqYWUtYWNhNS00NzEwLWIxMDktWjNmViYzk4Njly"
       };
 
-      // Inicializar Firebase Globalmente
       if (!firebase.apps.length) {
           firebase.initializeApp(firebaseConfig);
       }
       
-      // Variables globales para auth.js y admin.js
       window.db = firebase.database(); 
       window.auth = firebase.auth();
       window.storage = firebase.storage();
@@ -85,47 +83,53 @@
     <script src="js/auth.js"></script>
     
     <script>
-        // Sistema de notificaciones flotantes (Toasts)
+        /** * LÓGICA DE CONEXIÓN DEL FORMULARIO
+         */
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const nombre = document.getElementById('reg_nombre').value;
+
+            if (isLogin) {
+                // Función definida en auth.js
+                await iniciarSesion(email, password);
+            } else {
+                // Función definida en auth.js
+                await registrarUsuario(nombre, email, password);
+            }
+        });
+
+        // UI Helpers
         function showToast(message, type = 'success') {
             const container = document.getElementById('toast-container');
             if (!container) return;
-            
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
             const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
             toast.innerHTML = `<i class="fas ${icon}"></i> <span>${message}</span>`;
             container.appendChild(toast);
-            
             setTimeout(() => {
                 toast.classList.add('fade-out');
                 setTimeout(() => toast.remove(), 500);
             }, 3000);
         }
 
-        // Mejora del alert nativo
         window.alert = function(msg) {
             const esExito = msg.toLowerCase().includes("exitoso") || msg.toLowerCase().includes("bienvenido");
             showToast(msg, esExito ? 'success' : 'error');
         };
 
         let isLogin = true;
-
         function toggleAuth() {
             isLogin = !isLogin;
-            const authTitle = document.getElementById('authTitle');
-            const btnSubmit = document.getElementById('btnSubmit');
-            const toggleText = document.getElementById('toggleText');
-            const toggleLink = document.getElementById('toggleLink');
-            const registroExtra = document.getElementById('registroExtra');
-
-            authTitle.innerText = isLogin ? "Iniciar Sesión" : "Crear Cuenta";
-            btnSubmit.innerText = isLogin ? "Ingresar" : "Registrarse";
-            toggleText.innerText = isLogin ? "¿No tienes cuenta?" : "¿Ya tienes cuenta?";
-            toggleLink.innerText = isLogin ? "Regístrate aquí" : "Inicia sesión";
-            
-            registroExtra.classList.toggle('hidden', isLogin);
-            const inputNombre = document.getElementById('reg_nombre');
-            if(inputNombre) inputNombre.required = !isLogin;
+            document.getElementById('authTitle').innerText = isLogin ? "Iniciar Sesión" : "Crear Cuenta";
+            document.getElementById('btnSubmit').innerText = isLogin ? "Ingresar" : "Registrarse";
+            document.getElementById('toggleText').innerText = isLogin ? "¿No tienes cuenta?" : "¿Ya tienes cuenta?";
+            document.getElementById('toggleLink').innerText = isLogin ? "Regístrate aquí" : "Inicia sesión";
+            document.getElementById('registroExtra').classList.toggle('hidden', isLogin);
+            if(document.getElementById('reg_nombre')) document.getElementById('reg_nombre').required = !isLogin;
         }
     </script>
 </body>
