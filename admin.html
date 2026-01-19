@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://www.gstatic.com https://apis.google.com https://unpkg.com 'unsafe-inline' 'unsafe-eval'; style-src 'self' https://cdnjs.cloudflare.com https://unpkg.com 'unsafe-inline'; font-src 'self' https://cdnjs.cloudflare.com;">
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://www.gstatic.com https://apis.google.com https://unpkg.com 'unsafe-inline' 'unsafe-eval'; style-src 'self' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://unpkg.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com;">
     
     <title>Panel de Administración | Mercado Raíz</title>
     <link rel="stylesheet" href="css/admin.styles.css">
@@ -29,12 +29,6 @@
             <a href="javascript:void(0)" onclick="cargarSeccion('proveedores')" id="link-proveedores" class="nav-item">
                 <i class="fas fa-tractor"></i> <span>Proveedores</span>
             </a>
-            <a href="javascript:void(0)" onclick="cargarSeccion('productos')" id="link-productos" class="nav-item">
-                <i class="fas fa-box"></i> <span>Productos</span>
-            </a>
-            <a href="javascript:void(0)" onclick="cargarSeccion('pedidos')" id="link-pedidos" class="nav-item">
-                <i class="fas fa-shopping-basket"></i> <span>Pedidos</span>
-            </a>
             <hr>
             <a href="javascript:void(0)" onclick="cerrarSesion()" class="nav-item"><i class="fas fa-power-off"></i> <span>Salir</span></a>
         </nav>
@@ -42,7 +36,7 @@
 
     <main class="main-content">
         <header class="header-admin">
-            <h1 id="seccion-titulo">Cargando...</h1>
+            <h1 id="seccion-titulo">Panel de Control</h1>
             <button class="btn-nuevo" onclick="abrirModal()">+ Nuevo Registro</button>
         </header>
         <div id="tabla-contenedor"></div>
@@ -50,24 +44,30 @@
 
     <div id="modalRegistro" class="modal-pago hidden">
         <div class="glass-card" style="background:white; padding:25px; border-radius:15px; width:90%; max-width:700px; max-height:90vh; overflow-y:auto;">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <h2 id="modalTitulo">Detalles</h2>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <h2 id="modalTitulo">Detalles del Registro</h2>
                 <button onclick="cerrarModal()" style="font-size:2rem; border:none; background:none; cursor:pointer;">&times;</button>
             </div>
             
             <form id="formRegistro">
-                <div id="camposDinamicos"></div>
+                <div id="camposDinamicos">
+                    <label>Nombre de la Parcela</label>
+                    <input type="text" name="nombreParcela" required>
+                    
+                    <label>WhatsApp</label>
+                    <input type="text" name="whatsapp" required>
+                </div>
                 
-                <div id="seccionMapa" class="hidden" style="margin-top:20px;">
+                <div id="seccionMapa" class="hidden">
                     <hr>
-                    <label><b>Ubicación Geográfica (Haga clic en el mapa)</b></label>
-                    <input type="text" id="coordsInput" placeholder="Latitud, Longitud" readonly style="width:100%; margin-bottom:10px;">
+                    <label><b>Ubicación en el Mapa (Clic para marcar)</b></label>
+                    <input type="text" id="coordsInput" name="ubicacion" readonly placeholder="Coordenadas automáticas">
                     <div id="mapAdmin"></div>
                 </div>
 
-                <div style="margin-top:20px; text-align:right;">
+                <div style="margin-top:20px; display:flex; gap:10px; justify-content:flex-end;">
                     <button type="button" onclick="cerrarModal()" class="btn-secundario">Cancelar</button>
-                    <button type="submit" class="btn-nuevo">Guardar Cambios</button>
+                    <button type="submit" id="btnGuardar" class="btn-nuevo">Guardar Cambios</button>
                 </div>
             </form>
         </div>
@@ -77,7 +77,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-storage-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     
     <script src="js/data.js"></script>
     <script src="js/dashboard.js"></script>
