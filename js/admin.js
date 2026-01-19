@@ -6,19 +6,38 @@ let map = null;
 let marker = null;
 let editandoId = null;
 
-// js/admin.js
+// --- UTILIDAD: SUBIDA DE ARCHIVOS A STORAGE ---
+async function subirArchivo(archivo, carpeta) {
+    if (!archivo) return null;
+    try {
+        const storageRef = firebase.storage().ref(`${carpeta}/${Date.now()}_${archivo.name}`);
+        const snapshot = await storageRef.put(archivo);
+        return await snapshot.ref.getDownloadURL();
+    } catch (error) {
+        console.error("Error en Storage:", error);
+        return null;
+    }
+}
 
+// Función para cambiar de pestaña con limpieza de memoria
 function cargarSeccion(seccion) {
+    seccionActual = seccion;
     const contenedor = document.getElementById('tabla-contenedor');
     const titulo = document.getElementById('seccion-titulo');
     const btnAccion = document.getElementById('btn-accion-principal');
 
-    // Actualizar estilos del menú lateral
+    // 1. Limpieza de listeners previos
+    db.ref('productos').off();
+    db.ref('proveedores').off();
+    db.ref('usuarios').off();
+    db.ref('pedidos').off();
+
+    // 2. UI: Actualizar menú lateral
     document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
     const linkActivo = document.getElementById(`link-${seccion}`);
     if (linkActivo) linkActivo.classList.add('active');
 
-    // Cambiar contenido según sección
+    // 3. Cargar datos en tiempo real
     switch (seccion) {
         case 'dashboard':
             titulo.innerText = "Dashboard Alcance";
@@ -26,194 +45,185 @@ function cargarSeccion(seccion) {
             if (typeof renderizarDashboard === "function") renderizarDashboard(contenedor);
             break;
 
+        case 'productos':
+            titulo.innerText = "Inventario de Productos";
+            btnAccion.style.display = "block";
+            db.ref('productos').on('value', (snapshot) => {
+                const data = snapshot.val();
+                const array = data ? Object.keys(data).map(k => ({...data[k], firebaseId: k})) : [];
+                if (typeof renderizarTablaProductos === "function") renderizarTablaProductos(contenedor, array);
+            });
+            break;
+
+        case 'proveedores':
+            titulo.innerText = "Red de Proveedores";
+            btnAccion.style.display = "block";
+            db.ref('proveedores').on('value', (snapshot) => {
+                const data = snapshot.val();
+                const array = data ? Object.keys(data).map(k => ({...data[k], firebaseId: k})) : [];
+                if (typeof renderizarTablaProveedores === "function") renderizarTablaProveedores(contenedor, array);
+            });
+            break;
+
         case 'usuarios':
             titulo.innerText = "Base de Clientes";
-            btnAccion.style.display = "none"; // Los usuarios se registran solos, no necesitas "Nuevo"
-            // LLAMADA A LA FUNCIÓN QUE ACTUALIZAMOS EN EL PASO ANTERIOR
-            renderizarTablaUsuarios(contenedor);
+            btnAccion.style.display = "none";
+            if (typeof renderizarTablaUsuarios === "function") renderizarTablaUsuarios(contenedor);
             break;
 
         case 'pedidos':
             titulo.innerText = "Pedidos y Pagos";
             btnAccion.style.display = "none";
-            // LLAMADA A LA FUNCIÓN DE FIREBASE
-            mostrarPedidos(); 
-            break;
-
-        case 'productos':
-            titulo.innerText = "Inventario de Productos";
-            btnAccion.style.display = "block";
-            // Aquí iría tu lógica de productos
+            if (typeof mostrarPedidos === "function") mostrarPedidos();
             break;
     }
 }
 
-// 2. MODAL DINÁMICO (Optimizado para Firebase)
+// --- LÓGICA DE MAPA (Leaflet) ---
+function inicializarMapaAdmin(coordsStr) {
+    const latlng = coordsStr ? coordsStr.split(',').map(Number) : [-0.0469, -78.1453];
+    if (map !== null) map.remove();
+
+    map = L.map('mapAdmin').setView(latlng, 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+    marker = L.marker(latlng, {draggable: true}).addTo(map);
+    
+    marker.on('dragend', function() {
+        const position = marker.getLatLng();
+        document.getElementById('reg_coords').value = `${position.lat.toFixed(6)}, ${position.lng.toFixed(6)}`;
+    });
+}
+
+// --- MODAL DINÁMICO ---
 async function abrirModal(datos = null) {
     const modal = document.getElementById('modalRegistro');
     const campos = document.getElementById('camposDinamicos');
     const areaMapa = document.getElementById('mapArea');
-    const btnGuardar = document.querySelector('#formRegistro button[type="submit"]');
     
     editandoId = datos ? (datos.firebaseId || datos.id) : null;
     modal.style.display = 'flex';
-    if(btnGuardar) btnGuardar.style.display = 'block';
 
     if (seccionActual === 'productos') {
         document.getElementById('modalTitulo').innerText = datos ? 'Editar Producto' : 'Nuevo Producto';
         areaMapa.classList.add('hidden');
         
-        // Obtenemos proveedores de Firebase para el select
         const snapshot = await db.ref('proveedores').once('value');
-        const provsObj = snapshot.val() || {};
-        const provs = Object.keys(provsObj).map(k => ({...provsObj[k], id: k}));
+        const provs = snapshot.val() ? Object.keys(snapshot.val()).map(k => ({...snapshot.val()[k], id: k})) : [];
 
         campos.innerHTML = `
-            <div class="form-group"><label>Nombre del Producto</label><input type="text" id="reg_nombre" class="admin-input" value="${datos?.nombre || ''}" required></div>
-            <div class="form-group">
-                <label>Categoría</label>
-                <select id="reg_categoria" class="admin-input" required>
-                    <option value="Papas y Tubérculos" ${datos?.categoria === 'Papas y Tubérculos' ? 'selected' : ''}>Papas y Tubérculos</option>
+            <div class="form-group"><label>Nombre</label><input type="text" id="reg_nombre" class="admin-input" value="${datos?.nombre || ''}" required></div>
+            <div class="form-group"><label>Categoría</label>
+                <select id="reg_categoria" class="admin-input">
                     <option value="Hortalizas" ${datos?.categoria === 'Hortalizas' ? 'selected' : ''}>Hortalizas</option>
                     <option value="Frutas" ${datos?.categoria === 'Frutas' ? 'selected' : ''}>Frutas</option>
                     <option value="Lácteos" ${datos?.categoria === 'Lácteos' ? 'selected' : ''}>Lácteos</option>
                 </select>
             </div>
             <div class="form-group"><label>Precio ($)</label><input type="number" step="0.01" id="reg_precio" class="admin-input" value="${datos?.precio || ''}" required></div>
-            <div class="form-group"><label>Stock (Cant.)</label><input type="number" id="reg_stock" class="admin-input" value="${datos?.stock || ''}" required></div>
-            <div class="form-group"><label>Proveedor</label>
+            <div class="form-group"><label>Stock</label><input type="number" id="reg_stock" class="admin-input" value="${datos?.stock || ''}" required></div>
+            <div class="form-group"><label>Productor</label>
                 <select id="reg_prov_id" class="admin-input">
                     ${provs.map(pr => `<option value="${pr.id}" ${datos?.proveedorId == pr.id ? 'selected' : ''}>${pr.nombre}</option>`).join('')}
                 </select>
             </div>
             <div class="form-group">
-                <label>Imagen del Producto</label>
-                <input type="file" id="reg_foto" accept="image/*" class="admin-input" onchange="previsualizarArchivo(event, 'imgPreview')">
-                <img id="imgPreview" src="${datos?.imagen || '#'}" style="${datos?.imagen ? 'display:block' : 'display:none'}; max-width: 150px; margin-top:10px; border-radius:12px;">
+                <label>Foto del Producto (PC)</label>
+                <input type="file" id="reg_foto_file" class="admin-input" accept="image/*">
+                <input type="hidden" id="reg_foto_actual" value="${datos?.imagen || ''}">
             </div>`;
-    } 
-    else if (seccionActual === 'proveedores') {
+
+    } else if (seccionActual === 'proveedores') {
         document.getElementById('modalTitulo').innerText = datos ? 'Editar Productor' : 'Registrar Productor';
         areaMapa.classList.remove('hidden');
         
         campos.innerHTML = `
-            <div class="form-group"><label>Nombre de la Parcela</label><input type="text" id="prov_nombre" class="admin-input" value="${datos?.nombre || ''}" required></div>
-            <div class="form-group"><label>WhatsApp</label><input type="number" id="prov_ws" class="admin-input" value="${datos?.whatsapp || ''}" required></div>
+            <div class="form-group"><label>Nombre de la Finca</label><input type="text" id="prov_nombre" class="admin-input" value="${datos?.nombre || ''}" required></div>
             <div class="form-group"><label>Comunidad</label><input type="text" id="prov_comunidad" class="admin-input" value="${datos?.comunidad || ''}" required></div>
-            <div class="form-group"><label>Historia</label><textarea id="prov_historia" class="admin-input">${datos?.historia || ''}</textarea></div>
+            <div class="form-group"><label>WhatsApp</label><input type="text" id="prov_ws" class="admin-input" value="${datos?.whatsapp || ''}" required></div>
+            <input type="hidden" id="reg_coords" value="${datos?.coords || '-0.0469, -78.1453'}">
             <div class="form-group">
-                <label>Foto Portada</label>
-                <input type="file" id="prov_portada" accept="image/*" class="admin-input" onchange="previsualizarArchivo(event, 'portadaPreview')">
-                <img id="portadaPreview" src="${datos?.imagen || '#'}" style="${datos?.imagen ? 'display:block' : 'display:none'}; max-width: 120px; border-radius:8px;">
+                <label>Foto Portada (PC)</label>
+                <input type="file" id="prov_portada_file" class="admin-input" accept="image/*">
+                <input type="hidden" id="prov_foto_actual" value="${datos?.imagen || ''}">
             </div>
-            <input type="hidden" id="reg_coords" value="${datos?.coords || '-0.0469, -78.1453'}">`;
+            <div class="form-group">
+                <label>Video de la Finca (PC)</label>
+                <input type="file" id="prov_video_file" class="admin-input" accept="video/*">
+                <input type="hidden" id="prov_video_actual" value="${datos?.video || ''}">
+            </div>`;
 
         setTimeout(() => inicializarMapaAdmin(datos?.coords), 300);
     }
 }
 
-// 4. GUARDADO DE DATOS (Hacia Firebase)
+// --- PROCESAR FORMULARIO (Guardado en Nube) ---
 document.getElementById('formRegistro').onsubmit = async function(e) {
     e.preventDefault();
+    const btnSubmit = e.target.querySelector('button[type="submit"]');
+    const textoOriginal = btnSubmit.innerText;
     
-    // Referencia al nodo correcto
+    btnSubmit.disabled = true;
+    btnSubmit.innerText = "Sincronizando archivos...";
+
     const ref = db.ref(seccionActual);
-    const idFinal = editandoId || ref.push().key; // Si es nuevo, Firebase genera un ID único
+    const idFinal = editandoId || ref.push().key;
+    let item = { id: idFinal };
 
-    let item = {};
+    try {
+        if (seccionActual === 'productos') {
+            const fileImg = document.getElementById('reg_foto_file').files[0];
+            const urlImg = fileImg ? await subirArchivo(fileImg, 'productos') : document.getElementById('reg_foto_actual').value;
 
-    if (seccionActual === 'productos') {
-        const previewImg = document.getElementById('imgPreview');
-        item = {
-            id: idFinal,
-            nombre: document.getElementById('reg_nombre').value,
-            categoria: document.getElementById('reg_categoria').value,
-            precio: parseFloat(document.getElementById('reg_precio').value),
-            stock: parseInt(document.getElementById('reg_stock').value),
-            proveedorId: document.getElementById('reg_prov_id').value,
-            imagen: previewImg.src
-        };
-    } 
-    else if (seccionActual === 'proveedores') {
-        const portadaPrev = document.getElementById('portadaPreview');
-        item = {
-            id: idFinal,
-            nombre: document.getElementById('prov_nombre').value,
-            comunidad: document.getElementById('prov_comunidad').value,
-            whatsapp: document.getElementById('prov_ws').value,
-            historia: document.getElementById('prov_historia').value,
-            coords: document.getElementById('reg_coords').value,
-            imagen: portadaPrev.src
-        };
+            item = {
+                ...item,
+                nombre: document.getElementById('reg_nombre').value,
+                categoria: document.getElementById('reg_categoria').value,
+                precio: parseFloat(document.getElementById('reg_precio').value),
+                stock: parseInt(document.getElementById('reg_stock').value),
+                proveedorId: document.getElementById('reg_prov_id').value,
+                imagen: urlImg
+            };
+        } else if (seccionActual === 'proveedores') {
+            const fileImg = document.getElementById('prov_portada_file').files[0];
+            const fileVid = document.getElementById('prov_video_file').files[0];
+
+            // Subir archivos nuevos o mantener los anteriores
+            const urlImg = fileImg ? await subirArchivo(fileImg, 'fincas') : document.getElementById('prov_foto_actual').value;
+            const urlVid = fileVid ? await subirArchivo(fileVid, 'videos') : document.getElementById('prov_video_actual').value;
+
+            item = {
+                ...item,
+                nombre: document.getElementById('prov_nombre').value,
+                comunidad: document.getElementById('prov_comunidad').value,
+                whatsapp: document.getElementById('prov_ws').value,
+                coords: document.getElementById('reg_coords').value,
+                imagen: urlImg,
+                video: urlVid
+            };
+        }
+
+        await db.ref(`${seccionActual}/${idFinal}`).set(item);
+        cerrarModal();
+        alert("¡Guardado correctamente en la base de datos!");
+    } catch (err) {
+        alert("Error al guardar: " + err.message);
+    } finally {
+        btnSubmit.disabled = false;
+        btnSubmit.innerText = textoOriginal;
     }
-
-    // Guardar en Firebase
-    await db.ref(`${seccionActual}/${idFinal}`).set(item);
-
-    mostrarNotificacion(editandoId ? "Actualizado en la nube" : "Guardado en la nube");
-    cerrarModal();
 };
 
-// 6. RENDERIZADO DE TABLAS (Usando los datos que vienen de Firebase)
-function renderizarTablaProductos(cnt, dbArray) {
-    cnt.innerHTML = `<div class="admin-card-container"><div class="table-responsive"><table class="admin-table">
-        <thead><tr><th>Imagen</th><th>Producto</th><th>Stock</th><th>Precio</th><th>Acciones</th></tr></thead>
-        <tbody>${dbArray.map(p => `<tr>
-            <td><img src="${p.imagen}" width="45" height="45" style="object-fit:cover; border-radius:8px;"></td>
-            <td><strong>${p.nombre}</strong></td>
-            <td><span class="badge ${p.stock < 5 ? 'badge-danger' : 'badge-info'}">${p.stock}</span></td>
-            <td>$${p.precio.toFixed(2)}</td>
-            <td class="actions-cell">
-                <button onclick='prepararEdicion("productos", "${p.firebaseId}")' class="btn-edit"><i class="fas fa-edit"></i></button>
-                <button onclick="eliminarRegistro('productos', '${p.firebaseId}')" class="btn-delete"><i class="fas fa-trash"></i></button>
-            </td>
-        </tr>`).join('')}</tbody></table></div></div>`;
+// --- ELIMINACIÓN ---
+async function eliminarRegistro(tipo, id) {
+    if (confirm("¿Estás seguro de eliminar este registro de la nube?")) {
+        await db.ref(`${tipo}/${id}`).remove();
+    }
 }
 
-function renderizarTablaProveedores(cnt, dbArray) {
-    cnt.innerHTML = `<div class="admin-card-container"><div class="table-responsive"><table class="admin-table">
-        <thead><tr><th>Portada</th><th>Nombre</th><th>Comunidad</th><th>WhatsApp</th><th>Acciones</th></tr></thead>
-        <tbody>${dbArray.map(p => `<tr>
-            <td><img src="${p.imagen}" width="45" height="45" style="object-fit:cover; border-radius:8px;"></td>
-            <td><strong>${p.nombre}</strong></td>
-            <td>${p.comunidad}</td>
-            <td>${p.whatsapp}</td>
-            <td class="actions-cell">
-                <button onclick='prepararEdicion("proveedores", "${p.firebaseId}")' class="btn-edit"><i class="fas fa-edit"></i></button>
-                <button onclick="eliminarRegistro('proveedores', '${p.firebaseId}')" class="btn-delete"><i class="fas fa-trash"></i></button>
-            </td>
-        </tr>`).join('')}</tbody></table></div></div>`;
-}
-
-function renderizarPedidos(cnt, dbArray) {
-    cnt.innerHTML = `<div class="admin-card-container"><div class="table-responsive"><table class="admin-table">
-        <thead><tr><th>ID</th><th>Cliente</th><th>Total</th><th>Estado</th><th>Acciones</th></tr></thead>
-        <tbody>${dbArray.reverse().map(p => `<tr>
-            <td>#${p.firebaseId.substring(1,7)}</td><td>${p.cliente}</td><td>$${parseFloat(p.total).toFixed(2)}</td>
-            <td><span class="badge ${p.estado === 'Pendiente' ? 'badge-warning' : 'badge-success'}">${p.estado}</span></td>
-            <td><button class="btn-edit" onclick="verDetallePedido('${p.firebaseId}')"><i class="fas fa-check"></i> Validar</button></td>
-        </tr>`).join('')}</tbody></table></div></div>`;
-}
-
-// 7. ELIMINACIÓN (Directo en Firebase)
-async function confirmarBorrado(tipo, id) {
-    await db.ref(`${tipo}/${id}`).remove();
-    cerrarModal();
-    mostrarNotificacion("Eliminado de la nube", "error");
-}
-
-// Inicialización de utilidades (No cambiadas)
-function cerrarModal() { document.getElementById('modalRegistro').style.display = 'none'; }
-function previsualizarArchivo(event, targetId) {
-    const reader = new FileReader();
-    reader.onload = () => { const out = document.getElementById(targetId); out.src = reader.result; out.style.display = 'block'; };
-    if(event.target.files[0]) reader.readAsDataURL(event.target.files[0]);
-}
 function prepararEdicion(tipo, id) {
     db.ref(`${tipo}/${id}`).once('value', (snap) => {
-        const item = snap.val();
-        if(item) abrirModal({...item, firebaseId: id});
+        abrirModal({...snap.val(), firebaseId: id});
     });
 }
 
-document.addEventListener('DOMContentLoaded', () => cargarSeccion('dashboard'));
+function cerrarModal() { document.getElementById('modalRegistro').style.display = 'none'; }
