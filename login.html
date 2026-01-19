@@ -24,18 +24,18 @@
                 <div id="registroExtra" class="hidden">
                     <div class="form-group">
                         <label for="reg_nombre"><i class="fas fa-user"></i> Nombre Completo</label>
-                        <input type="text" id="reg_nombre" class="admin-input" placeholder="Ej. Juan Pérez">
+                        <input type="text" id="reg_nombre" class="admin-input" placeholder="Ej. Juan Pérez" autocomplete="name">
                     </div>
                 </div>
 
                 <div class="form-group">
                     <label for="email"><i class="fas fa-envelope"></i> Correo Electrónico</label>
-                    <input type="email" id="email" class="admin-input" required placeholder="tu@correo.com">
+                    <input type="email" id="email" class="admin-input" required placeholder="tu@correo.com" autocomplete="username">
                 </div>
 
                 <div class="form-group">
                     <label for="password"><i class="fas fa-lock"></i> Contraseña</label>
-                    <input type="password" id="password" class="admin-input" required minlength="6" placeholder="Mínimo 6 caracteres">
+                    <input type="password" id="password" class="admin-input" required minlength="6" placeholder="Mínimo 6 caracteres" autocomplete="current-password">
                 </div>
 
                 <button type="submit" id="btnSubmit" class="btn-primary-admin">
@@ -46,7 +46,7 @@
             <div class="auth-footer">
                 <p class="auth-switch">
                     <span id="toggleText">¿No tienes cuenta?</span> 
-                    <a href="#" onclick="toggleAuth()" id="toggleLink">Regístrate aquí</a>
+                    <a href="javascript:void(0)" onclick="toggleAuth()" id="toggleLink">Regístrate aquí</a>
                 </p>
                 <div class="auth-back">
                     <a href="index.html"><i class="fas fa-arrow-left"></i> Volver a la tienda</a>
@@ -75,6 +75,7 @@
           firebase.initializeApp(firebaseConfig);
       }
       
+      // Disponibilidad global inmediata
       window.db = firebase.database(); 
       window.auth = firebase.auth();
       window.storage = firebase.storage();
@@ -83,25 +84,7 @@
     <script src="js/auth.js"></script>
     
     <script>
-        /** * LÓGICA DE CONEXIÓN DEL FORMULARIO
-         */
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const nombre = document.getElementById('reg_nombre').value;
-
-            if (isLogin) {
-                // Función definida en auth.js
-                await iniciarSesion(email, password);
-            } else {
-                // Función definida en auth.js
-                await registrarUsuario(nombre, email, password);
-            }
-        });
-
-        // UI Helpers
+        // Lógica de Toast
         function showToast(message, type = 'success') {
             const container = document.getElementById('toast-container');
             if (!container) return;
@@ -121,7 +104,34 @@
             showToast(msg, esExito ? 'success' : 'error');
         };
 
+        // Captura del Formulario con prevención de bloqueo
         let isLogin = true;
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const nombre = document.getElementById('reg_nombre')?.value.trim();
+
+            const btn = document.getElementById('btnSubmit');
+            btn.disabled = true;
+            btn.innerText = "Procesando...";
+
+            try {
+                if (isLogin) {
+                    await iniciarSesion(email, password);
+                } else {
+                    await registrarUsuario(nombre, email, password);
+                }
+            } catch (err) {
+                console.error("Submit Error:", err);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = isLogin ? "Ingresar" : "Registrarse";
+            }
+        });
+
         function toggleAuth() {
             isLogin = !isLogin;
             document.getElementById('authTitle').innerText = isLogin ? "Iniciar Sesión" : "Crear Cuenta";
