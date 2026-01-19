@@ -10,7 +10,7 @@ const firebaseConfig = {
     projectId: "mercado-raiz",
     storageBucket: "mercado-raiz.firebasestorage.app",
     messagingSenderId: "886584284411",
-    appId: "1:886584284411:web:f006908eeb8d9da224cc5e", // AppId de tu captura de admin.html
+    appId: "1:886584284411:web:NDI3ZqYWUtYWNhNS00NzEwLWIxMDktWjNmViYzk4Njly", // AppId de tu captura de admin.html
     measurementId: "G-5EW3Y8Z2XE"
 };
 
