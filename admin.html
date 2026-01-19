@@ -60,7 +60,10 @@
         </header>
         
         <div id="tabla-contenedor">
-            <div class="loader-placeholder">Cargando panel de Mercado Raíz...</div>
+            <div class="loader-placeholder" style="text-align:center; padding:50px;">
+                <i class="fas fa-spinner fa-spin fa-3x" style="color:var(--admin-primary); margin-bottom:15px;"></i>
+                <p>Sincronizando con Mercado Raíz Cloud...</p>
+            </div>
         </div>
     </main>
 
@@ -75,8 +78,8 @@
                 <div id="camposDinamicos"></div>
 
                 <div id="mapArea" class="hidden" style="margin-top:15px;">
-                    <label style="display:block; margin-bottom:8px; font-weight:600;">Ubicación en Mapa:</label>
-                    <div id="mapAdmin"></div>
+                    <label style="display:block; margin-bottom:8px; font-weight:600;">Ubicación de Finca:</label>
+                    <div id="mapAdmin" style="height: 250px; border-radius: 10px;"></div>
                 </div>
 
                 <div style="margin-top: 30px; text-align: right; display: flex; gap: 10px; justify-content: flex-end;">
@@ -87,29 +90,27 @@
         </div>
     </div>
 
-
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
 
     <script>
-      const firebaseConfig = {
-        apiKey: "AIzaSyBqakqg919pu0GjMkaJhntman0n4Q1jnw",
-        authDomain: "mercado-raiz.firebaseapp.com",
-        databaseURL: "https://mercado-raiz-default-rtdb.firebaseio.com",
-        projectId: "mercado-raiz",
-        storageBucket: "mercado-raiz.firebasestorage.app",
-        messagingSenderId: "886584284411",
-        appId: "1:886584284411:web:f006908eeb8d9da224cc5e",
-        measurementId: "G-5EW3Y8Z2XE"
-      };
+        // Configuración de tu Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyBqakqg919pu0GjMkaJhntman0n4Q1jnw",
+            authDomain: "mercado-raiz.firebaseapp.com",
+            databaseURL: "https://mercado-raiz-default-rtdb.firebaseio.com",
+            projectId: "mercado-raiz",
+            storageBucket: "mercado-raiz.firebasestorage.app",
+            messagingSenderId: "886584284411",
+            appId: "1:886584284411:web:f006908eeb8d9da224cc5e",
+            measurementId: "G-5EW3Y8Z2XE"
+        };
 
-      // Inicializar
-      firebase.initializeApp(firebaseConfig);
-      const db = firebase.database(); 
-      // Ahora la variable 'db' ya existe y main.js la puede usar
+        // Inicialización Global
+        firebase.initializeApp(firebaseConfig);
+        window.db = firebase.database(); 
     </script>
 
-    <script src="js/data.js"></script>
     <script src="js/auth.js"></script> 
     <script src="js/usuarios.js"></script>
     <script src="js/pedidos.js"></script>
@@ -118,8 +119,21 @@
     <script src="js/admin.js"></script>
     
     <script>
-        document.getElementById('fecha-actual').innerText = new Date().toLocaleDateString('es-ES', { 
-            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. Protección de ruta (Solo entra si se logueó correctamente)
+            if (typeof verificarProteccionRuta === "function") {
+                verificarProteccionRuta();
+            }
+
+            // 2. Fecha actual en el encabezado
+            const opciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('fecha-actual').innerText = new Date().toLocaleDateString('es-ES', opciones);
+
+            // 3. Carga por defecto: Dashboard
+            // Esto asegura que al abrir admin.html no se vea vacío
+            if (typeof cargarSeccion === "function") {
+                cargarSeccion('dashboard');
+            }
         });
     </script>
 </body>

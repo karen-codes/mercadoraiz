@@ -6,62 +6,46 @@ let map = null;
 let marker = null;
 let editandoId = null;
 
-// 1. CARGA DINÁMICA DE SECCIONES (Ahora con Firebase)
+// js/admin.js
+
 function cargarSeccion(seccion) {
-    seccionActual = seccion;
     const contenedor = document.getElementById('tabla-contenedor');
     const titulo = document.getElementById('seccion-titulo');
     const btnAccion = document.getElementById('btn-accion-principal');
 
-    document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
+    // Actualizar estilos del menú lateral
+    document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
     const linkActivo = document.getElementById(`link-${seccion}`);
     if (linkActivo) linkActivo.classList.add('active');
 
-    const titulosMap = {
-        'dashboard': 'Dashboard de Alcance',
-        'productos': 'Inventario de Productos',
-        'proveedores': 'Red de Proveedores',
-        'usuarios': 'Base de Clientes',
-        'pedidos': 'Gestión de Pedidos y Pagos',
-        'mensajes': 'Bandeja de Mensajería'
-    };
-
-    titulo.innerText = titulosMap[seccion] || seccion.charAt(0).toUpperCase() + seccion.slice(1);
-    
-    if(btnAccion) {
-        const esEditable = (seccion === 'productos' || seccion === 'proveedores');
-        btnAccion.style.display = esEditable ? 'inline-flex' : 'none';
-        if(esEditable) {
-            btnAccion.innerHTML = `<i class="fas fa-plus-circle"></i> Nuevo ${seccion === 'productos' ? 'Producto' : 'Proveedor'}`;
-            btnAccion.onclick = () => abrirModal(); 
-        }
-    }
-
-    contenedor.innerHTML = '<div class="loader-admin">Cargando datos desde la nube...</div>'; 
-
-    // Aquí conectamos cada sección a su nodo en Firebase
-    switch(seccion) {
-        case 'dashboard': 
-            if (typeof renderizarDashboard === 'function') renderizarDashboard(contenedor); 
+    // Cambiar contenido según sección
+    switch (seccion) {
+        case 'dashboard':
+            titulo.innerText = "Dashboard Alcance";
+            btnAccion.style.display = "none";
+            if (typeof renderizarDashboard === "function") renderizarDashboard(contenedor);
             break;
-        case 'productos': escucharCambiosFirebase('productos', renderizarTablaProductos); break;
-        case 'proveedores': escucharCambiosFirebase('proveedores', renderizarTablaProveedores); break;
-        case 'usuarios': escucharCambiosFirebase('usuarios', renderizarTablaUsuarios); break;
-        case 'pedidos': escucharCambiosFirebase('pedidos', renderizarPedidos); break;
-        case 'mensajes': escucharCambiosFirebase('mensajes', renderizarTablaMensajes); break;
-        default: mostrarAvisoDesarrollo(contenedor, seccion);
-    }
-}
 
-// Función maestra para escuchar cambios en tiempo real
-function escucharCambiosFirebase(nodo, funcionRender) {
-    db.ref(nodo).on('value', (snapshot) => {
-        const data = snapshot.val();
-        const contenedor = document.getElementById('tabla-contenedor');
-        // Convertimos el objeto de Firebase en Array para tus .map()
-        const dataArray = data ? Object.keys(data).map(key => ({...data[key], firebaseId: key})) : [];
-        funcionRender(contenedor, dataArray);
-    });
+        case 'usuarios':
+            titulo.innerText = "Base de Clientes";
+            btnAccion.style.display = "none"; // Los usuarios se registran solos, no necesitas "Nuevo"
+            // LLAMADA A LA FUNCIÓN QUE ACTUALIZAMOS EN EL PASO ANTERIOR
+            renderizarTablaUsuarios(contenedor);
+            break;
+
+        case 'pedidos':
+            titulo.innerText = "Pedidos y Pagos";
+            btnAccion.style.display = "none";
+            // LLAMADA A LA FUNCIÓN DE FIREBASE
+            mostrarPedidos(); 
+            break;
+
+        case 'productos':
+            titulo.innerText = "Inventario de Productos";
+            btnAccion.style.display = "block";
+            // Aquí iría tu lógica de productos
+            break;
+    }
 }
 
 // 2. MODAL DINÁMICO (Optimizado para Firebase)
