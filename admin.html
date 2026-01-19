@@ -11,24 +11,9 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     
     <style>
-        .comprobante-preview {
-            max-width: 100%;
-            border-radius: 10px;
-            border: 1px solid #ddd;
-            margin-top: 10px;
-            cursor: zoom-in;
-            transition: transform 0.2s;
-        }
-        .comprobante-preview:hover { transform: scale(1.02); }
-        .status-badge {
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 700;
-        }
-        .status-pendiente { background: #ffeaa7; color: #d63031; }
-        .status-validado { background: #55efc4; color: #00b894; }
         .hidden { display: none !important; }
+        #mapAdmin { height: 300px; width: 100%; border-radius: 12px; margin-top: 10px; border: 2px solid #eee; }
+        .modal-pago { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; display:flex; align-items:center; justify-content:center; }
     </style>
 </head>
 <body class="admin-body">
@@ -36,85 +21,53 @@
     <aside class="sidebar">
         <div class="sidebar-header">
             <h2 class="logo">Mercado<span>Raíz</span></h2>
-            <p class="admin-role">Gestor de Cayambe</p>
         </div>
-        
         <nav class="sidebar-nav">
-            <a href="javascript:void(0)" onclick="cargarSeccion('dashboard')" id="link-dashboard" class="nav-item active">
-                <i class="fas fa-chart-line"></i> <span>Dashboard Alcance</span>
-            </a>
-            <a href="javascript:void(0)" onclick="cargarSeccion('productos')" id="link-productos" class="nav-item">
-                <i class="fas fa-box"></i> <span>Inventario Productos</span>
+            <a href="javascript:void(0)" onclick="cargarSeccion('dashboard')" id="link-dashboard" class="nav-item">
+                <i class="fas fa-chart-line"></i> <span>Dashboard</span>
             </a>
             <a href="javascript:void(0)" onclick="cargarSeccion('proveedores')" id="link-proveedores" class="nav-item">
-                <i class="fas fa-tractor"></i> <span>Red de Proveedores</span>
+                <i class="fas fa-tractor"></i> <span>Proveedores</span>
             </a>
-            <a href="javascript:void(0)" onclick="cargarSeccion('usuarios')" id="link-usuarios" class="nav-item">
-                <i class="fas fa-users"></i> <span>Base de Clientes</span>
+            <a href="javascript:void(0)" onclick="cargarSeccion('productos')" id="link-productos" class="nav-item">
+                <i class="fas fa-box"></i> <span>Productos</span>
             </a>
             <a href="javascript:void(0)" onclick="cargarSeccion('pedidos')" id="link-pedidos" class="nav-item">
-                <i class="fas fa-shopping-basket"></i> <span>Pedidos y Pagos</span>
+                <i class="fas fa-shopping-basket"></i> <span>Pedidos</span>
             </a>
-            <a href="javascript:void(0)" onclick="cargarSeccion('mensajes')" id="link-mensajes" class="nav-item">
-                <i class="fas fa-envelope"></i> 
-                <span>Mensajería</span>
-                <span id="mensaje-count" class="notif-badge hidden">0</span>
-            </a>
-            <hr class="sidebar-divider">
-            <a href="index.html" class="nav-item">
-                <i class="fas fa-store"></i> <span>Ver Tienda Pública</span>
-            </a>
-            <a href="javascript:void(0)" onclick="cerrarSesion()" class="btn-logout-admin">
-                <i class="fas fa-power-off"></i> <span>Cerrar Sesión</span>
-            </a>
+            <hr>
+            <a href="javascript:void(0)" onclick="cerrarSesion()" class="nav-item"><i class="fas fa-power-off"></i> <span>Salir</span></a>
         </nav>
     </aside>
 
     <main class="main-content">
-        <header class="header-admin" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
-            <div class="welcome-text">
-                <h1 id="seccion-titulo">Dashboard</h1>
-                <p id="fecha-actual" class="text-muted"></p>
-            </div>
-            <button id="btn-accion-principal" class="btn-nuevo" onclick="abrirModal()">
-                <i class="fas fa-plus-circle"></i> Nuevo Registro
-            </button>
+        <header class="header-admin">
+            <h1 id="seccion-titulo">Cargando...</h1>
+            <button class="btn-nuevo" onclick="abrirModal()">+ Nuevo Registro</button>
         </header>
-        
-        <div id="tabla-contenedor">
-            <div class="loader-placeholder" style="text-align:center; padding:50px;">
-                <i class="fas fa-spinner fa-spin fa-3x" style="color:#2d3436; margin-bottom:15px;"></i>
-                <p>Sincronizando con Mercado Raíz Cloud...</p>
-            </div>
-        </div>
+        <div id="tabla-contenedor"></div>
     </main>
 
-    <div id="modalRegistro" class="modal-pago hidden" style="position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; display:flex; align-items:center; justify-content:center;">
-        <div class="glass-card" style="background:white; padding:30px; border-radius:15px; width:90%; max-width:600px; max-height:90vh; overflow-y:auto;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                <h2 id="modalTitulo" style="margin:0; color:#2d3436;">Detalles del Registro</h2>
-                <button onclick="cerrarModal()" style="background:none; border:none; font-size:2rem; cursor:pointer; color:#999;">&times;</button>
+    <div id="modalRegistro" class="modal-pago hidden">
+        <div class="glass-card" style="background:white; padding:25px; border-radius:15px; width:90%; max-width:700px; max-height:90vh; overflow-y:auto;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h2 id="modalTitulo">Detalles</h2>
+                <button onclick="cerrarModal()" style="font-size:2rem; border:none; background:none; cursor:pointer;">&times;</button>
             </div>
             
             <form id="formRegistro">
                 <div id="camposDinamicos"></div>
-
-                <div id="areaPagoPedido" class="hidden" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">
-                    <h4 style="margin-bottom: 10px;"><i class="fas fa-receipt"></i> Comprobante de Pago</h4>
-                    <div id="comprobanteContainer" style="text-align: center; background: #f4f4f4; padding: 10px; border-radius: 8px;">
-                        <p id="no-comprobante" class="text-muted">No se ha subido comprobante aún.</p>
-                        <img id="imgComprobante" src="" class="comprobante-preview hidden" alt="Comprobante de Pago" onclick="window.open(this.src, '_blank')">
-                    </div>
+                
+                <div id="seccionMapa" class="hidden" style="margin-top:20px;">
+                    <hr>
+                    <label><b>Ubicación Geográfica (Haga clic en el mapa)</b></label>
+                    <input type="text" id="coordsInput" placeholder="Latitud, Longitud" readonly style="width:100%; margin-bottom:10px;">
+                    <div id="mapAdmin"></div>
                 </div>
 
-                <div id="mapArea" class="hidden" style="margin-top:15px;">
-                    <label id="lblMap" style="display:block; margin-bottom:8px; font-weight:600;">Ubicación de Finca:</label>
-                    <div id="mapAdmin" style="height: 250px; border-radius: 10px; background:#eee;"></div>
-                </div>
-
-                <div style="margin-top: 30px; text-align: right; display: flex; gap: 10px; justify-content: flex-end;">
-                    <button type="button" onclick="cerrarModal()" style="background:#eee; color:#333; padding: 10px 20px; border:none; border-radius:8px; cursor:pointer;">Cerrar</button>
-                    <button type="submit" id="btnGuardarModal" class="btn-nuevo" style="padding: 10px 20px; border:none; border-radius:8px; cursor:pointer; background:#2d3436; color:white;">Guardar Cambios</button>
+                <div style="margin-top:20px; text-align:right;">
+                    <button type="button" onclick="cerrarModal()" class="btn-secundario">Cancelar</button>
+                    <button type="submit" class="btn-nuevo">Guardar Cambios</button>
                 </div>
             </form>
         </div>
@@ -127,39 +80,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     
     <script src="js/data.js"></script>
-    <script src="js/auth.js"></script> 
-    <script src="js/usuarios.js"></script>
-    <script src="js/pedidos.js"></script> 
     <script src="js/dashboard.js"></script>
-    <script src="js/mensajes.js"></script>
     <script src="js/admin.js"></script>
-    
-    <script>
-        // Verificación de acceso y carga inicial
-        document.addEventListener('DOMContentLoaded', () => {
-            const adminToken = localStorage.getItem('adminKey'); //
-            if (adminToken !== 'cayambe2026') {
-                window.location.replace('login.html');
-                return;
-            }
-
-            const opciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            document.getElementById('fecha-actual').innerText = new Date().toLocaleDateString('es-ES', opciones);
-
-            // Pequeño delay para asegurar que todos los JS cargaron
-            setTimeout(() => {
-                if (typeof cargarSeccion === "function") {
-                    cargarSeccion('dashboard');
-                } else {
-                    console.error("Error: admin.js o dashboard.js no cargaron correctamente.");
-                }
-            }, 500);
-        });
-
-        // Aseguramos que cerrarModal funcione si admin.js falla
-        function cerrarModal() {
-            document.getElementById('modalRegistro').classList.add('hidden');
-        }
-    </script>
 </body>
 </html>

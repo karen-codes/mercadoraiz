@@ -1,190 +1,189 @@
-/***********************************
- * GESTIÓN ADMINISTRATIVA MAESTRA - MERCADO RAÍZ
- ***********************************/
-let seccionActual = 'dashboard';
-let map = null;
-let marker = null;
-let editandoId = null;
-
 /**
- * UTILIDAD: SUBIDA DE ARCHIVOS A FIREBASE STORAGE
+ * Mercado Raíz - Panel Administrativo 2026
+ * Gestión de Productores, Mapas y Multimedia
  */
-async function subirArchivo(archivo, carpeta) {
-    if (!archivo) return null;
-    try {
-        // 'storage' debe estar inicializado en data.js: const storage = firebase.storage();
-        const storageRef = firebase.storage().ref(`${carpeta}/${Date.now()}_${archivo.name}`);
-        const snapshot = await storageRef.put(archivo);
-        return await snapshot.ref.getDownloadURL();
-    } catch (error) {
-        console.error("Error en Firebase Storage:", error);
-        return null;
+
+let mapaAdmin = null;
+let marcadorAdmin = null;
+let seccionActual = 'dashboard';
+
+// 1. GESTIÓN DEL MODAL Y UI
+window.cerrarModal = function() {
+    document.getElementById('modalRegistro').classList.add('hidden');
+    document.getElementById('formRegistro').reset();
+    if(mapaAdmin) {
+        mapaAdmin.remove();
+        mapaAdmin = null;
+        marcadorAdmin = null;
     }
+};
+
+window.abrirModal = function() {
+    const modal = document.getElementById('modalRegistro');
+    modal.classList.remove('hidden');
+    
+    // Si estamos en proveedores, habilitar mapa para geolocalización
+    if (seccionActual === 'proveedores') {
+        document.getElementById('seccionMapa').classList.remove('hidden');
+        setTimeout(inicializarMapaAdmin, 300);
+    } else {
+        document.getElementById('seccionMapa').classList.add('hidden');
+    }
+};
+
+// 2. CONFIGURACIÓN DEL MAPA (LEAFLET)
+function inicializarMapaAdmin() {
+    if (mapaAdmin) return;
+
+    // Coordenadas iniciales: Cayambe, Ecuador
+    const centro = [0.0431, -78.1453];
+    mapaAdmin = L.map('mapAdmin').setView(centro, 13);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(mapaAdmin);
+
+    // Capturar ubicación al hacer clic
+    mapaAdmin.on('click', function(e) {
+        const { lat, lng } = e.latlng;
+        document.getElementById('coordsInput').value = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+        
+        if (marcadorAdmin) {
+            marcadorAdmin.setLatLng(e.latlng);
+        } else {
+            marcadorAdmin = L.marker(e.latlng).addTo(mapaAdmin);
+        }
+    });
 }
 
-/**
- * NAVEGACIÓN ENTRE SECCIONES
- */
-function cargarSeccion(seccion) {
+// 3. LOGICA DE NAVEGACIÓN
+window.cargarSeccion = function(seccion) {
     seccionActual = seccion;
     const titulo = document.getElementById('seccion-titulo');
     const contenedor = document.getElementById('tabla-contenedor');
     
     document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-    const linkActivo = document.getElementById(`link-${seccion}`);
-    if (linkActivo) linkActivo.classList.add('active');
-    if (titulo) titulo.innerText = seccion.toUpperCase();
+    document.getElementById(`link-${seccion}`)?.classList.add('active');
 
-    contenedor.innerHTML = `<div style="text-align:center; padding:50px;"><i class="fas fa-sync fa-spin fa-3x"></i></div>`;
-
-    // Escucha en tiempo real
-    db.ref(seccion).on('value', (snapshot) => {
-        const data = snapshot.val();
-        const lista = data ? Object.keys(data).map(key => ({...data[key], firebaseId: key})) : [];
-        renderizarTabla(lista);
-    });
-}
-
-/**
- * MODAL DINÁMICO MEJORADO
- */
-async function abrirModal(datos = null) {
-    const modal = document.getElementById('modalRegistro');
-    const campos = document.getElementById('camposDinamicos');
-    editandoId = datos ? (datos.firebaseId || datos.id) : null;
-    modal.style.display = 'flex';
-
-    if (seccionActual === 'productos') {
-        const snapshot = await db.ref('proveedores').once('value');
-        const provs = snapshot.val() ? Object.keys(snapshot.val()).map(k => ({...snapshot.val()[k], id: k})) : [];
-
-        campos.innerHTML = `
-            <div class="form-group"><label>Nombre del Producto</label><input type="text" id="reg_nombre" class="admin-input" value="${datos?.nombre || ''}" required></div>
-            <div class="form-group"><label>Descripción Corta</label><input type="text" id="reg_desc" class="admin-input" value="${datos?.descripcion || ''}"></div>
-            <div class="form-row" style="display:flex; gap:10px;">
-                <div class="form-group" style="flex:1;"><label>Precio ($)</label><input type="number" step="0.01" id="reg_precio" class="admin-input" value="${datos?.precio || ''}" required></div>
-                <div class="form-group" style="flex:1;"><label>Unidad</label>
-                    <select id="reg_medida" class="admin-input">
-                        <option value="Libra" ${datos?.medida === 'Libra' ? 'selected' : ''}>Libra</option>
-                        <option value="Kilo" ${datos?.medida === 'Kilo' ? 'selected' : ''}>Kilo</option>
-                        <option value="Litro" ${datos?.medida === 'Litro' ? 'selected' : ''}>Litro</option>
-                        <option value="Unidad" ${datos?.medida === 'Unidad' ? 'selected' : ''}>Unidad</option>
-                    </select>
-                </div>
-            </div>
-            <div class="form-group"><label>Parcela de Origen</label>
-                <select id="reg_prov_id" class="admin-input" required>
-                    <option value="">Seleccione Productor</option>
-                    ${provs.map(pr => `<option value="${pr.id}" ${datos?.proveedorId == pr.id ? 'selected' : ''}>${pr.nombre}</option>`).join('')}
-                </select>
-            </div>
-            <div class="form-group"><label>Imagen Producto (PC)</label><input type="file" id="reg_foto_file" accept="image/*"></div>
-            <input type="hidden" id="reg_foto_actual" value="${datos?.imagen || ''}">
-        `;
-
-    } else if (seccionActual === 'proveedores') {
-        campos.innerHTML = `
-            <div class="form-group"><label>Nombre de la Parcela</label><input type="text" id="prov_nombre" class="admin-input" value="${datos?.nombre || ''}" required></div>
-            <div class="form-group"><label>Descripción Corta</label><input type="text" id="prov_desc_corta" class="admin-input" value="${datos?.descripcionCorta || ''}"></div>
-            <div class="form-group"><label>Nuestra Historia</label><textarea id="prov_historia" class="admin-input">${datos?.historia || ''}</textarea></div>
-            <div class="form-row" style="display:flex; gap:10px;">
-                <div class="form-group" style="flex:1;"><label>WhatsApp</label><input type="text" id="prov_ws" class="admin-input" value="${datos?.whatsapp || ''}"></div>
-                <div class="form-group" style="flex:1;"><label>Horario</label><input type="text" id="prov_horario" class="admin-input" placeholder="Ej: Lun-Vie 08:00-17:00" value="${datos?.horario || ''}"></div>
-            </div>
-            
-            <h4 style="margin-top:20px; border-bottom:1px solid #eee;">Métodos de Pago</h4>
-            <div class="form-group">
-                <label><input type="checkbox" id="pay_trans" ${datos?.pagos?.transferencia ? 'checked' : ''} onchange="document.getElementById('datos_banco').classList.toggle('hidden')"> Transferencia Bancaria</label>
-            </div>
-            <div id="datos_banco" class="${datos?.pagos?.transferencia ? '' : 'hidden'}" style="background:#f9f9f9; padding:10px; border-radius:8px;">
-                <select id="bank_name" class="admin-input"><option value="Pichincha" ${datos?.pagos?.banco === 'Pichincha' ? 'selected' : ''}>Pichincha</option><option value="Guayaquil" ${datos?.pagos?.banco === 'Guayaquil' ? 'selected' : ''}>Guayaquil</option><option value="Otro">Otro</option></select>
-                <input type="text" id="bank_acc" placeholder="Número de cuenta" class="admin-input" value="${datos?.pagos?.n_cuenta || ''}">
-                <input type="text" id="bank_titular" placeholder="Nombre Titular" class="admin-input" value="${datos?.pagos?.titular || ''}">
-                <input type="text" id="bank_cedula" placeholder="Cédula/RUC" class="admin-input" value="${datos?.pagos?.cedula || ''}">
-            </div>
-            
-            <div class="form-group" style="margin-top:10px;">
-                <label><input type="checkbox" id="pay_qr" ${datos?.pagos?.qr ? 'checked' : ''} onchange="document.getElementById('datos_qr').classList.toggle('hidden')"> Pago por QR (Deuna/Otros)</label>
-            </div>
-            <div id="datos_qr" class="${datos?.pagos?.qr ? '' : 'hidden'}">
-                <label>Subir Imagen QR (PC)</label><input type="file" id="prov_qr_file" accept="image/*">
-                <input type="hidden" id="prov_qr_actual" value="${datos?.pagos?.qr_url || ''}">
-            </div>
-
-            <div class="form-group" style="margin-top:20px;"><label>Foto Portada (PC)</label><input type="file" id="prov_portada_file" accept="image/*"></div>
-            <div class="form-group"><label>Video de Parcela (PC)</label><input type="file" id="prov_video_file" accept="video/*"></div>
-            
-            <input type="hidden" id="reg_coords" value="${datos?.coords || '-0.0469, -78.1453'}">
-            <input type="hidden" id="prov_foto_actual" value="${datos?.imagen || ''}">
-            <input type="hidden" id="prov_video_actual" value="${datos?.video || ''}">
-        `;
-        setTimeout(() => inicializarMapaAdmin(datos?.coords), 300);
-    }
-}
-
-/**
- * PROCESO DE GUARDADO CON MULTIMEDIA
- */
-document.getElementById('formRegistro').onsubmit = async function(e) {
-    e.preventDefault();
-    const btnSubmit = e.target.querySelector('button[type="submit"]');
-    btnSubmit.disabled = true;
-
-    const ref = db.ref(seccionActual);
-    const idFinal = editandoId || ref.push().key;
-    let item = { id: idFinal };
-
-    try {
-        if (seccionActual === 'productos') {
-            const fImg = document.getElementById('reg_foto_file').files[0];
-            const urlImg = fImg ? await subirArchivo(fImg, 'productos') : document.getElementById('reg_foto_actual').value;
-
-            item = { ...item,
-                nombre: document.getElementById('reg_nombre').value,
-                descripcion: document.getElementById('reg_desc').value,
-                precio: parseFloat(document.getElementById('reg_precio').value),
-                unidad: document.getElementById('reg_medida').value,
-                proveedorId: document.getElementById('reg_prov_id').value,
-                imagen: urlImg
-            };
-        } else if (seccionActual === 'proveedores') {
-            const fPort = document.getElementById('prov_portada_file').files[0];
-            const fVid = document.getElementById('prov_video_file').files[0];
-            const fQr = document.getElementById('prov_qr_file')?.files[0];
-
-            const urlPort = fPort ? await subirArchivo(fPort, 'fincas') : document.getElementById('prov_foto_actual').value;
-            const urlVid = fVid ? await subirArchivo(fVid, 'videos') : document.getElementById('prov_video_actual').value;
-            const urlQr = fQr ? await subirArchivo(fQr, 'qrs') : document.getElementById('prov_qr_actual')?.value;
-
-            item = { ...item,
-                nombre: document.getElementById('prov_nombre').value,
-                descripcionCorta: document.getElementById('prov_desc_corta').value,
-                historia: document.getElementById('prov_historia').value,
-                whatsapp: document.getElementById('prov_ws').value,
-                horario: document.getElementById('prov_horario').value,
-                coords: document.getElementById('reg_coords').value,
-                imagen: urlPort,
-                video: urlVid,
-                pagos: {
-                    transferencia: document.getElementById('pay_trans').checked,
-                    banco: document.getElementById('bank_name').value,
-                    n_cuenta: document.getElementById('bank_acc').value,
-                    titular: document.getElementById('bank_titular').value,
-                    cedula: document.getElementById('bank_cedula').value,
-                    qr: document.getElementById('pay_qr').checked,
-                    qr_url: urlQr || ''
-                }
-            };
-        }
-
-        await db.ref(`${seccionActual}/${idFinal}`).set(item);
-        cerrarModal();
-        alert("¡Datos sincronizados en Mercado Raíz Cloud!");
-    } catch (err) {
-        alert("Error: " + err.message);
-    } finally {
-        btnSubmit.disabled = false;
+    if (seccion === 'dashboard') {
+        titulo.innerText = "Panel de Control";
+        if (typeof renderizarDashboard === "function") renderizarDashboard(contenedor);
+    } else if (seccion === 'proveedores') {
+        titulo.innerText = "Gestión de Productores";
+        renderizarTablaProveedores(contenedor);
     }
 };
 
-// ... (Las funciones inicializarMapaAdmin y eliminarRegistro se mantienen similares)
+// 4. GUARDADO DE DATOS Y SUBIDA MULTIMEDIA (QR, FOTOS, VIDEOS)
+document.getElementById('formRegistro').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const btnGuardar = e.target.querySelector('button[type="submit"]');
+    const originalText = btnGuardar.innerText;
+    
+    try {
+        btnGuardar.disabled = true;
+        btnGuardar.innerText = "Procesando y Subiendo...";
+
+        // Capturar archivos multimedia
+        const fileQR = e.target.querySelector('input[id*="QR"]')?.files[0];
+        const filePortada = e.target.querySelector('input[id*="Portada"]')?.files[0];
+        const fileVideo = e.target.querySelector('input[id*="Video"]')?.files[0]; // Videos desde PC
+
+        let urlQR = "";
+        let urlPortada = "";
+        let urlVideo = "";
+
+        // Subir a Firebase Storage si existen archivos nuevos
+        if (fileQR) urlQR = await subirArchivo(fileQR, 'comprobantes_qr');
+        if (filePortada) urlPortada = await subirArchivo(filePortada, 'portadas');
+        if (fileVideo) urlVideo = await subirArchivo(fileVideo, 'videos_parcelas');
+
+        const formData = new FormData(e.target);
+        const datosBase = Object.fromEntries(formData.entries());
+
+        // Consolidar objeto final
+        const nuevoRegistro = {
+            ...datosBase,
+            ubicacion: document.getElementById('coordsInput').value || "", // Desde el mapa
+            urlQR: urlQR || datosBase.urlQR || "", // Para validación de pago
+            urlPortada: urlPortada || datosBase.urlPortada || "",
+            urlVideo: urlVideo || datosBase.urlVideo || "", // Archivo local, no YouTube
+            fechaActualizacion: firebase.database.ServerValue.TIMESTAMP
+        };
+
+        const rama = seccionActual === 'proveedores' ? 'proveedores' : 'productos';
+        const idRegistro = datosBase.id || firebase.database().ref(rama).push().key;
+
+        await firebase.database().ref(`${rama}/${idRegistro}`).update(nuevoRegistro);
+
+        alert("¡Registro actualizado exitosamente!");
+        cerrarModal();
+        cargarSeccion(seccionActual);
+
+    } catch (error) {
+        console.error("Error al guardar:", error);
+        alert("Ocurrió un error al guardar los cambios: " + error.message);
+    } finally {
+        btnGuardar.disabled = false;
+        btnGuardar.innerText = originalText;
+    }
+});
+
+/**
+ * Función auxiliar para subir archivos al Storage
+ */
+async function subirArchivo(file, folder) {
+    const storageRef = firebase.storage().ref();
+    const fileRef = storageRef.child(`${folder}/${Date.now()}_${file.name}`);
+    const snapshot = await fileRef.put(file);
+    return await snapshot.ref.getDownloadURL();
+}
+
+// 5. RENDERIZADO DE TABLAS
+window.renderizarTablaProveedores = function(cont) {
+    cont.innerHTML = `
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Parcela</th>
+                    <th>WhatsApp</th>
+                    <th>Ubicación</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="lista-items">
+                <tr><td colspan="4" style="text-align:center;">Sincronizando con la nube...</td></tr>
+            </tbody>
+        </table>
+    `;
+
+    // Escuchar cambios en tiempo real desde Firebase
+    firebase.database().ref('proveedores').on('value', (snapshot) => {
+        const datos = snapshot.val();
+        const tbody = document.getElementById('lista-items');
+        tbody.innerHTML = "";
+
+        if (datos) {
+            Object.entries(datos).forEach(([id, prov]) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${prov.nombreParcela || 'Sin Nombre'}</strong></td>
+                    <td>${prov.whatsapp || 'N/A'}</td>
+                    <td>${prov.ubicacion ? '<i class="fas fa-map-marker-alt" style="color:red"></i> Registrada' : 'No marcada'}</td>
+                    <td>
+                        <button class="btn-editar" onclick="editarProveedor('${id}')">Editar</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        } else {
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">No hay proveedores registrados.</td></tr>`;
+        }
+    });
+};
+
+// Inicialización
+document.addEventListener('DOMContentLoaded', () => {
+    cargarSeccion('dashboard');
+});
