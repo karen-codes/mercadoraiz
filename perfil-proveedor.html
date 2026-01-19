@@ -54,8 +54,9 @@
 
                 <section class="category-card" style="padding: 40px; height: auto; cursor: default; text-align: left;">
                     <h3 style="font-family: 'Playfair Display', serif; color: var(--pueblo-sage); margin-bottom: 20px; font-size: 1.8rem;">Labores en la Parcela</h3>
-                    <div id="video-container" style="border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+                    <div id="video-container" style="border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1); background: #000;">
                         <video id="p-video-local" controls width="100%" style="display: block;">
+                            <source src="" type="video/mp4">
                             Tu navegador no soporta videos.
                         </video>
                     </div>
@@ -105,6 +106,8 @@
 
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-storage-compat.js"></script>
 
     <script>
       const firebaseConfig = {
@@ -114,17 +117,19 @@
         projectId: "mercado-raiz",
         storageBucket: "mercado-raiz.firebasestorage.app",
         messagingSenderId: "886584284411",
-        appId: "1:886584284411:web:f006908eeb8d9da224cc5e",
-        measurementId: "G-5EW3Y8Z2XE"
+        appId: "1:886584284411:web:NDI3ZqYWUtYWNhNS00NzEwLWIxMDktWjNmViYzk4Njly"
       };
 
-      // Inicializar
-      firebase.initializeApp(firebaseConfig);
-      const db = firebase.database(); 
-      // Ahora la variable 'db' ya existe y main.js la puede usar
+      if (!firebase.apps.length) {
+          firebase.initializeApp(firebaseConfig);
+      }
+      window.db = firebase.database(); 
+      window.auth = firebase.auth();
+      window.storage = firebase.storage();
     </script>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="js/data.js"></script>
     <script src="js/main.js"></script>
     <script src="js/proveedor.js"></script>
 </body>

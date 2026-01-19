@@ -3,60 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Administración | Mercado Raíz</title>
+    <title>Gestión de Clientes | Mercado Raíz</title>
     
     <link rel="stylesheet" href="css/admin.styles.css">
-    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="admin-layout">
-
-    <aside class="admin-sidebar">
-        <div class="logo-container">
-            <h2>Mercado<span>Raíz</span></h2>
-            <p>Panel de Gestión</p>
+<body class="admin-body"> <aside class="sidebar"> <div class="sidebar-header">
+            <h2 class="logo">Mercado<span>Raíz</span></h2>
+            <p class="admin-role">Gestor de Cayambe</p>
         </div>
         
-        <nav class="admin-nav">
-            <a href="admin.html">
-                <i class="fas fa-chart-line"></i> Dashboard
+        <nav class="sidebar-nav">
+            <a href="admin.html" class="nav-item">
+                <i class="fas fa-chart-line"></i> <span>Dashboard Alcance</span>
             </a>
-            <a href="admin_usuarios.html" class="active">
-                <i class="fas fa-users"></i> Clientes
+            <a href="admin-usuarios.html" class="nav-item active">
+                <i class="fas fa-users"></i> <span>Base de Clientes</span>
             </a>
-            <a href="proveedor.html">
-                <i class="fas fa-tractor"></i> Proveedores
+            <a href="admin.html#proveedores" class="nav-item">
+                <i class="fas fa-tractor"></i> <span>Red de Proveedores</span>
             </a>
-            <a href="productos.html">
-                <i class="fas fa-box-open"></i> Inventario
+            <a href="admin.html#productos" class="nav-item">
+                <i class="fas fa-box"></i> <span>Inventario Productos</span>
             </a>
-            <div class="nav-divider"></div>
-            <a href="index.html">
-                <i class="fas fa-store"></i> Ver Tienda
+            <a href="admin.html#pedidos" class="nav-item">
+                <i class="fas fa-shopping-basket"></i> <span>Pedidos y Pagos</span>
             </a>
-            <a href="#" id="btnLogout">
-                <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+            <hr class="sidebar-divider">
+            <a href="index.html" class="nav-item">
+                <i class="fas fa-store"></i> <span>Ver Tienda Pública</span>
+            </a>
+            <a onclick="cerrarSesion()" class="nav-item" style="cursor:pointer; color: var(--admin-terracotta);">
+                <i class="fas fa-power-off"></i> <span>Cerrar Sesión</span>
             </a>
         </nav>
     </aside>
 
-    <main class="admin-main">
-        <header class="dashboard-header">
-            <div>
-                <h1>Gestión de Clientes</h1>
-                <p id="currentDate">jueves, 15 de enero de 2026</p>
+    <main class="main-content">
+        <header class="header-admin" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
+            <div class="welcome-text">
+                <h1>Base de Clientes</h1>
+                <p id="fecha-actual" class="text-muted"></p>
             </div>
             
             <div class="header-actions">
-                <div class="search-bar">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="userSearch" placeholder="Buscar por nombre o correo...">
+                <div style="position: relative; background: white; padding: 10px 20px; border-radius: 50px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-search" style="color: #ccc;"></i>
+                    <input type="text" id="userSearch" placeholder="Buscar cliente..." style="border: none; outline: none; font-family: 'Montserrat';">
                 </div>
             </div>
         </header>
 
-        <div id="usuarios-container">
+        <div id="tabla-contenedor" class="glass-card">
+            <div class="loader-placeholder" style="text-align:center; padding:50px;">
+                <i class="fas fa-spinner fa-spin fa-3x" style="color:var(--admin-primary); margin-bottom:15px;"></i>
+                <p>Cargando base de datos de clientes...</p>
             </div>
+        </div>
     </main>
 
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
@@ -70,24 +73,30 @@
         projectId: "mercado-raiz",
         storageBucket: "mercado-raiz.firebasestorage.app",
         messagingSenderId: "886584284411",
-        appId: "1:886584284411:web:f006908eeb8d9da224cc5e",
-        measurementId: "G-5EW3Y8Z2XE"
+        appId: "1:886584284411:web:NDI3ZqYWUtYWNhNS00NzEwLWIxMDktWjNmViYzk4Njly"
       };
 
-      // Inicializar
-      firebase.initializeApp(firebaseConfig);
-      const db = firebase.database(); 
-      // Ahora la variable 'db' ya existe y main.js la puede usar
+      if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+      window.db = firebase.database();
     </script>
 
     <script src="js/data.js"></script>
-    <script src="js/admin.js"></script>
-    
-    <script>
-        // Pequeña lógica para el buscador en tiempo real
+    <script src="js/usuarios.js"></script> <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Actualizar fecha
+            const opciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('fecha-actual').innerText = new Date().toLocaleDateString('es-ES', opciones);
+
+            // Cargar usuarios al iniciar
+            if (typeof cargarUsuariosTabla === "function") {
+                cargarUsuariosTabla();
+            }
+        });
+
+        // Buscador en tiempo real
         document.getElementById('userSearch')?.addEventListener('input', (e) => {
             const term = e.target.value.toLowerCase();
-            const filas = document.querySelectorAll('.admin-table tbody tr');
+            const filas = document.querySelectorAll('table tbody tr');
             
             filas.forEach(fila => {
                 const texto = fila.innerText.toLowerCase();

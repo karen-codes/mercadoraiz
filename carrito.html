@@ -15,7 +15,6 @@
             <a href="index.html" class="logo">
                 <i class="fas fa-seedling"></i> Mercado Raíz
             </a>
-
             <nav class="main-nav">
                 <a href="index.html">Inicio</a>
                 <a href="productos.html">Productos</a>
@@ -23,7 +22,6 @@
                 <a href="contacto.html">Contacto</a>
                 <a href="calidad.html">Calidad</a>
                 <a href="carrito.html" class="active">Carrito</a>
-                
                 <div class="auth-buttons" id="authContainer">
                     <a href="login.html" id="loginLink" class="btn-login-header">Iniciar Sesión</a>
                     <a href="#" id="logoutLink" onclick="cerrarSesion()" class="btn-logout hidden">Cerrar Sesión</a>
@@ -37,14 +35,13 @@
             <div class="section-header">
                 <span class="hero-badge">Revisión de Compra</span>
                 <h1 style="font-family: 'Playfair Display', serif; font-size: 3rem;">🛒 Tu Carrito</h1>
-                <p>Apoyando directamente a los productores de Cayambe.</p>
             </div>
         </section>
 
         <div class="container" style="max-width: 900px; margin-bottom: 60px; padding: 0 20px;">
             <div id="lista-carrito" class="category-card" style="padding: 30px; height: auto; cursor: default; text-align: left;">
                 <div class="text-center" id="cart-empty-state">
-                    <p style="color: #888;">Cargando tus productos seleccionados...</p>
+                    <p style="color: #888;">Cargando productos...</p>
                 </div>
             </div>
 
@@ -52,59 +49,48 @@
                 <a href="productos.html" style="text-decoration: none; color: var(--pueblo-sage); font-weight: 700;">
                     <i class="fas fa-arrow-left"></i> Seguir comprando
                 </a>
-                <button onclick="realizarPedido()" class="btn-primary-admin" style="width: auto; padding: 15px 50px;">
+                <button onclick="prepararPago()" class="btn-terracotta" style="width: auto; padding: 15px 50px; cursor: pointer; border: none; border-radius: 50px;">
                     Realizar pedido y Pagar
                 </button>
             </div>
         </div>
     </main>
 
-    <div id="modalPago" class="cart-overlay" style="display: none; align-items: center; justify-content: center; z-index: 3000; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5);">
-        <div class="auth-card" style="max-width: 500px; width: 90%; position: relative; background: white; padding: 30px; border-radius: 20px;">
-            <div class="auth-header">
-                <h3 style="font-family: 'Playfair Display', serif; color: var(--pueblo-sage); font-size: 1.8rem; margin-bottom: 10px;">Finalizar Pedido</h3>
-                <p class="auth-subtitle">Completa tu pago mediante transferencia o Deuna.</p>
+    <div id="modalPago" class="cart-overlay" style="display: none; align-items: center; justify-content: center; z-index: 3000; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);">
+        <div class="auth-card" style="max-width: 500px; width: 90%; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto;">
+            <div class="auth-header" style="text-align: center;">
+                <h3 style="font-family: 'Playfair Display', serif; color: var(--pueblo-sage); font-size: 1.8rem; margin-bottom: 5px;">Finalizar Pedido</h3>
+                <p id="nombreProveedorPago" style="font-weight: 700; color: var(--pueblo-terracotta); margin-bottom: 15px;">Cargando datos del productor...</p>
             </div>
 
-            <div style="background: var(--pueblo-cream); padding: 20px; border-radius: 15px; border: 2px dashed var(--pueblo-sage); text-align: center; margin-bottom: 20px;">
-                <p style="font-weight: 700; margin-bottom: 10px;">QR de Pago Rápido:</p>
-                <div style="width: 140px; height: 140px; background: var(--pueblo-charcoal); color: white; margin: 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 12px;">
-                    <i class="fas fa-qrcode fa-4x"></i>
-                    <small style="margin-top: 5px; letter-spacing: 1px;">MERCADO RAÍZ</small>
-                </div>
+            <div id="qrContainer" style="background: var(--pueblo-cream); padding: 15px; border-radius: 15px; border: 2px dashed var(--pueblo-sage); text-align: center; margin-bottom: 15px;">
+                <p style="font-weight: 700; font-size: 0.9rem; margin-bottom: 10px;">Escanea para pagar:</p>
+                <img id="imgQR" src="" alt="QR de Pago" style="width: 180px; height: 180px; object-fit: contain; background: white; border-radius: 8px; display: none; margin: 0 auto;">
+                <div id="qrPlaceholder"><i class="fas fa-qrcode fa-5x"></i></div>
             </div>
 
-            <div style="font-size: 0.85rem; background: #f9f9f9; padding: 15px; border: 1px solid #ddd; border-radius: 10px; line-height: 1.8;">
-                <strong style="color: var(--pueblo-terracotta);">Datos Bancarios:</strong><br>
-                <strong>Banco Pichincha:</strong> Ahorros #2200XXXXXX<br>
-                <strong>Beneficiario:</strong> Mercado Raíz Cayambe<br>
-                <strong>CI:</strong> 17XXXXXX-X
+            <div id="datosBancarios" style="font-size: 0.85rem; background: #f9f9f9; padding: 15px; border-radius: 10px; line-height: 1.6; margin-bottom: 15px;">
+                <p id="textoBancario">Cargando cuenta bancaria...</p>
             </div>
 
-            <button onclick="confirmarPedidoFinal()" class="btn-primary-admin" style="margin-top: 25px; width: 100%;">
-                He realizado el pago
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-weight: 700; margin-bottom: 8px; font-size: 0.9rem;">
+                    <i class="fas fa-camera"></i> Adjuntar Comprobante:
+                </label>
+                <input type="file" id="comprobantePago" accept="image/*" style="width: 100%;">
+            </div>
+
+            <button id="btnConfirmarPago" onclick="confirmarPedidoFinal()" class="btn-login-header" style="width: 100%; border: none; cursor: pointer; padding: 15px;">
+                Confirmar Pago
             </button>
-            <button onclick="cerrarModal()" style="background:none; border:none; color:#888; cursor:pointer; display:block; margin:15px auto; text-decoration: underline; font-family: 'Montserrat';">
-                Cancelar y revisar carrito
+            <button onclick="cerrarModal()" style="background:none; border:none; color:#888; cursor:pointer; display:block; margin:15px auto; text-decoration: underline;">
+                Regresar
             </button>
         </div>
     </div>
 
     <footer class="main-footer">
-        <div class="footer-content">
-            <div class="footer-brand-center">
-                <h3>Mercado Raíz</h3>
-                <p>Cayambe, Ecuador - Identidad y Sabor de Nuestra Tierra.</p>
-            </div>
-            <div class="footer-socials-center">
-                <a href="#"><i class="fab fa-facebook"></i></a>
-                <a href="#"><i class="fab fa-instagram"></i></a>
-                <a href="#"><i class="fab fa-whatsapp"></i></a>
-            </div>
-            <div class="footer-copy-center">
-                <p>&copy; 2026 Mercado Raíz - Conectando el campo con tu hogar.</p>
-            </div>
-        </div>
+        <div class="footer-content"><div class="footer-brand-center"><h3>Mercado Raíz</h3></div></div>
     </footer>
 
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
@@ -118,107 +104,98 @@
         projectId: "mercado-raiz",
         storageBucket: "mercado-raiz.firebasestorage.app",
         messagingSenderId: "886584284411",
-        appId: "1:886584284411:web:f006908eeb8d9da224cc5e",
-        measurementId: "G-5EW3Y8Z2XE"
+        appId: "1:886584284411:web:NDI3ZqYWUtYWNhNS00NzEwLWIxMDktWjNmViYzk4Njly"
       };
-
-      // Inicializar
       firebase.initializeApp(firebaseConfig);
-      const db = firebase.database(); 
-      // Ahora la variable 'db' ya existe y main.js la puede usar
+      const db = firebase.database();
     </script>
 
     <script src="js/main.js"></script>
     <script>
-        // Lógica local para renderizar el carrito sin tocar main.js
-        document.addEventListener("DOMContentLoaded", () => {
-            renderizarCarritoPagina();
-        });
+        document.addEventListener("DOMContentLoaded", renderizarCarritoPagina);
 
         function renderizarCarritoPagina() {
             const lista = document.getElementById('lista-carrito');
             const footerActions = document.getElementById('cart-footer-actions');
-            // 'carrito' ya existe globalmente por main.js
             const datosCarrito = JSON.parse(localStorage.getItem('carrito')) || [];
 
             if (datosCarrito.length === 0) {
-                lista.innerHTML = `
-                    <div style="text-align:center; padding:50px;">
-                        <i class="fas fa-shopping-cart fa-3x" style="color:#ddd; margin-bottom:20px;"></i>
-                        <p style="color:#888;">Tu carrito está vacío actualmente.</p>
-                    </div>`;
+                lista.innerHTML = `<div style="text-align:center; padding:50px;"><h2 style="font-family:'Playfair Display';">Tu canasta está vacía</h2></div>`;
                 footerActions.style.display = 'none';
                 return;
             }
 
             footerActions.style.display = 'flex';
-            let totalGeneral = 0;
-
-            let html = `
-                <div class="cart-table-container" style="overflow-x:auto;">
-                    <table style="width:100%; border-collapse:collapse;">
-                        <thead>
-                            <tr style="border-bottom:2px solid #eee; text-align:left;">
-                                <th style="padding:10px;">Producto</th>
-                                <th style="padding:10px;">Precio</th>
-                                <th style="padding:10px;">Cantidad</th>
-                                <th style="padding:10px;">Subtotal</th>
-                                <th style="padding:10px;"></th>
-                            </tr>
-                        </thead>
-                        <tbody>`;
+            let total = 0;
+            let html = `<div style="overflow-x:auto;"><table style="width:100%; border-collapse:collapse;">
+                <thead><tr style="text-align:left; color: var(--pueblo-sage); border-bottom: 2px solid #eee;">
+                <th style="padding:10px;">Producto</th><th style="padding:10px;">Precio</th><th style="padding:10px;">Cant.</th><th style="padding:10px;">Subtotal</th><th style="padding:10px;"></th></tr></thead><tbody>`;
 
             datosCarrito.forEach(item => {
-                const subtotal = item.precio * item.cantidad;
-                totalGeneral += subtotal;
-                html += `
-                    <tr style="border-bottom:1px solid #f5f5f5;">
-                        <td style="padding:15px; display:flex; align-items:center; gap:15px;">
-                            <img src="${item.imagen}" style="width:50px; height:50px; object-fit:cover; border-radius:8px;">
-                            <span style="font-weight:700;">${item.nombre}</span>
-                        </td>
-                        <td style="padding:15px;">$${item.precio.toFixed(2)}</td>
-                        <td style="padding:15px;">${item.cantidad} ${item.unidad || 'Unid.'}</td>
-                        <td style="padding:15px; font-weight:700; color:var(--pueblo-terracotta);">$${subtotal.toFixed(2)}</td>
-                        <td style="padding:15px;">
-                            <button onclick="quitarDelCarrito(${item.id})" style="background:none; border:none; color:red; cursor:pointer;">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </td>
-                    </tr>`;
+                const sub = item.precio * item.cantidad;
+                total += sub;
+                html += `<tr style="border-bottom:1px solid #eee;">
+                    <td style="padding:10px; display:flex; align-items:center; gap:10px;">
+                        <img src="${item.imagen}" style="width:40px; height:40px; border-radius:5px; object-fit:cover;">
+                        <span>${item.nombre}</span>
+                    </td>
+                    <td style="padding:10px;">$${item.precio.toFixed(2)}</td>
+                    <td style="padding:10px;">${item.cantidad}</td>
+                    <td style="padding:10px; font-weight:700;">$${sub.toFixed(2)}</td>
+                    <td style="padding:10px;"><button onclick="quitarDelCarritoPagina('${item.id}')" style="color:red; background:none; border:none; cursor:pointer;"><i class="fas fa-trash"></i></button></td></tr>`;
             });
-
-            html += `</tbody></table></div>
-                <div style="text-align:right; margin-top:20px; padding-top:20px; border-top:2px solid #eee;">
-                    <h3 style="font-family:'Playfair Display', serif;">Total: <span style="color:var(--pueblo-terracotta); font-size:1.8rem;">$${totalGeneral.toFixed(2)}</span></h3>
-                </div>`;
-
+            html += `</tbody></table></div><div style="text-align:right; padding:20px;"><strong>Total: $${total.toFixed(2)}</strong></div>`;
             lista.innerHTML = html;
         }
 
-        // Función para eliminar y refrescar localmente
-        function quitarDelCarrito(id) {
-            let tempCarrito = JSON.parse(localStorage.getItem('carrito')) || [];
-            tempCarrito = tempCarrito.filter(item => item.id !== id);
-            localStorage.setItem('carrito', JSON.stringify(tempCarrito));
-            
-            // Sincronizar con el estado global de main.js si es posible
-            if(typeof carrito !== 'undefined') carrito = tempCarrito;
-            
-            renderizarCarritoPagina();
-            if(typeof actualizarContadorCarrito === 'function') actualizarContadorCarrito();
-        }
+        async function prepararPago() {
+            const datosCarrito = JSON.parse(localStorage.getItem('carrito')) || [];
+            if (datosCarrito.length === 0) return;
 
-        function realizarPedido() {
+            // Tomamos el primer producto para identificar al proveedor (parcela)
+            const idProductor = datosCarrito[0].productorId; 
+            
             document.getElementById('modalPago').style.display = 'flex';
+
+            // Consultar Firebase para obtener QR y datos bancarios del productor
+            try {
+                const snapshot = await db.ref(`proveedores/${idProductor}`).once('value');
+                const p = snapshot.val();
+
+                if (p) {
+                    document.getElementById('nombreProveedorPago').innerText = `Pago para: ${p.nombreParcela}`;
+                    document.getElementById('textoBancario').innerHTML = `
+                        <strong>Banco:</strong> ${p.banco}<br>
+                        <strong>Cuenta:</strong> ${p.tipoCuenta} #${p.numeroCuenta}<br>
+                        <strong>Titular:</strong> ${p.titular}<br>
+                        <strong>C.I.:</strong> ${p.cedula}`;
+                    
+                    if (p.urlQR) {
+                        document.getElementById('imgQR').src = p.urlQR;
+                        document.getElementById('imgQR').style.display = 'block';
+                        document.getElementById('qrPlaceholder').style.display = 'none';
+                    }
+                }
+            } catch (e) {
+                console.error("Error cargando proveedor:", e);
+                alert("Error al cargar los datos de pago.");
+            }
         }
 
-        function cerrarModal() {
-            document.getElementById('modalPago').style.display = 'none';
+        function cerrarModal() { document.getElementById('modalPago').style.display = 'none'; }
+
+        function quitarDelCarritoPagina(id) {
+            let cart = JSON.parse(localStorage.getItem('carrito')) || [];
+            cart = cart.filter(i => String(i.id) !== String(id));
+            localStorage.setItem('carrito', JSON.stringify(cart));
+            renderizarCarritoPagina();
         }
 
         function confirmarPedidoFinal() {
-            alert("¡Pedido recibido! Validaremos tu pago y nos contactaremos contigo pronto.");
+            const fileInput = document.getElementById('comprobantePago');
+            if (!fileInput.files[0]) return alert("Sube el comprobante.");
+            
+            alert("¡Pedido enviado! Validaremos tu comprobante con el productor.");
             localStorage.removeItem('carrito');
             window.location.href = 'index.html';
         }

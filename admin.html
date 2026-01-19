@@ -8,6 +8,28 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        /* Estilo para la previsualización del comprobante en el panel */
+        .comprobante-preview {
+            max-width: 100%;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            margin-top: 10px;
+            cursor: zoom-in;
+            transition: transform 0.2s;
+        }
+        .comprobante-preview:hover {
+            transform: scale(1.02);
+        }
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+        .status-pendiente { background: #ffeaa7; color: #d63031; }
+        .status-validado { background: #55efc4; color: #00b894; }
+    </style>
 </head>
 <body class="admin-body">
 
@@ -75,7 +97,16 @@
             </div>
             
             <form id="formRegistro">
-                <div id="camposDinamicos"></div>
+                <div id="camposDinamicos">
+                    </div>
+
+                <div id="areaPagoPedido" class="hidden" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">
+                    <h4 style="margin-bottom: 10px;"><i class="fas fa-receipt"></i> Comprobante de Pago</h4>
+                    <div id="comprobanteContainer" style="text-align: center; background: #f4f4f4; padding: 10px; border-radius: 8px;">
+                        <p id="no-comprobante" class="text-muted">No se ha subido comprobante aún.</p>
+                        <img id="imgComprobante" src="" class="comprobante-preview hidden" alt="Comprobante de Transferencia" onclick="window.open(this.src, '_blank')">
+                    </div>
+                </div>
 
                 <div id="mapArea" class="hidden" style="margin-top:15px;">
                     <label style="display:block; margin-bottom:8px; font-weight:600;">Ubicación de Finca:</label>
@@ -83,44 +114,38 @@
                 </div>
 
                 <div style="margin-top: 30px; text-align: right; display: flex; gap: 10px; justify-content: flex-end;">
-                    <button type="button" onclick="cerrarModal()" style="background:#eee; color:#333; padding: 10px 20px; border:none; border-radius:8px; cursor:pointer;">Cancelar</button>
-                    <button type="submit" class="btn-nuevo" style="padding: 10px 20px; border:none; border-radius:8px; cursor:pointer; background:var(--admin-primary); color:white;">Guardar Cambios</button>
+                    <button type="button" onclick="cerrarModal()" style="background:#eee; color:#333; padding: 10px 20px; border:none; border-radius:8px; cursor:pointer;">Cerrar</button>
+                    <button type="submit" id="btnGuardarModal" class="btn-nuevo" style="padding: 10px 20px; border:none; border-radius:8px; cursor:pointer; background:var(--admin-primary); color:white;">Guardar Cambios</button>
                 </div>
             </form>
         </div>
     </div>
 
-<script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-storage-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     
     <script src="js/data.js"></script>
-
     <script src="js/auth.js"></script> 
     <script src="js/usuarios.js"></script>
-    <script src="js/pedidos.js"></script>
-    <script src="js/dashboard.js"></script>
+    <script src="js/pedidos.js"></script> <script src="js/dashboard.js"></script>
     <script src="js/mensajes.js"></script>
-    
     <script src="js/admin.js"></script>
     
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Verificamos si la base de datos inició bien desde data.js
-            if (typeof db !== "undefined") {
-                console.log("Conexión con Mercado Raíz Cloud establecida.");
-                
-                // Fecha actual
+            if (typeof firebase !== "undefined") {
                 const opciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
                 document.getElementById('fecha-actual').innerText = new Date().toLocaleDateString('es-ES', opciones);
 
-                // Cargar sección inicial
+                // Inicializar dashboard por defecto
                 if (typeof cargarSeccion === "function") {
                     cargarSeccion('dashboard');
                 }
             } else {
                 document.getElementById('tabla-contenedor').innerHTML = 
-                    "<p style='color:red; text-align:center;'>Error de conexión: Revisa data.js</p>";
+                    "<p style='color:red; text-align:center;'>Error de conexión con Firebase Storage/Database.</p>";
             }
         });
     </script>

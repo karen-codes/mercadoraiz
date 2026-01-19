@@ -1,91 +1,192 @@
 /***********************************
- * CONFIGURACIÓN DE ESTADO GLOBAL - NUBE
+ * ESTADO GLOBAL Y SINCRONIZACIÓN
  ***********************************/
 let productos = [];
 let proveedores = [];
-// El carrito se mantiene en localStorage por comodidad del cliente, 
-// pero los datos de productos y pedidos van a la nube.
 let carrito = JSON.parse(localStorage.getItem('carrito')) || [];
 
 document.addEventListener("DOMContentLoaded", () => {
     actualizarInterfazSesion();
     actualizarContadorCarrito();
-    setupCarritoFlotante(); 
 
-    // 1. CARGA SINCRONIZADA DESDE FIREBASE
-    // Escuchamos proveedores primero
+    // 1. CARGA EN TIEMPO REAL DESDE FIREBASE
+    // Escuchamos proveedores primero para poder cruzar los datos
     db.ref('proveedores').on('value', (snapshot) => {
         const data = snapshot.val();
         proveedores = data ? Object.keys(data).map(key => ({...data[key], id: key})) : [];
         
-        // Una vez que tenemos proveedores, traemos productos
+        // Traemos productos vinculados
         db.ref('productos').on('value', (prodSnapshot) => {
             const prodData = prodSnapshot.val();
             productos = prodData ? Object.keys(prodData).map(key => ({...prodData[key], id: key})) : [];
             
-            // Renderizar si existe el contenedor
             if (document.getElementById("productsGrid")) {
-                inicializarFiltrosYRenderizado();
+                renderizarCatalogo(productos);
             }
-            
-            // IMPORTANTE: Quitamos el spinner de carga al recibir respuesta (vacía o no)
-            finalizarCargaVisual();
-        }, (error) => {
-            console.error("Error en Productos:", error);
             finalizarCargaVisual();
         });
-    }, (error) => {
-        console.error("Error en Proveedores:", error);
-        finalizarCargaVisual();
     });
 });
 
-/**
- * QUITA EL MENSAJE DE "SINCRONIZANDO..."
- */
-function finalizarCargaVisual() {
-    const loader = document.getElementById('loading-screen') || document.querySelector('.loading-overlay');
-    if (loader) {
-        loader.style.display = 'none';
+/***********************************
+ * LÓGICA DEL CARRITO Y PAGOS
+ ***********************************/
+
+function agregarAlCarritoClick(id) {
+    const prod = productos.find(p => p.id === id);
+    if (!prod) return;
+
+    const itemEnCarrito = carrito.find(item => item.id === id);
+    if (itemEnCarrito) {
+        itemEnCarrito.cantidad++;
+    } else {
+        carrito.push({
+            id: prod.id,
+            nombre: prod.nombre,
+            precio: prod.precio,
+            unidad: prod.unidad || 'Unidad',
+            proveedorId: prod.proveedorId,
+            cantidad: 1
+        });
     }
-    // Si el texto está directamente en el dashboard (como en tu captura)
-    const syncText = document.querySelector('h3')?.parentElement;
-    if (syncText && syncText.innerText.includes("Sincronizando")) {
-        syncText.innerHTML = `<h3>Panel de Control</h3><p>Conectado a Mercado Raíz Cloud</p>`;
-    }
+    
+    guardarYNotificar();
 }
 
-/***********************************
- * RENDERIZADO DESDE LA NUBE
- ***********************************/
-function renderizarPaginaCategoria(data) {
-    const grid = document.getElementById("productsGrid");
-    if (!grid) return;
+function guardarYNotificar() {
+    localStorage.setItem('carrito', JSON.stringify(carrito));
+    actualizarContadorCarrito();
+    // Opcional: Mostrar un toast o alerta pequeña
+}
 
-    if (data.length === 0) {
-        grid.innerHTML = `
-            <div style="grid-column:1/-1; text-align:center; padding:50px; color:#666;">
-                <i class="fas fa-cloud-upload-alt" style="font-size:3rem; margin-bottom:15px;"></i>
-                <p>No hay datos en la nube. Empieza agregando uno en el Panel.</p>
-            </div>`;
+/**
+ * PROCESO DE PAGO Y SUBIDA DE COMPROBANTE (Requerimiento Clave)
+ */
+async function finalizarCompra() {
+    const sesion = JSON.parse(localStorage.getItem('sesionActiva'));
+    if (!sesion) {
+        alert("Debes iniciar sesión para realizar un pedido.");
+        window.location.href = 'login.html';
         return;
     }
 
-    grid.innerHTML = data.map(p => {
+    if (carrito.length === 0) return alert("Tu carrito está vacío.");
+
+    const total = carrito.reduce((sum, i) => sum + (i.precio * i.cantidad), 0);
+    
+    // Crear el HTML para que el usuario suba su comprobante
+    const modalPago = document.createElement('div');
+    modalPago.className = 'modal-pago-flotante';
+    modalPago.innerHTML = `
+        <div class="modal-content">
+            <h3>Finalizar Pedido</h3>
+            <p>Total a pagar: <strong>$${total.toFixed(2)}</strong></p>
+            <hr>
+            <label>Selecciona tu comprobante de pago (Foto/Screenshot):</label>
+            <input type="file" id="input_comprobante" accept="image/*" class="admin-input" style="margin:10px 0;">
+            <p style="font-size:0.8rem; color:#666;">Formatos: JPG, PNG. Máx 5MB.</p>
+            <div style="display:flex; gap:10px; margin-top:15px;">
+                <button id="btnConfirmarPedido" class="btn-comprar">Confirmar y Subir Pago</button>
+                <button onclick="this.parentElement.parentElement.parentElement.remove()" class="btn-delete">Cancelar</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modalPago);
+
+    document.getElementById('btnConfirmarPedido').onclick = async () => {
+        const fileInput = document.getElementById('input_comprobante');
+        const file = fileInput.files[0];
+
+        if (!file) {
+            alert("Por favor, sube la imagen de tu transferencia o pago QR para continuar.");
+            return;
+        }
+
+        document.getElementById('btnConfirmarPedido').disabled = true;
+        document.getElementById('btnConfirmarPedido').innerText = "Procesando...";
+
+        try {
+            // 1. Subir la imagen al Storage (Usando la función de data.js)
+            const urlComprobante = await subirArchivoNativo(file, 'comprobantes_pedidos');
+
+            // 2. Crear el objeto del pedido
+            const pedido = {
+                cliente: sesion.nombre,
+                clienteId: sesion.id,
+                email: sesion.email,
+                telefono: sesion.telefono,
+                total: total,
+                items: carrito,
+                comprobanteUrl: urlComprobante,
+                estado: "Pendiente",
+                metodoPago: "Transferencia/QR",
+                fecha: new Date().toLocaleString()
+            };
+
+            // 3. Guardar en Firebase
+            await db.ref('pedidos').push(pedido);
+
+            // 4. Limpiar y redirigir
+            carrito = [];
+            localStorage.removeItem('carrito');
+            alert("¡Pedido enviado con éxito! Un productor validará tu pago pronto.");
+            window.location.href = 'index.html';
+
+        } catch (error) {
+            alert("Error al procesar el pedido: " + error.message);
+        }
+    };
+}
+
+/***********************************
+ * RENDERIZADO DE INTERFAZ
+ ***********************************/
+function renderizarCatalogo(lista) {
+    const grid = document.getElementById("productsGrid");
+    if (!grid) return;
+
+    grid.innerHTML = lista.map(p => {
         const prov = proveedores.find(pr => pr.id == p.proveedorId);
         const nombreProductor = prov ? prov.nombre : 'Productor Local';
 
         return `
         <div class="product-card">
-            <img src="${p.imagen || 'img/no-photo.jpg'}" style="width:100%; height:200px; object-fit:cover;">
-            <div style="padding:15px;">
+            <div class="badge-productor"><i class="fas fa-leaf"></i> ${nombreProductor}</div>
+            <img src="${p.imagen || 'assets/images/no-image.jpg'}" loading="lazy">
+            <div class="product-info">
                 <h3>${p.nombre}</h3>
-                <p><i class="fas fa-user"></i> ${nombreProductor}</p>
-                <p class="precio">$${parseFloat(p.precio).toFixed(2)}</p>
-                <button onclick="agregarAlCarritoClick('${p.id}')" class="btn-comprar">
-                    <i class="fas fa-plus"></i> Agregar
-                </button>
+                <p class="unidad-medida">${p.unidad || 'Libra'}</p>
+                <div class="flex-row">
+                    <p class="precio">$${parseFloat(p.precio).toFixed(2)}</p>
+                    <button onclick="agregarAlCarritoClick('${p.id}')" class="btn-add">
+                        <i class="fas fa-cart-plus"></i>
+                    </button>
+                </div>
             </div>
         </div>`;
     }).join('');
+}
+
+function actualizarContadorCarrito() {
+    const count = carrito.reduce((sum, item) => sum + item.cantidad, 0);
+    const badge = document.getElementById('cart-count');
+    if (badge) badge.innerText = count;
+}
+
+function actualizarInterfazSesion() {
+    const sesion = JSON.parse(localStorage.getItem('sesionActiva'));
+    const userArea = document.getElementById('user-area');
+    if (!userArea) return;
+
+    if (sesion) {
+        userArea.innerHTML = `
+            <span>Hola, <strong>${sesion.nombre.split(' ')[0]}</strong></span>
+            <button onclick="cerrarSesion()" class="btn-logout"><i class="fas fa-sign-out-alt"></i></button>
+        `;
+    }
+}
+
+function finalizarCargaVisual() {
+    const loader = document.getElementById('loader');
+    if (loader) loader.style.display = 'none';
 }

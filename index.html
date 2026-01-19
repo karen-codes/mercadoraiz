@@ -106,9 +106,9 @@
         <span id="cart-count-badge" class="cart-badge">0</span>
     </div>
 
-
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
 
     <script>
       const firebaseConfig = {
@@ -118,14 +118,18 @@
         projectId: "mercado-raiz",
         storageBucket: "mercado-raiz.firebasestorage.app",
         messagingSenderId: "886584284411",
-        appId: "1:886584284411:web:f006908eeb8d9da224cc5e",
-        measurementId: "G-5EW3Y8Z2XE"
+        // ID corregido para que coincida con tu proyecto real
+        appId: "1:886584284411:web:NDI3ZqYWUtYWNhNS00NzEwLWIxMDktWjNmViYzk4Njly"
       };
 
-      // Inicializar
-      firebase.initializeApp(firebaseConfig);
-      const db = firebase.database(); 
-      // Ahora la variable 'db' ya existe y main.js la puede usar
+      // Inicializar Firebase una sola vez
+      if (!firebase.apps.length) {
+          firebase.initializeApp(firebaseConfig);
+      }
+      
+      // Declarar variables globales para que main.js y data.js no den error
+      window.db = firebase.database();
+      window.auth = firebase.auth();
     </script>
 
     <script src="js/data.js"></script>

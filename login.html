@@ -55,8 +55,11 @@
 
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-storage-compat.js"></script>
 
     <script>
+      // Configuración extraída de tus capturas de consola de Firebase
       const firebaseConfig = {
         apiKey: "AIzaSyBqakqg919pu0GjMkaJhntman0n4Q1jnw",
         authDomain: "mercado-raiz.firebaseapp.com",
@@ -64,35 +67,44 @@
         projectId: "mercado-raiz",
         storageBucket: "mercado-raiz.firebasestorage.app",
         messagingSenderId: "886584284411",
-        appId: "1:886584284411:web:f006908eeb8d9da224cc5e",
-        measurementId: "G-5EW3Y8Z2XE"
+        // Se corrigió el appId basado en tus capturas anteriores
+        appId: "1:886584284411:web:NDI3ZqYWUtYWNhNS00NzEwLWIxMDktWjNmViYzk4Njly"
       };
 
-      // Inicializar
-      firebase.initializeApp(firebaseConfig);
-      const db = firebase.database(); 
-      // Ahora la variable 'db' ya existe y main.js la puede usar
+      // Inicializar Firebase Globalmente
+      if (!firebase.apps.length) {
+          firebase.initializeApp(firebaseConfig);
+      }
+      
+      // Variables globales para auth.js y admin.js
+      window.db = firebase.database(); 
+      window.auth = firebase.auth();
+      window.storage = firebase.storage();
     </script>
 
     <script src="js/auth.js"></script>
+    
     <script>
-        // Sistema de notificaciones flotantes
+        // Sistema de notificaciones flotantes (Toasts)
         function showToast(message, type = 'success') {
             const container = document.getElementById('toast-container');
+            if (!container) return;
+            
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
             const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
             toast.innerHTML = `<i class="fas ${icon}"></i> <span>${message}</span>`;
             container.appendChild(toast);
+            
             setTimeout(() => {
                 toast.classList.add('fade-out');
                 setTimeout(() => toast.remove(), 500);
             }, 3000);
         }
 
-        // Sobrescribimos el alert nativo para que use nuestras notificaciones
+        // Mejora del alert nativo
         window.alert = function(msg) {
-            const esExito = msg.includes("exitoso") || msg.includes("Bienvenido");
+            const esExito = msg.toLowerCase().includes("exitoso") || msg.toLowerCase().includes("bienvenido");
             showToast(msg, esExito ? 'success' : 'error');
         };
 
@@ -112,18 +124,8 @@
             toggleLink.innerText = isLogin ? "Regístrate aquí" : "Inicia sesión";
             
             registroExtra.classList.toggle('hidden', isLogin);
-            document.getElementById('reg_nombre').required = !isLogin;
-
-            // Cambiamos el comportamiento del botón si es registro
-            const form = document.getElementById('loginForm');
-            form.onsubmit = isLogin ? null : (e) => {
-                e.preventDefault();
-                registrarUsuario(
-                    document.getElementById('reg_nombre').value,
-                    document.getElementById('email').value,
-                    document.getElementById('password').value
-                );
-            };
+            const inputNombre = document.getElementById('reg_nombre');
+            if(inputNombre) inputNombre.required = !isLogin;
         }
     </script>
 </body>

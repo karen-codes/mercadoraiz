@@ -8,10 +8,10 @@
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        /* Parche rápido para asegurar que las imágenes no se deformen */
+        /* Asegura que las imágenes no se deformen en el catálogo */
         .product-image img {
             width: 100%;
-            height: 100%;
+            height: 200px; /* Altura fija para uniformidad */
             object-fit: cover !important;
         }
         .product-card {
@@ -19,9 +19,11 @@
             flex-direction: column;
             height: 100%;
         }
+        /* Estilo para el filtro activo */
         .category-card.active {
-            background-color: var(--pueblo-terracotta);
-            color: white;
+            background-color: var(--pueblo-terracotta) !important;
+            color: white !important;
+            border-color: var(--pueblo-terracotta) !important;
         }
     </style>
 </head>
@@ -58,11 +60,11 @@
 
             <div class="text-center" style="margin-bottom: 40px;">
                 <div class="filter-chips" style="display: flex; justify-content: center; gap: 15px; flex-wrap: wrap;">
-                    <a href="productos.html?cat=todos" class="category-card" style="padding: 10px 25px; min-width: auto; text-decoration: none; display: inline-block;">Todos</a>
-                    <a href="productos.html?cat=Papas" class="category-card" style="padding: 10px 25px; min-width: auto; text-decoration: none; display: inline-block;">Papas y Tubérculos</a>
-                    <a href="productos.html?cat=Hortalizas" class="category-card" style="padding: 10px 25px; min-width: auto; text-decoration: none; display: inline-block;">Hortalizas</a>
-                    <a href="productos.html?cat=Frutas" class="category-card" style="padding: 10px 25px; min-width: auto; text-decoration: none; display: inline-block;">Frutas</a>
-                    <a href="productos.html?cat=Lácteos" class="category-card" style="padding: 10px 25px; min-width: auto; text-decoration: none; display: inline-block;">Lácteos</a>
+                    <a href="productos.html?cat=todos" class="category-card" id="btn-todos" style="padding: 10px 25px; min-width: auto; text-decoration: none;">Todos</a>
+                    <a href="productos.html?cat=Papas" class="category-card" style="padding: 10px 25px; min-width: auto; text-decoration: none;">Papas y Tubérculos</a>
+                    <a href="productos.html?cat=Hortalizas" class="category-card" style="padding: 10px 25px; min-width: auto; text-decoration: none;">Hortalizas</a>
+                    <a href="productos.html?cat=Frutas" class="category-card" style="padding: 10px 25px; min-width: auto; text-decoration: none;">Frutas</a>
+                    <a href="productos.html?cat=Lácteos" class="category-card" style="padding: 10px 25px; min-width: auto; text-decoration: none;">Lácteos</a>
                 </div>
             </div>
 
@@ -77,13 +79,11 @@
                 <h3>Mercado Raíz</h3>
                 <p>Conectando el corazón de Cayambe con tu hogar.</p>
             </div>
-            
             <div class="footer-socials-center">
                 <a href="#"><i class="fab fa-facebook"></i></a>
                 <a href="#"><i class="fab fa-instagram"></i></a>
                 <a href="#"><i class="fab fa-whatsapp"></i></a>
             </div>
-
             <div class="footer-copy-center">
                 <p>&copy; 2026 Mercado Raíz - Identidad y Sabor de Nuestra Tierra.</p>
             </div>
@@ -97,7 +97,7 @@
             <button id="close-cart" class="close-btn">&times;</button>
         </div>
         <div id="cart-items-container" class="cart-body">
-            <p class="empty-msg">Tu carrito está vacío. ¡Empieza a comprar!</p>
+            <p class="empty-msg">Tu carrito está vacío.</p>
         </div>
         <div class="cart-footer">
             <div class="cart-total">
@@ -114,9 +114,9 @@
         <span id="cart-count-badge" class="cart-badge">0</span>
     </div>
 
-
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
 
     <script>
       const firebaseConfig = {
@@ -126,17 +126,28 @@
         projectId: "mercado-raiz",
         storageBucket: "mercado-raiz.firebasestorage.app",
         messagingSenderId: "886584284411",
-        appId: "1:886584284411:web:f006908eeb8d9da224cc5e",
-        measurementId: "G-5EW3Y8Z2XE"
+        appId: "1:886584284411:web:NDI3ZqYWUtYWNhNS00NzEwLWIxMDktWjNmViYzk4Njly"
       };
 
-      // Inicializar
-      firebase.initializeApp(firebaseConfig);
-      const db = firebase.database(); 
-      // Ahora la variable 'db' ya existe y main.js la puede usar
+      if (!firebase.apps.length) {
+          firebase.initializeApp(firebaseConfig);
+      }
+      window.db = firebase.database(); 
+      window.auth = firebase.auth();
     </script>
 
     <script src="js/data.js"></script>
     <script src="js/main.js"></script>
+    
+    <script>
+        // Lógica para resaltar el filtro de categoría seleccionado
+        const urlParams = new URLSearchParams(window.location.search);
+        const cat = urlParams.get('cat') || 'todos';
+        document.querySelectorAll('.filter-chips a').forEach(link => {
+            if(link.href.includes(`cat=${cat}`)) {
+                link.classList.add('active');
+            }
+        });
+    </script>
 </body>
 </html>

@@ -40,7 +40,8 @@
             </div>
 
             <div id="providersGrid" class="container" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px; padding: 0 20px;">
-                </div>
+                <p class="text-center" id="loading-msg">Cargando nuestra comunidad...</p>
+            </div>
         </section>
     </main>
 
@@ -50,13 +51,11 @@
                 <h3>Mercado Raíz</h3>
                 <p>Conectando el corazón de Cayambe con tu hogar.</p>
             </div>
-            
             <div class="footer-socials-center">
                 <a href="#"><i class="fab fa-facebook"></i></a>
                 <a href="#"><i class="fab fa-instagram"></i></a>
                 <a href="#"><i class="fab fa-whatsapp"></i></a>
             </div>
-
             <div class="footer-copy-center">
                 <p>&copy; 2026 Mercado Raíz - Identidad y Sabor de Nuestra Tierra.</p>
             </div>
@@ -69,8 +68,7 @@
             <h3>Tu Cosecha (Carrito)</h3>
             <button id="close-cart" class="close-btn">&times;</button>
         </div>
-        <div id="cart-items-container" class="cart-body">
-            </div>
+        <div id="cart-items-container" class="cart-body"></div>
         <div class="cart-footer">
             <div class="cart-total">
                 <span>Total:</span>
@@ -87,6 +85,7 @@
 
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
 
     <script>
       const firebaseConfig = {
@@ -96,41 +95,52 @@
         projectId: "mercado-raiz",
         storageBucket: "mercado-raiz.firebasestorage.app",
         messagingSenderId: "886584284411",
-        appId: "1:886584284411:web:f006908eeb8d9da224cc5e",
-        measurementId: "G-5EW3Y8Z2XE"
+        appId: "1:886584284411:web:NDI3ZqYWUtYWNhNS00NzEwLWIxMDktWjNmViYzk4Njly"
       };
 
-      // Inicializar
-      firebase.initializeApp(firebaseConfig);
-      const db = firebase.database(); 
-      // Ahora la variable 'db' ya existe y main.js la puede usar
+      if (!firebase.apps.length) {
+          firebase.initializeApp(firebaseConfig);
+      }
+      window.db = firebase.database(); 
+      window.auth = firebase.auth();
     </script>
 
     <script src="js/data.js"></script>
     <script src="js/main.js"></script>
+    
     <script>
         document.addEventListener("DOMContentLoaded", () => {
-            // Buscamos proveedores en localStorage o usamos los de data.js como respaldo
-            const proveedores = JSON.parse(localStorage.getItem("proveedores")) || [
-                { id: 1, nombre: "Asociación San Luis", comunidad: "Comunidad Olmedo", imagen: "img/proveedor1.jpg" },
-                { id: 2, nombre: "Finca La Esperanza", comunidad: "Cangahua", imagen: "img/proveedor2.jpg" }
-            ];
-
             const grid = document.getElementById("providersGrid");
-            grid.innerHTML = proveedores.map(p => `
-                <div class="category-card" style="padding: 0; overflow: hidden; height: auto; text-align: left;">
-                    <div style="width: 100%; height: 200px; overflow: hidden;">
-                        <img src="${p.imagen}" alt="${p.nombre}" style="width: 100%; height: 100%; object-fit: cover;">
-                    </div>
-                    <div style="padding: 20px;">
-                        <h3 style="font-family: 'Playfair Display', serif; margin-bottom: 10px;">${p.nombre}</h3>
-                        <p style="color: #666; font-size: 0.9rem; margin-bottom: 20px;">
-                            <i class="fas fa-map-marker-alt" style="color: #8c9c64;"></i> ${p.comunidad}
-                        </p>
-                        <a href="perfil-proveedor.html?id=${p.id}" class="btn-login-header" style="display: inline-block; text-align: center; width: 100%;">Ver Perfil</a>
-                    </div>
-                </div>
-            `).join('');
+            
+            // Referencia a la base de datos de productores
+            const producersRef = db.ref('productores');
+
+            producersRef.on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    grid.innerHTML = ""; // Limpiar mensaje de carga
+                    Object.keys(data).forEach(id => {
+                        const p = data[id];
+                        const card = `
+                            <div class="category-card" style="padding: 0; overflow: hidden; height: auto; text-align: left;">
+                                <div style="width: 100%; height: 200px; overflow: hidden;">
+                                    <img src="${p.imagen || 'img/default-provider.jpg'}" alt="${p.nombre}" style="width: 100%; height: 100%; object-fit: cover;">
+                                </div>
+                                <div style="padding: 20px;">
+                                    <h3 style="font-family: 'Playfair Display', serif; margin-bottom: 10px;">${p.nombre}</h3>
+                                    <p style="color: #666; font-size: 0.9rem; margin-bottom: 20px;">
+                                        <i class="fas fa-map-marker-alt" style="color: var(--pueblo-sage);"></i> ${p.comunidad}
+                                    </p>
+                                    <a href="perfil-proveedor.html?id=${id}" class="btn-terracotta" style="display: block; text-align: center; text-decoration: none;">Ver Perfil</a>
+                                </div>
+                            </div>
+                        `;
+                        grid.innerHTML += card;
+                    });
+                } else {
+                    grid.innerHTML = "<p>Aún no tenemos productores registrados.</p>";
+                }
+            });
         });
     </script>
 </body>

@@ -1,8 +1,7 @@
 /***********************************
- * CONFIGURACIÓN FIREBASE - MERCADO RAÍZ
+ * CONFIGURACIÓN FIREBASE - MERCADO RAÍZ 2026
  ***********************************/
 
-// 1. Configuración unificada (Extraída de tus capturas image_b58d48 e image_b42c86)
 const firebaseConfig = {
     apiKey: "AIzaSyBqakqg919pu0GjMkaJhntman0n4Q1jnw", 
     authDomain: "mercado-raiz.firebaseapp.com",
@@ -10,54 +9,95 @@ const firebaseConfig = {
     projectId: "mercado-raiz",
     storageBucket: "mercado-raiz.firebasestorage.app",
     messagingSenderId: "886584284411",
-    appId: "1:886584284411:web:NDI3ZqYWUtYWNhNS00NzEwLWIxMDktWjNmViYzk4Njly", // AppId de tu captura de admin.html
+    appId: "1:886584284411:web:NDI3ZqYWUtYWNhNS00NzEwLWIxMDktWjNmViYzk4Njly",
     measurementId: "G-5EW3Y8Z2XE"
 };
 
-// 2. Inicialización Segura
-// Esto evita que Firebase se inicialice dos veces si refrescas la página
+// 1. Inicialización Robusta
 if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
+} else {
+    firebase.app(); // Si ya existe, usa la instancia actual
 }
 
-// 3. Exportación a nivel Global (window)
-// Esto es VITAL para que los archivos pedidos.js, admin.js y auth.js no den error
+// 2. Exportación Global Segura
 window.db = firebase.database();
 window.storage = firebase.storage();
 
-// Alias locales para uso interno en este archivo
+// Referencias simplificadas para uso interno
 const db = window.db;
 const storage = window.storage;
 
+/***********************************
+ * FUNCIONES MAESTRAS DE ACCESO
+ ***********************************/
+
 /**
- * FUNCIONES DE ACCESO A LA NUBE
+ * Sube un archivo (Imagen de pago, Video de finca o Foto de producto)
+ * @param {File} archivo - Archivo desde el input type="file"
+ * @param {string} carpeta - 'productos', 'comprobantes', 'videos' o 'fincas'
  */
-
-// Obtener productos (Asíncrono)
-async function obtenerProductos() {
+async function subirArchivoNativo(archivo, carpeta) {
+    if (!archivo) return null;
     try {
-        const snapshot = await db.ref('productos').once('value');
+        const nombreUnico = `${Date.now()}_${archivo.name}`;
+        const storageRef = storage.ref(`${carpeta}/${nombreUnico}`);
+        const snapshot = await storageRef.put(archivo);
+        const url = await snapshot.ref.getDownloadURL();
+        console.log(`Archivo guardado en ${carpeta}:`, url);
+        return url;
+    } catch (error) {
+        console.error("Error al subir a Storage:", error);
+        alert("Error de conexión al subir multimedia.");
+        return null;
+    }
+}
+
+/**
+ * Obtener datos una sola vez (Útil para carga inicial de la web)
+ */
+async function obtenerDatos(rama) {
+    try {
+        const snapshot = await db.ref(rama).once('value');
         const data = snapshot.val();
         return data ? Object.keys(data).map(key => ({ ...data[key], id: key })) : [];
     } catch (error) {
-        console.error("Error al obtener productos:", error);
+        console.error(`Error al obtener ${rama}:`, error);
         return [];
     }
 }
 
-// Obtener proveedores (Asíncrono)
-async function obtenerProveedores() {
+/**
+ * Registrar un Pedido con Comprobante de Pago (QR o Transferencia)
+ */
+async function guardarPedidoFinal(pedidoData, archivoComprobante = null) {
     try {
-        const snapshot = await db.ref('proveedores').once('value');
-        const data = snapshot.val();
-        return data ? Object.keys(data).map(key => ({ ...data[key], id: key })) : [];
+        let urlComprobante = "";
+        
+        // Si el usuario subió una foto del pago, la guardamos primero
+        if (archivoComprobante) {
+            urlComprobante = await subirArchivoNativo(archivoComprobante, 'comprobantes');
+        }
+
+        const nuevoPedido = {
+            ...pedidoData,
+            comprobanteUrl: urlComprobante,
+            estado: "Pendiente",
+            fecha: new Date().toLocaleDateString('es-EC'),
+            timestamp: firebase.database.ServerValue.TIMESTAMP
+        };
+
+        const ref = await db.ref('pedidos').push(nuevoPedido);
+        return { success: true, id: ref.key };
     } catch (error) {
-        console.error("Error al obtener proveedores:", error);
-        return [];
+        console.error("Error al procesar el pedido:", error);
+        return { success: false, error: error.message };
     }
 }
 
-// Escuchar cambios en tiempo real
+/**
+ * Suscripción en tiempo real (Para el Panel Admin)
+ */
 function suscribirACambios(entidad, callback) {
     db.ref(entidad).on('value', (snapshot) => {
         const data = snapshot.val();

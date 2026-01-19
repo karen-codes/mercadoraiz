@@ -50,13 +50,13 @@
                     
                     <form id="formCliente">
                         <div class="form-group">
-                            <input type="text" placeholder="Tu nombre" required class="admin-input">
+                            <input type="text" id="c_nombre" placeholder="Tu nombre" required class="admin-input">
                         </div>
                         <div class="form-group">
-                            <input type="email" placeholder="Tu correo" required class="admin-input">
+                            <input type="email" id="c_email" placeholder="Tu correo" required class="admin-input">
                         </div>
                         <div class="form-group">
-                            <textarea placeholder="¿En qué podemos ayudarte?" rows="4" class="admin-input" style="resize: none;"></textarea>
+                            <textarea id="c_mensaje" placeholder="¿En qué podemos ayudarte?" rows="4" class="admin-input" style="resize: none;"></textarea>
                         </div>
                         <button type="submit" class="btn-primary-admin" style="text-transform: none;">Enviar Consulta</button>
                     </form>
@@ -71,13 +71,13 @@
                     
                     <form id="formProductor">
                         <div class="form-group">
-                            <input type="text" placeholder="Nombre de tu finca o asociación" required class="admin-input">
+                            <input type="text" id="p_finca" placeholder="Nombre de tu finca o asociación" required class="admin-input">
                         </div>
                         <div class="form-group">
-                            <input type="text" placeholder="Comunidad (Ej: Juan Montalvo)" required class="admin-input">
+                            <input type="text" id="p_comunidad" placeholder="Comunidad (Ej: Juan Montalvo)" required class="admin-input">
                         </div>
                         <div class="form-group">
-                            <input type="tel" placeholder="WhatsApp de contacto" required class="admin-input">
+                            <input type="tel" id="p_whatsapp" placeholder="WhatsApp de contacto" required class="admin-input">
                         </div>
                         <button type="submit" class="btn-primary-admin" style="background: var(--pueblo-terracotta); text-transform: none;">Postularme como Proveedor</button>
                     </form>
@@ -93,13 +93,11 @@
                 <h3>Mercado Raíz</h3>
                 <p>Conectando el corazón de Cayambe con tu hogar.</p>
             </div>
-            
             <div class="footer-socials-center">
                 <a href="#"><i class="fab fa-facebook"></i></a>
                 <a href="#"><i class="fab fa-instagram"></i></a>
                 <a href="#"><i class="fab fa-whatsapp"></i></a>
             </div>
-
             <div class="footer-copy-center">
                 <p>&copy; 2026 Mercado Raíz - Identidad y Sabor de Nuestra Tierra.</p>
             </div>
@@ -129,6 +127,7 @@
 
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
 
     <script>
       const firebaseConfig = {
@@ -138,17 +137,32 @@
         projectId: "mercado-raiz",
         storageBucket: "mercado-raiz.firebasestorage.app",
         messagingSenderId: "886584284411",
-        appId: "1:886584284411:web:f006908eeb8d9da224cc5e",
-        measurementId: "G-5EW3Y8Z2XE"
+        appId: "1:886584284411:web:NDI3ZqYWUtYWNhNS00NzEwLWIxMDktWjNmViYzk4Njly"
       };
 
-      // Inicializar
-      firebase.initializeApp(firebaseConfig);
-      const db = firebase.database(); 
-      // Ahora la variable 'db' ya existe y main.js la puede usar
+      if (!firebase.apps.length) {
+          firebase.initializeApp(firebaseConfig);
+      }
+      window.db = firebase.database(); 
+      window.auth = firebase.auth();
     </script>
 
     <script src="js/data.js"></script>
     <script src="js/main.js"></script>
+    
+    <script>
+        // Lógica simple para manejar envíos de formulario (puedes expandirla luego)
+        document.getElementById('formCliente')?.addEventListener('submit', (e) => {
+            e.preventDefault();
+            alert("Gracias por contactarnos. Un asesor de Mercado Raíz te responderá pronto.");
+            e.target.reset();
+        });
+
+        document.getElementById('formProductor')?.addEventListener('submit', (e) => {
+            e.preventDefault();
+            alert("¡Postulación recibida! Revisaremos los datos de tu finca y te contactaremos por WhatsApp.");
+            e.target.reset();
+        });
+    </script>
 </body>
 </html>
