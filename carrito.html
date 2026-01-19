@@ -48,7 +48,7 @@
                 </div>
             </div>
 
-            <div style="margin-top: 30px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
+            <div id="cart-footer-actions" style="margin-top: 30px; display: none; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
                 <a href="productos.html" style="text-decoration: none; color: var(--pueblo-sage); font-weight: 700;">
                     <i class="fas fa-arrow-left"></i> Seguir comprando
                 </a>
@@ -59,10 +59,10 @@
         </div>
     </main>
 
-    <div id="modalPago" class="cart-overlay" style="display: none; align-items: center; justify-content: center; z-index: 3000;">
-        <div class="auth-card" style="max-width: 500px; width: 90%; position: relative;">
+    <div id="modalPago" class="cart-overlay" style="display: none; align-items: center; justify-content: center; z-index: 3000; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5);">
+        <div class="auth-card" style="max-width: 500px; width: 90%; position: relative; background: white; padding: 30px; border-radius: 20px;">
             <div class="auth-header">
-                <h3 style="font-family: 'Playfair Display', serif; color: var(--pueblo-sage); font-size: 1.8rem;">Finalizar Pedido</h3>
+                <h3 style="font-family: 'Playfair Display', serif; color: var(--pueblo-sage); font-size: 1.8rem; margin-bottom: 10px;">Finalizar Pedido</h3>
                 <p class="auth-subtitle">Completa tu pago mediante transferencia o Deuna.</p>
             </div>
 
@@ -74,14 +74,14 @@
                 </div>
             </div>
 
-            <div style="font-size: 0.85rem; background: var(--white); padding: 15px; border: 1px solid var(--pueblo-sand); border-radius: 10px; line-height: 1.8;">
+            <div style="font-size: 0.85rem; background: #f9f9f9; padding: 15px; border: 1px solid #ddd; border-radius: 10px; line-height: 1.8;">
                 <strong style="color: var(--pueblo-terracotta);">Datos Bancarios:</strong><br>
                 <strong>Banco Pichincha:</strong> Ahorros #2200XXXXXX<br>
                 <strong>Beneficiario:</strong> Mercado Raíz Cayambe<br>
                 <strong>CI:</strong> 17XXXXXX-X
             </div>
 
-            <button onclick="confirmarPedido()" class="btn-primary-admin" style="margin-top: 25px;">
+            <button onclick="confirmarPedidoFinal()" class="btn-primary-admin" style="margin-top: 25px; width: 100%;">
                 He realizado el pago
             </button>
             <button onclick="cerrarModal()" style="background:none; border:none; color:#888; cursor:pointer; display:block; margin:15px auto; text-decoration: underline; font-family: 'Montserrat';">
@@ -96,28 +96,110 @@
                 <h3>Mercado Raíz</h3>
                 <p>Cayambe, Ecuador - Identidad y Sabor de Nuestra Tierra.</p>
             </div>
-            
             <div class="footer-socials-center">
                 <a href="#"><i class="fab fa-facebook"></i></a>
                 <a href="#"><i class="fab fa-instagram"></i></a>
                 <a href="#"><i class="fab fa-whatsapp"></i></a>
             </div>
-
             <div class="footer-copy-center">
                 <p>&copy; 2026 Mercado Raíz - Conectando el campo con tu hogar.</p>
             </div>
         </div>
     </footer>
 
-    <script src="js/data.js"></script>
     <script src="js/main.js"></script>
     <script>
-        // Función específica para este modal con el nuevo estilo de overlay
+        // Lógica local para renderizar el carrito sin tocar main.js
+        document.addEventListener("DOMContentLoaded", () => {
+            renderizarCarritoPagina();
+        });
+
+        function renderizarCarritoPagina() {
+            const lista = document.getElementById('lista-carrito');
+            const footerActions = document.getElementById('cart-footer-actions');
+            // 'carrito' ya existe globalmente por main.js
+            const datosCarrito = JSON.parse(localStorage.getItem('carrito')) || [];
+
+            if (datosCarrito.length === 0) {
+                lista.innerHTML = `
+                    <div style="text-align:center; padding:50px;">
+                        <i class="fas fa-shopping-cart fa-3x" style="color:#ddd; margin-bottom:20px;"></i>
+                        <p style="color:#888;">Tu carrito está vacío actualmente.</p>
+                    </div>`;
+                footerActions.style.display = 'none';
+                return;
+            }
+
+            footerActions.style.display = 'flex';
+            let totalGeneral = 0;
+
+            let html = `
+                <div class="cart-table-container" style="overflow-x:auto;">
+                    <table style="width:100%; border-collapse:collapse;">
+                        <thead>
+                            <tr style="border-bottom:2px solid #eee; text-align:left;">
+                                <th style="padding:10px;">Producto</th>
+                                <th style="padding:10px;">Precio</th>
+                                <th style="padding:10px;">Cantidad</th>
+                                <th style="padding:10px;">Subtotal</th>
+                                <th style="padding:10px;"></th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
+
+            datosCarrito.forEach(item => {
+                const subtotal = item.precio * item.cantidad;
+                totalGeneral += subtotal;
+                html += `
+                    <tr style="border-bottom:1px solid #f5f5f5;">
+                        <td style="padding:15px; display:flex; align-items:center; gap:15px;">
+                            <img src="${item.imagen}" style="width:50px; height:50px; object-fit:cover; border-radius:8px;">
+                            <span style="font-weight:700;">${item.nombre}</span>
+                        </td>
+                        <td style="padding:15px;">$${item.precio.toFixed(2)}</td>
+                        <td style="padding:15px;">${item.cantidad} ${item.unidad || 'Unid.'}</td>
+                        <td style="padding:15px; font-weight:700; color:var(--pueblo-terracotta);">$${subtotal.toFixed(2)}</td>
+                        <td style="padding:15px;">
+                            <button onclick="quitarDelCarrito(${item.id})" style="background:none; border:none; color:red; cursor:pointer;">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>`;
+            });
+
+            html += `</tbody></table></div>
+                <div style="text-align:right; margin-top:20px; padding-top:20px; border-top:2px solid #eee;">
+                    <h3 style="font-family:'Playfair Display', serif;">Total: <span style="color:var(--pueblo-terracotta); font-size:1.8rem;">$${totalGeneral.toFixed(2)}</span></h3>
+                </div>`;
+
+            lista.innerHTML = html;
+        }
+
+        // Función para eliminar y refrescar localmente
+        function quitarDelCarrito(id) {
+            let tempCarrito = JSON.parse(localStorage.getItem('carrito')) || [];
+            tempCarrito = tempCarrito.filter(item => item.id !== id);
+            localStorage.setItem('carrito', JSON.stringify(tempCarrito));
+            
+            // Sincronizar con el estado global de main.js si es posible
+            if(typeof carrito !== 'undefined') carrito = tempCarrito;
+            
+            renderizarCarritoPagina();
+            if(typeof actualizarContadorCarrito === 'function') actualizarContadorCarrito();
+        }
+
         function realizarPedido() {
             document.getElementById('modalPago').style.display = 'flex';
         }
+
         function cerrarModal() {
             document.getElementById('modalPago').style.display = 'none';
+        }
+
+        function confirmarPedidoFinal() {
+            alert("¡Pedido recibido! Validaremos tu pago y nos contactaremos contigo pronto.");
+            localStorage.removeItem('carrito');
+            window.location.href = 'index.html';
         }
     </script>
 </body>
