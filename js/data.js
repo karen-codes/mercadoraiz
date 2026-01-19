@@ -4,7 +4,7 @@
 
 // 1. Configuración de tu proyecto (Datos de tu consola de Firebase)
 const firebaseConfig = {
-    apiKey: "AIzaSyB...", // Reemplaza con tu clave completa de la captura image_b58d48.png
+    apiKey: "AIzaSyBqaKqg919pu0GjMKaJhntmaNn0n4Q1jnw", // Reemplaza con tu clave completa de la captura image_b58d48.png
     authDomain: "mercado-raiz.firebaseapp.com",
     databaseURL: "https://mercado-raiz-default-rtdb.firebaseio.com",
     projectId: "mercado-raiz",
