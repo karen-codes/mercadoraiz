@@ -74,8 +74,9 @@ window.cargarSeccion = function(seccion) {
             titulo.innerText = "Control de Ventas y Comprobantes";
             renderizarTablaPedidos(contenedor);
             break;
+            // Dentro del switch(seccion) de cargarSeccion:
         case 'mensajes':
-            titulo.innerText = "Bandeja de Entrada";
+            titulo.innerText = "Bandeja de Mensajes y Consultas";
             renderizarTablaMensajes(contenedor);
             break;
         case 'clientes':
@@ -159,30 +160,179 @@ window.renderizarTablaProductos = function(cont) {
     });
 };
 
-// PEDIDOS (Restaurado)
+
 window.renderizarTablaPedidos = function(cont) {
-    cont.innerHTML = `<div class="info-msg">Cargando pedidos...</div>`;
-    firebase.database().ref('pedidos').on('value', snap => {
-        if(!snap.exists()) cont.innerHTML = "No hay pedidos registrados.";
-        // Aquí puedes expandir la tabla de pedidos según tu estructura
+    cont.innerHTML = `
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Orden</th>
+                    <th>Cliente</th>
+                    <th>Total</th>
+                    <th>Comprobante</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="lista-pedidos"></tbody>
+        </table>
+    `;
+
+    firebase.database().ref('pedidos').on('value', (snapshot) => {
+        const tbody = document.getElementById('lista-pedidos');
+        if(!tbody) return;
+        tbody.innerHTML = "";
+
+        if(!snapshot.exists()) {
+            tbody.innerHTML = "<tr><td colspan='6' style='text-align:center;'>No hay pedidos registrados aún.</td></tr>";
+            return;
+        }
+
+        snapshot.forEach(child => {
+            const p = child.val();
+            const colorEstado = p.estado === 'Pagado' ? '#2ecc71' : '#f1c40f';
+            
+            tbody.innerHTML += `
+                <tr>
+                    <td><small>#${child.key.substring(0,6)}</small></td>
+                    <td><strong>${p.clienteNombre}</strong><br><small>${p.clienteTelefono}</small></td>
+                    <td><strong>$${p.total.toFixed(2)}</strong></td>
+                    <td>
+                        <a href="${p.comprobanteUrl}" target="_blank">
+                            <img src="${p.comprobanteUrl}" style="width:50px; height:50px; object-fit:cover; border-radius:5px; border:1px solid #ddd;">
+                        </a>
+                    </td>
+                    <td>
+                        <span class="tag-cat" style="background:${colorEstado}; color:white;">${p.estado || 'Pendiente'}</span>
+                    </td>
+                    <td>
+                        <button onclick="cambiarEstadoPedido('${child.key}', 'Pagado')" class="btn-editar" style="background:#2ecc71; color:white;" title="Marcar como Pagado">
+                            <i class="fas fa-check"></i>
+                        </button>
+                        <button onclick="eliminarPedido('${child.key}')" class="btn-editar" style="background:#e74c3c; color:white;" title="Eliminar">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>`;
+        });
     });
 };
 
-// MENSAJES (Restaurado)
+// --- FUNCIONES DE GESTIÓN DE PEDIDOS ---
+window.cambiarEstadoPedido = function(id, nuevoEstado) {
+    firebase.database().ref(`pedidos/${id}`).update({ estado: nuevoEstado })
+        .then(() => alert("Pedido actualizado: " + nuevoEstado))
+        .catch(e => alert("Error: " + e.message));
+};
+
+window.eliminarPedido = function(id) {
+    if(confirm("¿Seguro que deseas eliminar este registro de pedido?")) {
+        firebase.database().ref(`pedidos/${id}`).remove();
+    }
+};
+
 window.renderizarTablaMensajes = function(cont) {
-    cont.innerHTML = `<div class="info-msg">Buscando consultas de clientes...</div>`;
-    firebase.database().ref('contactos').on('value', snap => {
-        if(!snap.exists()) cont.innerHTML = "No hay mensajes nuevos.";
+    cont.innerHTML = `
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Cliente</th>
+                    <th>WhatsApp</th>
+                    <th>Mensaje</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="lista-mensajes"></tbody>
+        </table>
+    `;
+
+    firebase.database().ref('contactos').on('value', (snapshot) => {
+        const tbody = document.getElementById('lista-mensajes');
+        if(!tbody) return;
+        tbody.innerHTML = "";
+        
+        if(!snapshot.exists()) {
+            tbody.innerHTML = "<tr><td colspan='5' style='text-align:center;'>No hay mensajes nuevos.</td></tr>";
+            return;
+        }
+
+        snapshot.forEach(child => {
+            const m = child.val();
+            const fecha = m.timestamp ? new Date(m.timestamp).toLocaleDateString() : 'S/F';
+            
+            tbody.innerHTML += `
+                <tr>
+                    <td>${fecha}</td>
+                    <td><strong>${m.nombre || 'Anónimo'}</strong><br><small>${m.email || ''}</small></td>
+                    <td><a href="https://wa.me/${m.telefono}" target="_blank" class="tag-cat" style="background:#25D366; color:white; text-decoration:none;">
+                        <i class="fab fa-whatsapp"></i> Chat
+                    </a></td>
+                    <td style="max-width:300px; font-size:0.85rem;">${m.mensaje}</td>
+                    <td>
+                        <button onclick="eliminarMensaje('${child.key}')" class="btn-editar" style="background:#ff4757;">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>`;
+        });
     });
 };
 
-// CLIENTES (Restaurado)
+// Función para limpiar la bandeja
+window.eliminarMensaje = function(id) {
+    if(confirm("¿Marcar como leído y eliminar mensaje?")) {
+        firebase.database().ref(`contactos/${id}`).remove()
+            .then(() => alert("Mensaje gestionado."))
+            .catch(e => alert("Error: " + e.message));
+    }
+};
+
+
 window.renderizarTablaClientes = function(cont) {
-    cont.innerHTML = `<div class="info-msg">Listado de usuarios registrados...</div>`;
-    firebase.database().ref('usuarios').on('value', snap => {
-        if(!snap.exists()) cont.innerHTML = "No hay clientes registrados aún.";
+    cont.innerHTML = `
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Email</th>
+                    <th>Teléfono</th>
+                    <th>Ubicación</th>
+                    <th>Fecha Registro</th>
+                </tr>
+            </thead>
+            <tbody id="lista-clientes-db">
+                <tr><td colspan="5" style="text-align:center;">Cargando clientes...</td></tr>
+            </tbody>
+        </table>
+    `;
+
+    firebase.database().ref('usuarios').on('value', (snapshot) => {
+        const tbody = document.getElementById('lista-clientes-db');
+        if(!tbody) return;
+        
+        if(!snapshot.exists()) {
+            tbody.innerHTML = "<tr><td colspan='5' style='text-align:center;'>No hay clientes registrados aún.</td></tr>";
+            return;
+        }
+
+        tbody.innerHTML = "";
+        snapshot.forEach(child => {
+            const u = child.val();
+            const fecha = u.timestamp ? new Date(u.timestamp).toLocaleDateString() : '---';
+            
+            tbody.innerHTML += `
+                <tr>
+                    <td><strong>${u.nombre || 'Sin nombre'}</strong></td>
+                    <td>${u.email || '---'}</td>
+                    <td>${u.telefono || '---'}</td>
+                    <td><small>${u.direccion || 'No especificada'}</small></td>
+                    <td>${fecha}</td>
+                </tr>`;
+        });
     });
 };
+
 
 // --- 4. PERSISTENCIA (PROVEEDORES Y PRODUCTOS) ---
 
@@ -215,6 +365,7 @@ document.getElementById('formProducto')?.addEventListener('submit', async (e) =>
         await firebase.database().ref('productos').push({
             nombre: datos['prod-nombre'],
             precio: datos['prod-precio'],
+            categoria: datos['prod-categoria'],
             unidad: datos['prod-unidad'],
             idProductor: datos['prod-origin'],
             imagenUrl: urlFoto,

@@ -1,34 +1,67 @@
 /**
- * js/proveedores.js - Gestión de Productores (Panel Administrativo)
+ * js/proveedores.js - Gestión y Visualización de Productores
+ * Sincronizado con Panel Administrativo y Página Pública
  */
 
-// 1. RENDERIZAR TABLA DE PROVEEDORES
+// --- 1. VISUALIZACIÓN PÚBLICA (Para proveedor.html) ---
+// Esta función es la que llenará la página que actualmente te sale vacía.
+function cargarProveedoresPublicos() {
+    const contenedor = document.getElementById('contenedor-proveedores-publicos');
+    if (!contenedor) return; // Si no existe el ID (estamos en admin), no hace nada.
+
+    firebase.database().ref('proveedores').on('value', (snapshot) => {
+        contenedor.innerHTML = "";
+        
+        if (!snapshot.exists()) {
+            contenedor.innerHTML = "<p class='text-center'>Aún no tenemos productores registrados.</p>";
+            return;
+        }
+
+        snapshot.forEach((child) => {
+            const p = child.val();
+            // Usamos portadaUrl que es el nombre que definimos en el formulario de admin
+            const foto = p.portadaUrl || 'assets/images/default-finca.jpg';
+            
+            contenedor.innerHTML += `
+                <div class="proveedor-card">
+                    <img src="${foto}" alt="${p.nombreParcela}">
+                    <div class="proveedor-info">
+                        <span class="badge-comunidad">${p.comunidad}</span>
+                        <h3>${p.nombreParcela}</h3>
+                        <p>${p.descripcionCorta || 'Productor local de Cayambe'}</p>
+                        <a href="perfil-proveedor.html?id=${child.key}" class="btn-perfil">Conocer Historia</a>
+                    </div>
+                </div>
+            `;
+        });
+    });
+}
+
+// --- 2. RENDERIZAR TABLA (Para Panel Administrativo) ---
 window.renderizarTablaProveedores = function(contenedor) {
     if (!contenedor) return;
 
-    // Escuchar en tiempo real
     firebase.database().ref('proveedores').on('value', (snapshot) => {
-        const data = snapshot.val();
         let htmlRows = '';
-
-        if (data) {
-            Object.keys(data).forEach(key => {
-                const p = data[key];
+        
+        if (snapshot.exists()) {
+            snapshot.forEach(child => {
+                const p = child.val();
                 htmlRows += `
                     <tr>
                         <td>
                             <div style="display:flex; align-items:center; gap:10px;">
-                                <img src="${p.urlFotoPerfil || 'assets/images/default-finca.jpg'}" style="width:40px; height:40px; border-radius:5px; object-fit:cover;">
+                                <img src="${p.portadaUrl || 'assets/images/default-finca.jpg'}" style="width:40px; height:40px; border-radius:5px; object-fit:cover;">
                                 <strong>${p.nombreParcela}</strong>
                             </div>
                         </td>
                         <td>${p.comunidad}</td>
-                        <td>${p.telefono}</td>
+                        <td>${p.whatsapp || p.telefono}</td>
                         <td style="text-align:right;">
-                            <button class="btn-editar" onclick="abrirModalProveedor('${key}')" style="background:#f3f4f6; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">
-                                <i class="fas fa-edit"></i> Editar
+                            <button class="btn-editar" onclick="editarProductor('${child.key}')">
+                                <i class="fas fa-edit"></i>
                             </button>
-                            <button onclick="eliminarProveedor('${key}')" style="background:none; border:none; color:#ef4444; cursor:pointer; margin-left:10px;">
+                            <button onclick="eliminarProveedor('${child.key}')" class="btn-eliminar">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </td>
@@ -40,19 +73,13 @@ window.renderizarTablaProveedores = function(contenedor) {
 
         contenedor.innerHTML = `
             <div class="admin-card">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                    <h3><i class="fas fa-tractor"></i> Directorio de Parcelas</h3>
-                    <button onclick="abrirModalProveedor()" class="btn-primary" style="background:var(--admin-primary); color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer;">
-                        + Nuevo Productor
-                    </button>
-                </div>
-                <table class="admin-table" style="width:100%; border-collapse:collapse;">
+                <table class="admin-table">
                     <thead>
-                        <tr style="text-align:left; border-bottom:1px solid #eee;">
-                            <th style="padding:10px;">Nombre Parcela</th>
-                            <th style="padding:10px;">Comunidad</th>
-                            <th style="padding:10px;">Contacto</th>
-                            <th style="padding:10px; text-align:right;">Acciones</th>
+                        <tr>
+                            <th>Nombre Parcela</th>
+                            <th>Comunidad</th>
+                            <th>Contacto</th>
+                            <th style="text-align:right;">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>${htmlRows}</tbody>
@@ -61,44 +88,30 @@ window.renderizarTablaProveedores = function(contenedor) {
     });
 };
 
-// 2. GUARDAR / ACTUALIZAR PROVEEDOR
+// --- 3. GUARDAR / ACTUALIZAR (Lógica unificada) ---
 window.guardarProveedor = async function() {
     const id = document.getElementById('prov-id').value;
     const btn = document.getElementById('btn-guardar-prov');
-    
-    // Captura de archivos
     const fotoFile = document.getElementById('prov-foto').files[0];
-    const videoFile = document.getElementById('prov-video').files[0];
 
     btn.disabled = true;
-    btn.innerText = "Subiendo multimedia...";
+    btn.innerText = "Guardando...";
 
     try {
         let urlFoto = document.getElementById('prov-foto-url-actual').value;
-        let urlVideo = document.getElementById('prov-video-url-actual').value;
 
-        // Subida de archivos a Storage (usando funciones de data.js)
-        if (fotoFile) urlFoto = await subirArchivoNativo(fotoFile, 'fincas');
-        if (videoFile) urlVideo = await subirArchivoNativo(videoFile, 'videos');
+        // Si hay foto nueva, se sube (asegúrate de que subirArchivo esté en admin.js o data.js)
+        if (fotoFile && typeof subirArchivo === "function") {
+            urlFoto = await subirArchivo(fotoFile, 'fincas');
+        }
 
         const datos = {
             nombreParcela: document.getElementById('prov-nombre').value,
             comunidad: document.getElementById('prov-comunidad').value,
-            descripcionCorta: document.getElementById('prov-desc').value,
-            nuestraHistoria: document.getElementById('prov-historia').value,
-            horarioAtencion: document.getElementById('prov-horario').value,
-            telefono: document.getElementById('prov-tel').value,
+            whatsapp: document.getElementById('prov-tel').value,
             coordenadas: document.getElementById('prov-coords').value,
-            urlFotoPerfil: urlFoto,
-            urlVideo: urlVideo,
-            pagos: {
-                transferencia: {
-                    banco: document.getElementById('prov-banco').value,
-                    tipoCuenta: document.getElementById('prov-tipo-cta').value,
-                    numeroCuenta: document.getElementById('prov-num-cta').value,
-                    identificacion: document.getElementById('prov-dni').value
-                }
-            }
+            portadaUrl: urlFoto,
+            timestamp: firebase.database.ServerValue.TIMESTAMP
         };
 
         if (id) {
@@ -108,18 +121,16 @@ window.guardarProveedor = async function() {
         }
 
         cerrarModal();
-        alert("Productor guardado correctamente.");
+        alert("¡Productor actualizado!");
     } catch (e) {
-        alert("Error al guardar: " + e.message);
+        alert("Error: " + e.message);
     } finally {
         btn.disabled = false;
         btn.innerText = "Guardar Productor";
     }
 };
 
-// 3. ELIMINAR PROVEEDOR
-window.eliminarProveedor = async function(id) {
-    if (confirm("¿Eliminar este productor? Se perderán todos sus datos y productos asociados.")) {
-        await firebase.database().ref(`proveedores/${id}`).remove();
-    }
-};
+// --- 4. INICIALIZACIÓN ---
+document.addEventListener('DOMContentLoaded', () => {
+    cargarProveedoresPublicos();
+});

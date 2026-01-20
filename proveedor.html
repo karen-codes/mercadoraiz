@@ -62,27 +62,6 @@
         </div>
     </footer>
 
-    <div id="cart-overlay" class="cart-overlay"></div>
-    <div id="side-cart" class="side-cart">
-        <div class="cart-header">
-            <h3>Tu Cosecha (Carrito)</h3>
-            <button id="close-cart" class="close-btn">&times;</button>
-        </div>
-        <div id="cart-items-container" class="cart-body"></div>
-        <div class="cart-footer">
-            <div class="cart-total">
-                <span>Total:</span>
-                <span id="cart-total-amount">$0.00</span>
-            </div>
-            <button class="btn-checkout">Finalizar Compra</button>
-        </div>
-    </div>
-
-    <div id="floating-cart-btn" class="floating-cart-trigger">
-        <i class="fas fa-shopping-basket"></i>
-        <span id="cart-count-badge" class="cart-badge">0</span>
-    </div>
-
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
@@ -112,33 +91,42 @@
         document.addEventListener("DOMContentLoaded", () => {
             const grid = document.getElementById("providersGrid");
             
-            // Referencia a la base de datos de productores
-            const producersRef = db.ref('productores');
+            // CORRECCIÓN: La ruta correcta según tu base de datos es 'proveedores'
+            const providersRef = db.ref('proveedores');
 
-            producersRef.on('value', (snapshot) => {
+            providersRef.on('value', (snapshot) => {
                 const data = snapshot.val();
+                grid.innerHTML = ""; // Limpiar el grid
+
                 if (data) {
-                    grid.innerHTML = ""; // Limpiar mensaje de carga
                     Object.keys(data).forEach(id => {
                         const p = data[id];
+                        
+                        // CORRECCIÓN: Usar los nombres de campos que guardas en proveedores.js
+                        const nombre = p.nombreParcela || "Productor Local";
+                        const foto = p.urlFotoPerfil || 'assets/images/default-finca.jpg';
+                        const comunidad = p.comunidad || "Cayambe";
+                        const desc = p.descripcionCorta || "Dedicados al cultivo tradicional.";
+
                         const card = `
-                            <div class="category-card" style="padding: 0; overflow: hidden; height: auto; text-align: left;">
+                            <div class="category-card" style="padding: 0; overflow: hidden; height: auto; text-align: left; background: white; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
                                 <div style="width: 100%; height: 200px; overflow: hidden;">
-                                    <img src="${p.imagen || 'img/default-provider.jpg'}" alt="${p.nombre}" style="width: 100%; height: 100%; object-fit: cover;">
+                                    <img src="${foto}" alt="${nombre}" style="width: 100%; height: 100%; object-fit: cover;">
                                 </div>
                                 <div style="padding: 20px;">
-                                    <h3 style="font-family: 'Playfair Display', serif; margin-bottom: 10px;">${p.nombre}</h3>
-                                    <p style="color: #666; font-size: 0.9rem; margin-bottom: 20px;">
-                                        <i class="fas fa-map-marker-alt" style="color: var(--pueblo-sage);"></i> ${p.comunidad}
+                                    <h3 style="font-family: 'Playfair Display', serif; margin-bottom: 10px; color: #333;">${nombre}</h3>
+                                    <p style="color: #666; font-size: 0.85rem; margin-bottom: 10px; line-height: 1.4;">${desc}</p>
+                                    <p style="color: #888; font-size: 0.9rem; margin-bottom: 20px;">
+                                        <i class="fas fa-map-marker-alt" style="color: #8da281;"></i> ${comunidad}
                                     </p>
-                                    <a href="perfil-proveedor.html?id=${id}" class="btn-terracotta" style="display: block; text-align: center; text-decoration: none;">Ver Perfil</a>
+                                    <a href="perfil-proveedor.html?id=${id}" class="btn-terracotta" style="display: block; text-align: center; text-decoration: none; background: #c6714f; color: white; padding: 10px; border-radius: 6px;">Ver Perfil</a>
                                 </div>
                             </div>
                         `;
                         grid.innerHTML += card;
                     });
                 } else {
-                    grid.innerHTML = "<p>Aún no tenemos productores registrados.</p>";
+                    grid.innerHTML = "<p class='text-center' style='grid-column: 1/-1;'>Aún no tenemos productores registrados en la base de datos.</p>";
                 }
             });
         });

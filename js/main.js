@@ -67,34 +67,44 @@ function renderizarProductoresHome(lista) {
     `).join('');
 }
 
-function renderizarCarruselHome(lista) {
-    const track = document.getElementById("carrusel-container");
-    if (!track) return;
+/**
+ * Carga los productos destacados en el carrusel principal
+ * Solo muestra la imagen para un diseño más limpio.
+ */
+function cargarCarruselDestacados() {
+    const contenedor = document.getElementById('carrusel-container');
+    if (!contenedor) return;
 
-    track.innerHTML = lista.map(p => {
-        // Buscamos el nombre del productor para mostrarlo en el badge del producto
-        const prov = proveedores.find(pr => pr.id == p.idProductor);
-        const nombreParcela = prov ? prov.nombreParcela : 'Cosecha Local';
+    // Leemos de la rama 'productos' que es donde guardas en el admin
+    db.ref('productos').limitToLast(10).on('value', (snapshot) => {
+        contenedor.innerHTML = "";
+        
+        if (!snapshot.exists()) {
+            contenedor.innerHTML = "<p>Próximamente nuevas cosechas...</p>";
+            return;
+        }
 
-        return `
-        <div class="carousel-item">
-            <div class="product-card">
-                <div class="badge-productor"><i class="fas fa-map-marker-alt"></i> ${nombreParcela}</div>
-                <img src="${p.urlFotoProducto || 'assets/images/no-image.jpg'}" loading="lazy">
-                <div class="product-info">
-                    <small>${p.categoriaProducto}</small>
-                    <h3>${p.nombreProducto}</h3>
-                    <div class="flex-row">
-                        <p class="precio">$${parseFloat(p.precio).toFixed(2)} <span>/ ${p.unidadMedida}</span></p>
-                        <button onclick="agregarAlCarritoClick('${p.id}')" class="btn-add" title="Añadir a la canasta">
-                            <i class="fas fa-cart-plus"></i>
-                        </button>
-                    </div>
+        snapshot.forEach((child) => {
+            const p = child.val();
+            // Creamos el elemento del carrusel solo con la imagen
+            const slide = document.createElement('div');
+            slide.className = 'carousel-item'; // Asegúrate que esta clase tenga un ancho definido en CSS
+            
+            slide.innerHTML = `
+                <div class="product-card-simple" style="margin: 0 10px;">
+                    <img src="${p.imagenUrl}" 
+                         alt="${p.nombre}" 
+                         title="${p.nombre}"
+                         style="width:280px; height:380px; object-fit:cover; border-radius:15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
                 </div>
-            </div>
-        </div>`;
-    }).join('');
+            `;
+            contenedor.appendChild(slide);
+        });
+    });
 }
+
+// Ejecutar al cargar la página
+document.addEventListener('DOMContentLoaded', cargarCarruselDestacados);
 
 /***********************************
  * LÓGICA DE CARRITO GLOBAL
