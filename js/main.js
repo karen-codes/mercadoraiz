@@ -1,35 +1,103 @@
-/***********************************
- * ESTADO GLOBAL Y SINCRONIZACIÓN
- ***********************************/
+/**
+ * js/main.js - Orquestador Global (PÁGINA PÚBLICA)
+ * Mercado Raíz 2026
+ */
+
 let productos = [];
 let proveedores = [];
 let carrito = JSON.parse(localStorage.getItem('carrito')) || [];
 
 document.addEventListener("DOMContentLoaded", () => {
+    // 1. Inicialización de Interfaz
     actualizarInterfazSesion();
     actualizarContadorCarrito();
 
-    // 1. CARGA EN TIEMPO REAL DESDE FIREBASE
-    // Escuchamos proveedores primero para poder cruzar los datos
-    db.ref('proveedores').on('value', (snapshot) => {
-        const data = snapshot.val();
-        proveedores = data ? Object.keys(data).map(key => ({...data[key], id: key})) : [];
-        
-        // Traemos productos vinculados
-        db.ref('productos').on('value', (prodSnapshot) => {
-            const prodData = prodSnapshot.val();
-            productos = prodData ? Object.keys(prodData).map(key => ({...prodData[key], id: key})) : [];
+    // 2. Escucha de Datos en Tiempo Real (Firebase)
+    if (window.db) {
+        // Escuchar Proveedores primero para poder cruzar datos en el carrusel
+        window.db.ref('proveedores').on('value', (snapshot) => {
+            const data = snapshot.val();
+            proveedores = data ? Object.keys(data).map(key => ({...data[key], id: key})) : [];
             
-            if (document.getElementById("productsGrid")) {
-                renderizarCatalogo(productos);
+            // Renderizar sección de productores si existe el contenedor
+            if (document.getElementById('contenedor-productores')) {
+                renderizarProductoresHome(proveedores);
             }
-            finalizarCargaVisual();
+
+            // Una vez tenemos los proveedores, cargamos los productos
+            window.db.ref('productos').on('value', (prodSnapshot) => {
+                const prodData = prodSnapshot.val();
+                productos = prodData ? Object.keys(prodData).map(key => ({...prodData[key], id: key})) : [];
+                
+                // Renderizado condicional según la página
+                if (document.getElementById("carrusel-container")) {
+                    renderizarCarruselHome(productos);
+                }
+                if (document.getElementById("productsGrid")) {
+                    // Esta función suele estar en js/catalogo.js, pero la invocamos aquí
+                    if (typeof renderizarCatalogo === 'function') renderizarCatalogo(productos);
+                }
+                
+                finalizarCargaVisual();
+            });
         });
-    });
+    }
 });
 
 /***********************************
- * LÓGICA DEL CARRITO Y PAGOS
+ * RENDERIZADO HOME (Vitrinas)
+ ***********************************/
+
+function renderizarProductoresHome(lista) {
+    const contenedor = document.getElementById('contenedor-productores');
+    if (!contenedor) return;
+
+    contenedor.innerHTML = lista.map(p => `
+        <div class="card-productor">
+            <div class="img-container">
+                <img src="${p.urlFotoPerfil || 'assets/images/no-image.jpg'}" alt="${p.nombreParcela}">
+            </div>
+            <div class="info">
+                <span class="comunidad-tag">${p.comunidad}</span>
+                <h3>${p.nombreParcela}</h3>
+                <p>${p.descripcionCorta || 'Productor local de Cayambe'}</p>
+                <a href="perfil-proveedor.html?id=${p.id}" class="btn-ver">Conocer Historia</a>
+            </div>
+        </div>
+    `).join('');
+}
+
+function renderizarCarruselHome(lista) {
+    const track = document.getElementById("carrusel-container");
+    if (!track) return;
+
+    track.innerHTML = lista.map(p => {
+        // Buscamos el nombre del productor para mostrarlo en el badge del producto
+        const prov = proveedores.find(pr => pr.id == p.idProductor);
+        const nombreParcela = prov ? prov.nombreParcela : 'Cosecha Local';
+
+        return `
+        <div class="carousel-item">
+            <div class="product-card">
+                <div class="badge-productor"><i class="fas fa-map-marker-alt"></i> ${nombreParcela}</div>
+                <img src="${p.urlFotoProducto || 'assets/images/no-image.jpg'}" loading="lazy">
+                <div class="product-info">
+                    <small>${p.categoriaProducto}</small>
+                    <h3>${p.nombreProducto}</h3>
+                    <div class="flex-row">
+                        <p class="precio">$${parseFloat(p.precio).toFixed(2)} <span>/ ${p.unidadMedida}</span></p>
+                        <button onclick="agregarAlCarritoClick('${p.id}')" class="btn-add" title="Añadir a la canasta">
+                            <i class="fas fa-cart-plus"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+/***********************************
+ * LÓGICA DE CARRITO GLOBAL
  ***********************************/
 
 function agregarAlCarritoClick(id) {
@@ -42,151 +110,53 @@ function agregarAlCarritoClick(id) {
     } else {
         carrito.push({
             id: prod.id,
-            nombre: prod.nombre,
-            precio: prod.precio,
-            unidad: prod.unidad || 'Unidad',
-            proveedorId: prod.proveedorId,
+            nombre: prod.nombreProducto,
+            precio: parseFloat(prod.precio),
+            unidad: prod.unidadMedida,
+            idProductor: prod.idProductor,
             cantidad: 1
         });
     }
     
-    guardarYNotificar();
-}
-
-function guardarYNotificar() {
+    // Feedback visual y guardado
     localStorage.setItem('carrito', JSON.stringify(carrito));
     actualizarContadorCarrito();
-    // Opcional: Mostrar un toast o alerta pequeña
-}
-
-/**
- * PROCESO DE PAGO Y SUBIDA DE COMPROBANTE (Requerimiento Clave)
- */
-async function finalizarCompra() {
-    const sesion = JSON.parse(localStorage.getItem('sesionActiva'));
-    if (!sesion) {
-        alert("Debes iniciar sesión para realizar un pedido.");
-        window.location.href = 'login.html';
-        return;
-    }
-
-    if (carrito.length === 0) return alert("Tu carrito está vacío.");
-
-    const total = carrito.reduce((sum, i) => sum + (i.precio * i.cantidad), 0);
     
-    // Crear el HTML para que el usuario suba su comprobante
-    const modalPago = document.createElement('div');
-    modalPago.className = 'modal-pago-flotante';
-    modalPago.innerHTML = `
-        <div class="modal-content">
-            <h3>Finalizar Pedido</h3>
-            <p>Total a pagar: <strong>$${total.toFixed(2)}</strong></p>
-            <hr>
-            <label>Selecciona tu comprobante de pago (Foto/Screenshot):</label>
-            <input type="file" id="input_comprobante" accept="image/*" class="admin-input" style="margin:10px 0;">
-            <p style="font-size:0.8rem; color:#666;">Formatos: JPG, PNG. Máx 5MB.</p>
-            <div style="display:flex; gap:10px; margin-top:15px;">
-                <button id="btnConfirmarPedido" class="btn-comprar">Confirmar y Subir Pago</button>
-                <button onclick="this.parentElement.parentElement.parentElement.remove()" class="btn-delete">Cancelar</button>
-            </div>
-        </div>
-    `;
-    document.body.appendChild(modalPago);
-
-    document.getElementById('btnConfirmarPedido').onclick = async () => {
-        const fileInput = document.getElementById('input_comprobante');
-        const file = fileInput.files[0];
-
-        if (!file) {
-            alert("Por favor, sube la imagen de tu transferencia o pago QR para continuar.");
-            return;
-        }
-
-        document.getElementById('btnConfirmarPedido').disabled = true;
-        document.getElementById('btnConfirmarPedido').innerText = "Procesando...";
-
-        try {
-            // 1. Subir la imagen al Storage (Usando la función de data.js)
-            const urlComprobante = await subirArchivoNativo(file, 'comprobantes_pedidos');
-
-            // 2. Crear el objeto del pedido
-            const pedido = {
-                cliente: sesion.nombre,
-                clienteId: sesion.id,
-                email: sesion.email,
-                telefono: sesion.telefono,
-                total: total,
-                items: carrito,
-                comprobanteUrl: urlComprobante,
-                estado: "Pendiente",
-                metodoPago: "Transferencia/QR",
-                fecha: new Date().toLocaleString()
-            };
-
-            // 3. Guardar en Firebase
-            await db.ref('pedidos').push(pedido);
-
-            // 4. Limpiar y redirigir
-            carrito = [];
-            localStorage.removeItem('carrito');
-            alert("¡Pedido enviado con éxito! Un productor validará tu pago pronto.");
-            window.location.href = 'index.html';
-
-        } catch (error) {
-            alert("Error al procesar el pedido: " + error.message);
-        }
-    };
-}
-
-/***********************************
- * RENDERIZADO DE INTERFAZ
- ***********************************/
-function renderizarCatalogo(lista) {
-    const grid = document.getElementById("productsGrid");
-    if (!grid) return;
-
-    grid.innerHTML = lista.map(p => {
-        const prov = proveedores.find(pr => pr.id == p.proveedorId);
-        const nombreProductor = prov ? prov.nombre : 'Productor Local';
-
-        return `
-        <div class="product-card">
-            <div class="badge-productor"><i class="fas fa-leaf"></i> ${nombreProductor}</div>
-            <img src="${p.imagen || 'assets/images/no-image.jpg'}" loading="lazy">
-            <div class="product-info">
-                <h3>${p.nombre}</h3>
-                <p class="unidad-medida">${p.unidad || 'Libra'}</p>
-                <div class="flex-row">
-                    <p class="precio">$${parseFloat(p.precio).toFixed(2)}</p>
-                    <button onclick="agregarAlCarritoClick('${p.id}')" class="btn-add">
-                        <i class="fas fa-cart-plus"></i>
-                    </button>
-                </div>
-            </div>
-        </div>`;
-    }).join('');
+    // Notificación simple
+    alert(`¡${prod.nombreProducto} añadido!`);
 }
 
 function actualizarContadorCarrito() {
     const count = carrito.reduce((sum, item) => sum + item.cantidad, 0);
-    const badge = document.getElementById('cart-count');
-    if (badge) badge.innerText = count;
+    const badge = document.getElementById('cart-count-badge');
+    if (badge) {
+        badge.innerText = count;
+        badge.style.display = count > 0 ? 'flex' : 'none';
+    }
 }
+
+/***********************************
+ * SESIÓN Y UTILIDADES
+ ***********************************/
 
 function actualizarInterfazSesion() {
     const sesion = JSON.parse(localStorage.getItem('sesionActiva'));
-    const userArea = document.getElementById('user-area');
-    if (!userArea) return;
+    const loginLink = document.getElementById('loginLink');
+    const userMenu = document.getElementById('userMenu');
 
-    if (sesion) {
-        userArea.innerHTML = `
-            <span>Hola, <strong>${sesion.nombre.split(' ')[0]}</strong></span>
-            <button onclick="cerrarSesion()" class="btn-logout"><i class="fas fa-sign-out-alt"></i></button>
-        `;
+    if (sesion && loginLink) {
+        loginLink.style.display = 'none';
+        if (userMenu) {
+            userMenu.style.display = 'flex';
+            userMenu.innerHTML = `<i class="fas fa-user-circle"></i> Hola, ${sesion.nombre.split(' ')[0]}`;
+        }
     }
 }
 
 function finalizarCargaVisual() {
     const loader = document.getElementById('loader');
-    if (loader) loader.style.display = 'none';
+    if (loader) {
+        loader.style.opacity = '0';
+        setTimeout(() => loader.style.display = 'none', 500);
+    }
 }

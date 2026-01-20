@@ -1,123 +1,112 @@
 /**
- * js/proveedor.js - Vista Detallada del Productor
- * Conexión con Firebase y renderizado de productos asociados.
+ * js/proveedor.js - Vista Detallada del Productor (PÁGINA PÚBLICA)
+ * Renderiza la identidad del productor y sus productos asociados.
  */
 
 document.addEventListener("DOMContentLoaded", () => {
-    const params = new URLSearchParams(window.location.search);
-    const id = params.get('id'); // El ID de Firebase es un String
+    // Aseguramos que Firebase esté listo
+    if (typeof firebase !== 'undefined') {
+        const db = firebase.database();
+        const params = new URLSearchParams(window.location.search);
+        const id = params.get('id'); 
 
-    if (!id) {
-        window.location.href = 'index.html';
-        return;
-    }
-
-    // 1. Obtener datos del proveedor desde Firebase
-    db.ref(`proveedores/${id}`).once('value').then((snapshot) => {
-        const pro = snapshot.val();
-        if (pro) {
-            llenarDatosProveedor(pro);
-            renderizarProductosDeProductor(id);
-        } else {
-            console.error("Proveedor no encontrado");
+        if (!id) {
+            window.location.href = 'index.html';
+            return;
         }
-    }).catch(error => console.error("Error al cargar proveedor:", error));
+
+        // 1. Obtener datos del proveedor
+        db.ref(`proveedores/${id}`).once('value').then((snapshot) => {
+            const pro = snapshot.val();
+            if (pro) {
+                llenarDatosProveedor(pro);
+                renderizarProductosDeProductor(id, db);
+            } else {
+                document.body.innerHTML = "<h2 style='text-align:center; margin-top:50px;'>Productor no encontrado</h2>";
+            }
+        }).catch(error => console.error("Error al cargar proveedor:", error));
+    }
 });
 
 function llenarDatosProveedor(pro) {
-    const setInnerText = (id, val) => {
+    // Función auxiliar para insertar texto de forma segura
+    const setText = (id, val) => {
         const el = document.getElementById(id);
         if (el) el.innerText = val || "";
     };
 
-    // Datos Básicos
-    setInnerText('p-nombre', pro.nombre);
-    setInnerText('p-descripcion', pro.descripcionCorta);
-    setInnerText('p-comunidad', pro.comunidad);
-    setInnerText('p-historia', pro.nuestraHistoria);
-    setInnerText('p-horario', pro.horarioAtencion);
+    // Ajuste de nombres según la base de datos del Panel Administrativo
+    setText('p-nombre', pro.nombreParcela); // Cambiado de 'nombre' a 'nombreParcela'
+    setText('p-descripcion', pro.descripcionCorta);
+    setText('p-comunidad', pro.comunidad);
+    setText('p-historia', pro.nuestraHistoria);
+    setText('p-horario', pro.horarioAtencion);
 
-    // Gestión de Pagos Detallada
-    const pagosEl = document.getElementById('p-pagos');
-    if (pagosEl) {
-        let metodos = [];
-        if (pro.pagos?.transferencia?.activo) {
-            const t = pro.pagos.transferencia;
-            metodos.push(`Transferencia (${t.banco} - ${t.tipoCuenta})`);
-        }
-        if (pro.pagos?.qr?.activo) {
-            metodos.push("Pago por QR / Deuna");
-        }
-        pagosEl.innerText = metodos.length > 0 ? metodos.join(" | ") : "Efectivo al recibir";
-    }
-
-    // Video Nativo (Carga local desde Storage)
+    // 2. Video Nativo (Carga desde Firebase Storage)
     const videoElement = document.getElementById('p-video-local');
     const vidCont = document.getElementById('video-container');
     if (videoElement && vidCont) {
-        if (pro.videoUrl) {
-            videoElement.src = pro.videoUrl;
-            videoElement.load(); // Forzar carga del video nativo
+        if (pro.urlVideo) { // Verificamos el nombre del campo del video
+            videoElement.src = pro.urlVideo;
+            videoElement.load();
         } else {
             vidCont.style.display = 'none';
         }
     }
 
-    // Imagen de Portada
+    // 3. Imagen de Portada / Banner
     const portadaImg = document.getElementById('p-portada');
-    if (portadaImg && pro.imagenPortada) {
-        portadaImg.src = pro.imagenPortada;
+    if (portadaImg && pro.urlFotoPerfil) {
+        portadaImg.src = pro.urlFotoPerfil;
     }
 
-    // Mapa Satelital (Leaflet)
-    if (pro.coords) {
-        const latlng = pro.coords.split(',').map(c => parseFloat(c.trim()));
+    // 4. Mapa Satelital (Leaflet)
+    if (pro.coordenadas) {
+        const latlng = pro.coordenadas.split(',').map(c => parseFloat(c.trim()));
         if (latlng.length === 2) {
             const map = L.map('mapa-prov').setView(latlng, 15);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '© OpenStreetMap'
             }).addTo(map);
             L.marker(latlng).addTo(map)
-                .bindPopup(`<b>${pro.nombre}</b><br>¡Visítanos!`)
+                .bindPopup(`<b>${pro.nombreParcela}</b><br>¡Ubicación de la Parcela!`)
                 .openPopup();
         }
     }
 }
 
-function renderizarProductosDeProductor(proveedorId) {
+function renderizarProductosDeProductor(proveedorId, db) {
     const grid = document.getElementById('productos-productor-grid');
     if (!grid) return;
 
-    // Consultar productos filtrados por proveedor en Firebase
-    db.ref('productos').orderByChild('proveedorId').equalTo(proveedorId)
+    // IMPORTANTE: El Panel guarda 'idProductor' en la rama 'productos'
+    db.ref('productos').orderByChild('idProductor').equalTo(proveedorId)
         .once('value').then((snapshot) => {
             const productos = snapshot.val();
             
             if (!productos) {
-                grid.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding:40px; color:#888;">Este productor aún no tiene productos disponibles.</div>`;
+                grid.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding:40px; color:#888;">Este productor no tiene cosechas disponibles hoy.</div>`;
                 return;
             }
 
-            grid.innerHTML = Object.keys(productos).map(key => {
-                const p = productos[key];
+            grid.innerHTML = Object.entries(productos).map(([key, p]) => {
                 return `
-                <div class="product-card" style="border:1px solid #eee; border-radius:15px; background:white; overflow:hidden; box-shadow:0 4px 10px rgba(0,0,0,0.05);">
-                    <div class="product-image" style="height:180px; overflow:hidden;">
-                        <img src="${p.imagenUrl}" alt="${p.nombre}" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='assets/images/default-prod.jpg'">
+                <div class="product-card" style="border:1px solid #eee; border-radius:15px; background:white; overflow:hidden; transition: 0.3s;">
+                    <div style="height:180px; position:relative;">
+                        <img src="${p.urlFotoProducto || 'https://via.placeholder.com/300'}" style="width:100%; height:100%; object-fit:cover;">
+                        <span style="position:absolute; top:10px; right:10px; background:rgba(255,255,255,0.9); padding:2px 8px; border-radius:10px; font-size:12px; font-weight:bold;">
+                            ${p.categoriaProducto}
+                        </span>
                     </div>
-                    <div class="product-info" style="padding:15px;">
-                        <small style="color:var(--pueblo-sage); text-transform:uppercase; font-weight:700;">${p.categoria}</small>
-                        <h3 style="margin:5px 0; font-family:'Playfair Display', serif;">${p.nombre}</h3>
-                        <p style="font-weight:bold; color:var(--pueblo-terracotta); font-size:1.1rem; margin:10px 0;">
-                            $${parseFloat(p.precio).toFixed(2)} / ${p.unidadMedida}
+                    <div style="padding:15px;">
+                        <h3 style="margin:0; font-size:1.2rem;">${p.nombreProducto}</h3>
+                        <p style="color:#27ae60; font-weight:bold; font-size:1.2rem; margin:10px 0;">
+                            $${parseFloat(p.precio).toFixed(2)} <span style="font-size:0.8rem; color:#666;">/ ${p.unidadMedida}</span>
                         </p>
-                        
-                        <div style="display:flex; gap:10px; align-items:center;">
-                            <input type="number" id="qty-${key}" value="1" min="1" 
-                                   style="width:50px; padding:8px; border:1px solid #ddd; border-radius:5px; text-align:center;">
-                            <button class="btn-login-header" style="flex:1; padding:8px; border-radius:5px; cursor:pointer;" 
-                                    onclick="agregarAlCarrito('${key}')">
-                                <i class="fas fa-shopping-basket"></i> Agregar
+                        <div style="display:flex; gap:8px;">
+                            <input type="number" id="qty-${key}" value="1" min="1" style="width:45px; border:1px solid #ddd; border-radius:5px; text-align:center;">
+                            <button onclick="agregarAlCarrito('${key}')" style="flex:1; background:#27ae60; color:white; border:none; padding:10px; border-radius:5px; cursor:pointer; font-weight:bold;">
+                                <i class="fas fa-cart-plus"></i> Añadir
                             </button>
                         </div>
                     </div>

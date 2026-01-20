@@ -1,19 +1,23 @@
 /**
- * Carga y renderiza los usuarios desde Firebase con conteo de pedidos
+ * js/usuarios.js - CRM y Control de Clientes Mercado Raíz
+ * Gestión de usuarios y estadísticas de compra.
  */
-function renderizarTablaUsuarios(cnt) {
-    if (!cnt) return;
 
-    // Escuchamos tanto usuarios como pedidos para hacer el cruce de datos
-    // Usamos 'on' en usuarios para tiempo real
+window.renderizarTablaUsuarios = function(contenedor) {
+    if (!contenedor) return;
+
+    // Aseguramos referencia a la base de datos
+    const db = firebase.database();
+
+    // 1. Escuchar cambios en usuarios (Tiempo Real)
     db.ref('usuarios').on('value', async (snapshot) => {
         const usuariosData = snapshot.val();
         
-        // Obtenemos los pedidos una vez para el conteo
+        // 2. Obtener pedidos para calcular la fidelidad (una sola vez por actualización)
         const pedidosSnap = await db.ref('pedidos').once('value');
         const pedidosData = pedidosSnap.val() || {};
 
-        // Mapeamos cuántos pedidos tiene cada cliente
+        // Mapear cuántos pedidos tiene cada clienteId
         const contadorPedidos = {};
         Object.values(pedidosData).forEach(p => {
             if (p.clienteId) {
@@ -24,61 +28,64 @@ function renderizarTablaUsuarios(cnt) {
         let htmlContent = '';
 
         if (usuariosData) {
-            const lista = Object.keys(usuariosData).map(key => ({
-                id: key,
-                ...usuariosData[key]
-            }));
+            const lista = Object.entries(usuariosData).reverse(); // Recientes primero
 
-            htmlContent = lista.map(u => {
-                const numPedidos = contadorPedidos[u.id] || 0;
+            htmlContent = lista.map(([id, u]) => {
+                const numPedidos = contadorPedidos[id] || 0;
+                // Color dinámico según actividad: Verde si ha comprado, Gris si es nuevo
+                const colorBadge = numPedidos > 0 ? '#27ae60' : '#95a5a6';
+                const fondoBadge = numPedidos > 0 ? '#eafaf1' : '#f4f6f7';
+
                 return `
-                <tr>
-                    <td>
-                        <div class="user-cell" style="display: flex; align-items: center; gap: 12px;">
-                            <div class="user-icon" style="width:35px; height:35px; background:#8da05e; color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;">
-                                ${u.nombre ? u.nombre.charAt(0).toUpperCase() : 'U'}
+                <tr style="border-bottom: 1px solid #f2f2f2;">
+                    <td style="padding:15px;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="width:35px; height:35px; background:${colorBadge}; color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:0.9rem;">
+                                ${(u.nombre || 'U').charAt(0).toUpperCase()}
                             </div>
-                            <strong>${u.nombre || 'Sin nombre'}</strong>
+                            <div>
+                                <strong style="display:block;">${u.nombre || 'Sin nombre'}</strong>
+                                <small style="color:#888;">ID: ${id.substring(0,6)}</small>
+                            </div>
                         </div>
                     </td>
-                    <td>${u.email}</td>
-                    <td>${u.telefono || '<span style="color:#ccc">No registrado</span>'}</td>
+                    <td><a href="mailto:${u.email}" style="color:#2980b9; text-decoration:none;">${u.email}</a></td>
+                    <td>${u.telefono || '<span style="color:#ccc;">No reg.</span>'}</td>
                     <td style="text-align:center;">
-                        <span class="badge" style="background:${numPedidos > 0 ? '#e8f4f0' : '#f4f4f4'}; color:${numPedidos > 0 ? '#1b5e20' : '#666'}; padding: 4px 8px; border-radius:12px; font-weight:bold;">
-                            ${numPedidos} pedido(s)
+                        <span style="background:${fondoBadge}; color:${colorBadge}; padding: 4px 10px; border-radius:12px; font-weight:bold; font-size:0.8rem;">
+                            <i class="fas fa-shopping-basket"></i> ${numPedidos} pedido(s)
                         </span>
                     </td>
-                    <td><span class="badge" style="background:#f0f4e8; color:#5d6d31; font-size:0.75rem;">${u.fecha || 'Reciente'}</span></td>
-                    <td>
-                        <div class="actions-cell" style="display: flex; gap: 8px; justify-content: flex-end;">
-                            <button class="btn-delete" onclick="eliminarUsuarioFirebase('${u.id}')" title="Eliminar de la Base" style="border:none; background:none; cursor:pointer; color:#e74c3c;">
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
-                        </div>
+                    <td><small style="color:#7f8c8d;">${u.fechaRegistro || 'Reciente'}</small></td>
+                    <td style="text-align: right; padding:15px;">
+                        <button onclick="eliminarUsuarioFirebase('${id}')" style="border:none; background:none; cursor:pointer; color:#e74c3c; font-size:1.1rem;">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
                     </td>
                 </tr>`;
             }).join('');
         } else {
-            htmlContent = '<tr><td colspan="6" style="text-align:center; padding:40px; color:#999;">No hay usuarios registrados.</td></tr>';
+            htmlContent = '<tr><td colspan="6" style="text-align:center; padding:40px; color:#999;">No hay clientes registrados aún.</td></tr>';
         }
 
-        cnt.innerHTML = `
-            <div class="admin-card">
-                <div class="card-header-info" style="margin-bottom: 25px;">
-                    <h3 style="color: var(--admin-primary); font-family: 'Outfit'; display: flex; align-items: center; gap: 10px;">
-                        <i class="fas fa-users"></i> Base de Clientes (Mercado Raíz Cloud)
+        contenedor.innerHTML = `
+            <div class="admin-card" style="background:white; border-radius:12px; padding:20px; box-shadow:0 4px 15px rgba(0,0,0,0.05);">
+                <div style="margin-bottom: 25px;">
+                    <h3 style="color: #2c3e50; margin:0; display: flex; align-items: center; gap: 10px;">
+                        <i class="fas fa-users"></i> Base de Clientes (Mercado Raíz CRM)
                     </h3>
+                    <p style="color:#7f8c8d; font-size:0.9rem; margin-top:5px;">Gestiona los perfiles de los compradores y visualiza su recurrencia.</p>
                 </div>
                 <div class="table-responsive">
                     <table class="admin-table" style="width:100%; border-collapse: collapse;">
                         <thead>
-                            <tr style="border-bottom: 2px solid #eee; text-align: left;">
-                                <th style="padding:12px;">Identidad / Nombre</th>
-                                <th style="padding:12px;">Correo Electrónico</th>
-                                <th style="padding:12px;">Teléfono</th>
-                                <th style="padding:12px; text-align:center;">Total Pedidos</th>
-                                <th style="padding:12px;">Registro</th>
-                                <th style="padding:12px; text-align: right;">Operaciones</th>
+                            <tr style="border-bottom: 2px solid #eee; text-align: left; color:#7f8c8d; font-size:0.85rem;">
+                                <th style="padding:12px;">CLIENTE</th>
+                                <th style="padding:12px;">CORREO</th>
+                                <th style="padding:12px;">TELÉFONO</th>
+                                <th style="padding:12px; text-align:center;">ACTIVIDAD</th>
+                                <th style="padding:12px;">REGISTRO</th>
+                                <th style="padding:12px; text-align: right;">ACCIONES</th>
                             </tr>
                         </thead>
                         <tbody>${htmlContent}</tbody>
@@ -86,15 +93,15 @@ function renderizarTablaUsuarios(cnt) {
                 </div>
             </div>`;
     });
-}
+};
 
-async function eliminarUsuarioFirebase(id) {
-    if (confirm("¿Eliminar este usuario de la base de datos? Esto no borrará sus pedidos antiguos, pero perderán el vínculo.")) {
+// 2. FUNCIÓN PARA ELIMINAR
+window.eliminarUsuarioFirebase = async function(id) {
+    if (confirm("¿Estás seguro de eliminar este usuario? Perderá el acceso a su cuenta.")) {
         try {
-            await db.ref(`usuarios/${id}`).remove();
+            await firebase.database().ref(`usuarios/${id}`).remove();
         } catch (error) {
-            console.error("Error al eliminar:", error);
-            alert("No se pudo eliminar el usuario.");
+            alert("Error al eliminar usuario.");
         }
     }
-}
+};

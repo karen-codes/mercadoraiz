@@ -3,20 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://www.gstatic.com https://apis.google.com https://unpkg.com 'unsafe-inline' 'unsafe-eval'; style-src 'self' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://unpkg.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com;">
-    
     <title>Panel de Administración | Mercado Raíz</title>
+    
     <link rel="stylesheet" href="css/admin.styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     
     <style>
         .hidden { display: none !important; }
-        #mapAdmin { height: 250px; width: 100%; border-radius: 12px; margin-top: 10px; border: 2px solid #eee; z-index: 1; }
-        .modal-pago { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; display:flex; align-items:center; justify-content:center; }
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        #mapAdmin { height: 250px; width: 100%; border-radius: 12px; margin-top: 10px; border: 2px solid #ddd; z-index: 1; }
+        .modal-pago { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:9999; display:flex; align-items:center; justify-content:center; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .full-width { grid-column: span 2; }
-        input, textarea, select { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ddd; border-radius: 8px; }
+        input, textarea, select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 6px; font-family: inherit; margin-top: 5px; }
+        label { font-weight: bold; font-size: 0.85rem; color: #444; display: block; margin-top: 10px; }
+        .btn-save { background: #27ae60; color: white; border: none; padding: 10px 25px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .btn-cancel { background: #eee; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; }
+        .glass-card { background:white; padding:30px; border-radius:15px; width:95%; max-width:850px; max-height:90vh; overflow-y:auto; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
     </style>
 </head>
 <body class="admin-body">
@@ -38,8 +41,11 @@
             <a href="javascript:void(0)" onclick="cargarSeccion('pedidos')" id="link-pedidos" class="nav-item">
                 <i class="fas fa-shopping-basket"></i> <span>Pedidos</span>
             </a>
-            <a href="javascript:void(0)" onclick="cargarSeccion('mensajeria')" id="link-mensajeria" class="nav-item">
-                <i class="fas fa-comment-dots"></i> <span>Mensajería</span>
+            <a href="javascript:void(0)" onclick="cargarSeccion('mensajes')" id="link-mensajes" class="nav-item">
+                <i class="fas fa-envelope"></i> <span>Mensajes</span>
+            </a>
+            <a href="javascript:void(0)" onclick="cargarSeccion('usuarios')" id="link-usuarios" class="nav-item">
+                <i class="fas fa-users"></i> <span>Clientes</span>
             </a>
             <hr>
             <a href="index.html" class="nav-item"><i class="fas fa-store"></i> <span>Ver Tienda</span></a>
@@ -48,69 +54,131 @@
     </aside>
 
     <main class="main-content">
-        <header class="header-admin">
-            <h1 id="seccion-titulo">Cargando...</h1>
-            <button class="btn-nuevo" onclick="abrirModal()">+ Nuevo Registro</button>
+        <header class="header-admin" style="display: flex; justify-content: space-between; align-items: center; padding: 20px;">
+            <h1 id="seccion-titulo">Panel de Control</h1>
+            <div id="btn-nuevo-contenedor"></div>
         </header>
-        <div id="tabla-contenedor"></div>
+        
+        <div id="tabla-contenedor" style="padding: 20px;"></div>
     </main>
 
-    <div id="modalRegistro" class="modal-pago hidden">
-        <div class="glass-card" style="background:white; padding:30px; border-radius:15px; width:95%; max-width:800px; max-height:90vh; overflow-y:auto;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                <h2 id="modalTitulo">Configuración de Perfil</h2>
-                <button onclick="cerrarModal()" style="font-size:2rem; border:none; background:none; cursor:pointer;">&times;</button>
+    <div id="modalProveedor" class="modal-pago hidden">
+        <div class="glass-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+                <h2 id="modalTitulo">Perfil del Productor</h2>
+                <button onclick="cerrarModal()" style="font-size:1.5rem; border:none; background:none; cursor:pointer;">&times;</button>
             </div>
             
-            <form id="formRegistro">
+            <form id="formProveedor">
+                <input type="hidden" id="prov-id"> 
+                <input type="hidden" id="prov-foto-url-actual">
+                <input type="hidden" id="prov-video-url-actual">
+
                 <div class="form-grid">
                     <div>
-                        <label>Nombre de la Parcela</label>
-                        <input type="text" name="nombreParcela" required>
+                        <label>Nombre de la Parcela / Finca</label>
+                        <input type="text" name="prov-nombre" id="prov-nombre" required placeholder="Ej: Finca Las Rosas">
                         
-                        <label>WhatsApp (con código país)</label>
-                        <input type="text" name="whatsapp" placeholder="593..." required>
+                        <label>Comunidad / Sector</label>
+                        <input type="text" name="prov-comunidad" id="prov-comunidad" required placeholder="Ej: Cayambe Centro">
                         
-                        <label>Nuestra Historia</label>
-                        <textarea name="historia" rows="3"></textarea>
+                        <label>WhatsApp (Ej: 593987654321)</label>
+                        <input type="text" name="prov-tel" id="prov-tel" placeholder="593987654321">
+
+                        <label>Descripción Corta (Home)</label>
+                        <input type="text" name="prov-desc" id="prov-desc" maxlength="100" placeholder="Ej: Fresas orgánicas">
                     </div>
                     
                     <div>
-                        <label>Horarios de Atención</label>
-                        <input type="text" name="horarios" placeholder="Ej: Lun-Vie 8am-5pm">
+                        <label>Nuestra Historia</label>
+                        <textarea name="prov-historia" id="prov-historia" rows="4" placeholder="Origen de la finca..."></textarea>
                         
-                        <label>Métodos de Pago (QR, Transferencia, Efectivo)</label>
-                        <input type="text" name="metodosPago" placeholder="Detalle sus medios de pago">
+                        <label>Horarios de Atención</label>
+                        <input type="text" name="prov-horario" id="prov-horario" placeholder="Ej: Lunes a Viernes 08:00 - 16:00">
                     </div>
 
-                    <div class="full-width" style="background:#f9f9f9; padding:15px; border-radius:10px; margin-top:10px;">
-                        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px;">
+                    <div class="full-width" style="background:#f0f7f4; padding:15px; border-radius:8px; border:1px solid #d4e8df;">
+                        <h4 style="margin:0 0 10px 0; color:#2e7d32;"><i class="fas fa-university"></i> Datos Bancarios</h4>
+                        <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:10px;">
                             <div>
-                                <label>Imagen Portada</label>
-                                <input type="file" id="inputPortada" accept="image/*">
+                                <label>Banco</label>
+                                <input type="text" name="prov-banco" id="prov-banco">
                             </div>
                             <div>
-                                <label>Video Parcela</label>
-                                <input type="file" id="inputVideo" accept="video/*">
+                                <label>Número de Cuenta</label>
+                                <input type="text" name="prov-num-cta" id="prov-num-cta">
                             </div>
                             <div>
-                                <label>Imagen QR Pago</label>
-                                <input type="file" id="inputQR" accept="image/*">
+                                <label>Identificación (CI/RUC)</label>
+                                <input type="text" name="prov-dni" id="prov-dni">
                             </div>
                         </div>
                     </div>
-                </div>
-                
-                <div id="seccionMapa" class="hidden">
-                    <hr style="margin: 20px 0;">
-                    <label><b>Ubicación en el Mapa (Clic para marcar)</b></label>
-                    <input type="text" id="coordsInput" name="ubicacion" readonly placeholder="Coordenadas automáticas">
-                    <div id="mapAdmin"></div>
+
+                    <div class="full-width" style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
+                        <div>
+                            <label><i class="fas fa-image"></i> Foto de Perfil</label>
+                            <input type="file" id="prov-foto" accept="image/*">
+                        </div>
+                        <div>
+                            <label><i class="fas fa-video"></i> Video Nativo</label>
+                            <input type="file" id="prov-video" accept="video/*">
+                        </div>
+                    </div>
+
+                    <div class="full-width">
+                        <label><i class="fas fa-map-marker-alt"></i> Ubicación GPS (Haz clic en el mapa)</label>
+                        <input type="text" id="prov-coords" readonly placeholder="Esperando clic...">
+                        <div id="mapAdmin"></div>
+                    </div>
                 </div>
 
-                <div style="margin-top:20px; display:flex; gap:10px; justify-content:flex-end;">
-                    <button type="button" onclick="cerrarModal()" class="btn-secundario">Cancelar</button>
-                    <button type="submit" id="btnGuardar" class="btn-nuevo">Guardar Cambios</button>
+                <div style="margin-top:25px; display:flex; gap:10px; justify-content:flex-end; border-top: 1px solid #eee; padding-top: 20px;">
+                    <button type="button" onclick="cerrarModal()" class="btn-cancel">Cancelar</button>
+                    <button type="submit" id="btn-guardar-prov" class="btn-save">Guardar Productor</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modalProducto" class="modal-pago hidden">
+        <div class="glass-card" style="max-width: 600px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+                <h2>Gestión de Producto</h2>
+                <button onclick="cerrarModal()" style="font-size:1.5rem; border:none; background:none; cursor:pointer;">&times;</button>
+            </div>
+            <form id="formProducto">
+                <input type="hidden" id="prod-id">
+                <div class="form-grid">
+                    <div class="full-width">
+                        <label>Nombre del Producto</label>
+                        <input type="text" name="prod-nombre" id="prod-nombre" required>
+                    </div>
+                    <div>
+                        <label>Precio (USD)</label>
+                        <input type="number" step="0.01" name="prod-precio" id="prod-precio" required>
+                    </div>
+                    <div>
+                        <label>Unidad</label>
+                        <select name="prod-unidad" id="prod-unidad">
+                            <option value="Libra">Libra</option>
+                            <option value="Kilo">Kilo</option>
+                            <option value="Unidad">Unidad/Atado</option>
+                        </select>
+                    </div>
+                    <div class="full-width">
+                        <label>Productor / Dueño</label>
+                        <select name="prod-origin" id="prod-origin" required>
+                            </select>
+                    </div>
+                    <div class="full-width">
+                        <label>Imagen del Producto</label>
+                        <input type="file" id="prod-foto" accept="image/*">
+                    </div>
+                </div>
+                <div style="margin-top:25px; display:flex; gap:10px; justify-content:flex-end;">
+                    <button type="button" onclick="cerrarModal()" class="btn-cancel">Cancelar</button>
+                    <button type="submit" id="btn-guardar-prod" class="btn-save">Guardar Producto</button>
                 </div>
             </form>
         </div>
@@ -121,8 +189,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-storage-compat.js"></script>
     
-    <script src="js/data.js"></script>
-    <script src="js/dashboard.js"></script>
-    <script src="js/admin.js"></script>
-</body>
+    <script src="js/data.js"></script>     
+    <script src="js/admin.js"></script>    
+    </body>
 </html>
