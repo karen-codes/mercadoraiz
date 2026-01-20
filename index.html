@@ -53,26 +53,26 @@
         </section>
 
         <section class="carousel-section">
-    <div class="section-header">
-        <h2>Cosecha del Día</h2>
-        <p>Seleccionamos lo mejor de nuestras fincas para ti</p>
-    </div>
+            <div class="section-header">
+                <h2>Cosecha del Día</h2>
+                <p>Seleccionamos lo mejor de nuestras fincas para ti</p>
+            </div>
 
-    <div class="carousel-container">
-        <button class="carousel-btn prev" onclick="moverCarrusel(-1)">
-            <i class="fas fa-chevron-left"></i>
-        </button>
-        
-        <div class="carousel-window">
-            <div id="carrusel-container" class="carousel-track">
+            <div class="carousel-container">
+                <button class="carousel-btn prev" onclick="moverCarrusel(-1)">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                
+                <div class="carousel-window">
+                    <div id="carrusel-container" class="carousel-track">
+                        </div>
                 </div>
-        </div>
 
-        <button class="carousel-btn next" onclick="moverCarrusel(1)">
-            <i class="fas fa-chevron-right"></i>
-        </button>
-    </div>
-    </section>
+                <button class="carousel-btn next" onclick="moverCarrusel(1)">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </section>
     </main>
 
     <footer class="main-footer">
@@ -81,47 +81,22 @@
                 <h3>Mercado Raíz</h3>
                 <p>Conectando el corazón de Cayambe con tu hogar.</p>
             </div>
-            
             <div class="footer-socials-center">
                 <a href="#"><i class="fab fa-facebook"></i></a>
                 <a href="#"><i class="fab fa-instagram"></i></a>
                 <a href="#"><i class="fab fa-whatsapp"></i></a>
             </div>
-
             <div class="footer-copy-center">
                 <p>&copy; 2026 Mercado Raíz - Identidad y Sabor de Nuestra Tierra.</p>
             </div>
         </div>
     </footer>
 
-    <div id="cart-overlay" class="cart-overlay" onclick="toggleCart()"></div>
-    <div id="side-cart" class="side-cart">
-        <div class="cart-header">
-            <h3>Tu Cosecha (Carrito)</h3>
-            <button onclick="toggleCart()" class="close-btn">&times;</button>
-        </div>
-        <div id="cart-items-container" class="cart-body">
-            </div>
-        <div class="cart-footer">
-            <div class="cart-total">
-                <span>Total:</span>
-                <span id="cart-total-amount">$0.00</span>
-            </div>
-            <a href="carrito.html" class="btn-view-cart">Procesar Pedido</a>
-        </div>
-    </div>
-
-    <div id="floating-cart-btn" class="floating-cart-trigger" onclick="toggleCart()">
-        <i class="fas fa-shopping-basket"></i>
-        <span id="cart-count-badge" class="cart-badge">0</span>
-    </div>
-
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
 
     <script>
-        // Configuración de Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyBqakqg919pu0GjMkaJhntman0n4Q1jnw",
             authDomain: "mercado-raiz.firebaseapp.com",
@@ -131,40 +106,54 @@
             appId: "1:886584284411:web:NDI3ZqYWUtYWNhNS00NzEwLWIxMDktWjNmViYzk4Njly"
         };
         
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
+        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
         window.db = firebase.database();
         window.auth = firebase.auth();
 
-        // Lógica de Interfaz Local
+        // Carga dinámica del carrusel (Solo imágenes)
+        document.addEventListener("DOMContentLoaded", () => {
+            const track = document.getElementById('carrusel-container');
+            
+            db.ref('productos').limitToLast(8).on('value', (snapshot) => {
+                track.innerHTML = "";
+                if(snapshot.exists()){
+                    snapshot.forEach(child => {
+                        const p = child.val();
+                        // Ajustamos a p.imagenUrl que es lo que guardas en el admin
+                        const imgUrl = p.imagenUrl || 'img/default-product.jpg';
+                        
+                        track.innerHTML += `
+                            <div class="carousel-item">
+                                <div class="product-card-simple">
+                                    <img src="${imgUrl}" alt="${p.nombre || 'Producto'}" 
+                                         style="width:280px; height:380px; object-fit:cover; border-radius:15px; cursor:pointer;"
+                                         onclick="window.location.href='productos.html'">
+                                </div>
+                            </div>
+                        `;
+                    });
+                } else {
+                    track.innerHTML = "<p>Cargando productos...</p>";
+                }
+            });
+        });
+
+        // Funciones de navegación
+        let currentScroll = 0;
+        function moverCarrusel(dir) {
+            const track = document.getElementById('carrusel-container');
+            const step = 300; 
+            const maxScroll = track.scrollWidth - track.parentElement.clientWidth;
+            currentScroll += (dir * step);
+            if (currentScroll < 0) currentScroll = 0;
+            if (currentScroll > maxScroll) currentScroll = maxScroll;
+            track.style.transform = `translateX(-${currentScroll}px)`;
+        }
+
         function toggleCart() {
             document.getElementById('side-cart').classList.toggle('open');
             document.getElementById('cart-overlay').classList.toggle('active');
         }
-
-        let currentScroll = 0;
-        function moverCarrusel(dir) {
-            const track = document.getElementById('carrusel-container');
-            const step = 320; // Ancho tarjeta + gap
-            const maxScroll = track.scrollWidth - track.parentElement.clientWidth;
-            
-            currentScroll += (dir * step);
-            if (currentScroll < 0) currentScroll = 0;
-            if (currentScroll > maxScroll) currentScroll = maxScroll;
-            
-            track.style.transform = `translateX(-${currentScroll}px)`;
-        }
-
-        function ejecutarBusqueda() {
-            const query = document.getElementById('searchInput').value;
-            if(query.trim() !== "") {
-                window.location.href = `productos.html?search=${encodeURIComponent(query)}`;
-            }
-        }
     </script>
-
-    <script src="js/data.js"></script>
-    <script src="js/main.js"></script>
-    </body>
+</body>
 </html>
