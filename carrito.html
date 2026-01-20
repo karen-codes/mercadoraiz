@@ -41,15 +41,15 @@
         <div class="container" style="max-width: 900px; margin-bottom: 60px; padding: 0 20px;">
             <div id="lista-carrito" class="category-card" style="padding: 30px; height: auto; cursor: default; text-align: left;">
                 <div class="text-center" id="cart-empty-state">
-                    <p style="color: #888;">Cargando productos...</p>
+                    <p style="color: #888; text-align: center;">Cargando productos...</p>
                 </div>
             </div>
 
             <div id="cart-footer-actions" style="margin-top: 30px; display: none; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
-                <a href="productos.html" style="text-decoration: none; color: var(--pueblo-sage); font-weight: 700;">
+                <a href="productos.html" style="text-decoration: none; color: #8da281; font-weight: 700;">
                     <i class="fas fa-arrow-left"></i> Seguir comprando
                 </a>
-                <button onclick="prepararPago()" class="btn-terracotta" style="width: auto; padding: 15px 50px; cursor: pointer; border: none; border-radius: 50px;">
+                <button onclick="prepararPago()" class="btn-terracotta" style="width: auto; padding: 15px 50px; cursor: pointer; border: none; border-radius: 50px; background: #c6714f; color: white;">
                     Realizar pedido y Pagar
                 </button>
             </div>
@@ -59,14 +59,14 @@
     <div id="modalPago" class="cart-overlay" style="display: none; align-items: center; justify-content: center; z-index: 3000; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);">
         <div class="auth-card" style="max-width: 500px; width: 90%; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto;">
             <div class="auth-header" style="text-align: center;">
-                <h3 style="font-family: 'Playfair Display', serif; color: var(--pueblo-sage); font-size: 1.8rem; margin-bottom: 5px;">Finalizar Pedido</h3>
-                <p id="nombreProveedorPago" style="font-weight: 700; color: var(--pueblo-terracotta); margin-bottom: 15px;">Cargando datos del productor...</p>
+                <h3 style="font-family: 'Playfair Display', serif; color: #8da281; font-size: 1.8rem; margin-bottom: 5px;">Finalizar Pedido</h3>
+                <p id="nombreProveedorPago" style="font-weight: 700; color: #c6714f; margin-bottom: 15px;">Cargando datos del productor...</p>
             </div>
 
-            <div id="qrContainer" style="background: var(--pueblo-cream); padding: 15px; border-radius: 15px; border: 2px dashed var(--pueblo-sage); text-align: center; margin-bottom: 15px;">
+            <div id="qrContainer" style="background: #f4f1ea; padding: 15px; border-radius: 15px; border: 2px dashed #8da281; text-align: center; margin-bottom: 15px;">
                 <p style="font-weight: 700; font-size: 0.9rem; margin-bottom: 10px;">Escanea para pagar:</p>
                 <img id="imgQR" src="" alt="QR de Pago" style="width: 180px; height: 180px; object-fit: contain; background: white; border-radius: 8px; display: none; margin: 0 auto;">
-                <div id="qrPlaceholder"><i class="fas fa-qrcode fa-5x"></i></div>
+                <div id="qrPlaceholder"><i class="fas fa-qrcode fa-5x" style="color: #ccc;"></i><p>QR no disponible</p></div>
             </div>
 
             <div id="datosBancarios" style="font-size: 0.85rem; background: #f9f9f9; padding: 15px; border-radius: 10px; line-height: 1.6; margin-bottom: 15px;">
@@ -75,12 +75,12 @@
 
             <div style="margin-bottom: 20px;">
                 <label style="display: block; font-weight: 700; margin-bottom: 8px; font-size: 0.9rem;">
-                    <i class="fas fa-camera"></i> Adjuntar Comprobante:
+                    <i class="fas fa-camera"></i> Adjuntar Comprobante (Imagen):
                 </label>
                 <input type="file" id="comprobantePago" accept="image/*" style="width: 100%;">
             </div>
 
-            <button id="btnConfirmarPago" onclick="confirmarPedidoFinal()" class="btn-login-header" style="width: 100%; border: none; cursor: pointer; padding: 15px;">
+            <button id="btnConfirmarPago" onclick="confirmarPedidoFinal()" class="btn-login-header" style="width: 100%; border: none; cursor: pointer; padding: 15px; background: #8da281; color: white; border-radius: 5px;">
                 Confirmar Pago
             </button>
             <button onclick="cerrarModal()" style="background:none; border:none; color:#888; cursor:pointer; display:block; margin:15px auto; text-decoration: underline;">
@@ -88,10 +88,6 @@
             </button>
         </div>
     </div>
-
-    <footer class="main-footer">
-        <div class="footer-content"><div class="footer-brand-center"><h3>Mercado Raíz</h3></div></div>
-    </footer>
 
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
@@ -103,102 +99,104 @@
         databaseURL: "https://mercado-raiz-default-rtdb.firebaseio.com",
         projectId: "mercado-raiz",
         storageBucket: "mercado-raiz.firebasestorage.app",
-        messagingSenderId: "886584284411",
         appId: "1:886584284411:web:NDI3ZqYWUtYWNhNS00NzEwLWIxMDktWjNmViYzk4Njly"
       };
       firebase.initializeApp(firebaseConfig);
       const db = firebase.database();
-    </script>
 
-    <script src="js/main.js"></script>
-    <script>
-        document.addEventListener("DOMContentLoaded", renderizarCarritoPagina);
+      document.addEventListener("DOMContentLoaded", renderizarCarritoPagina);
 
-        function renderizarCarritoPagina() {
-            const lista = document.getElementById('lista-carrito');
-            const footerActions = document.getElementById('cart-footer-actions');
-            const datosCarrito = JSON.parse(localStorage.getItem('carrito')) || [];
+      function renderizarCarritoPagina() {
+          const lista = document.getElementById('lista-carrito');
+          const footerActions = document.getElementById('cart-footer-actions');
+          const datosCarrito = JSON.parse(localStorage.getItem('carrito')) || [];
 
-            if (datosCarrito.length === 0) {
-                lista.innerHTML = `<div style="text-align:center; padding:50px;"><h2 style="font-family:'Playfair Display';">Tu canasta está vacía</h2></div>`;
-                footerActions.style.display = 'none';
-                return;
-            }
+          if (datosCarrito.length === 0) {
+              lista.innerHTML = `<div style="text-align:center; padding:50px;"><h2 style="font-family:'Playfair Display';">Tu canasta está vacía</h2><p>Agrega productos desde la tienda.</p></div>`;
+              footerActions.style.display = 'none';
+              return;
+          }
 
-            footerActions.style.display = 'flex';
-            let total = 0;
-            let html = `<div style="overflow-x:auto;"><table style="width:100%; border-collapse:collapse;">
-                <thead><tr style="text-align:left; color: var(--pueblo-sage); border-bottom: 2px solid #eee;">
-                <th style="padding:10px;">Producto</th><th style="padding:10px;">Precio</th><th style="padding:10px;">Cant.</th><th style="padding:10px;">Subtotal</th><th style="padding:10px;"></th></tr></thead><tbody>`;
+          footerActions.style.display = 'flex';
+          let total = 0;
+          let html = `<div style="overflow-x:auto;"><table style="width:100%; border-collapse:collapse;">
+              <thead><tr style="text-align:left; color: #8da281; border-bottom: 2px solid #eee;">
+              <th style="padding:10px;">Producto</th><th style="padding:10px;">Precio</th><th style="padding:10px;">Cant.</th><th style="padding:10px;">Subtotal</th><th style="padding:10px;"></th></tr></thead><tbody>`;
 
-            datosCarrito.forEach(item => {
-                const sub = item.precio * item.cantidad;
-                total += sub;
-                html += `<tr style="border-bottom:1px solid #eee;">
-                    <td style="padding:10px; display:flex; align-items:center; gap:10px;">
-                        <img src="${item.imagen}" style="width:40px; height:40px; border-radius:5px; object-fit:cover;">
-                        <span>${item.nombre}</span>
-                    </td>
-                    <td style="padding:10px;">$${item.precio.toFixed(2)}</td>
-                    <td style="padding:10px;">${item.cantidad}</td>
-                    <td style="padding:10px; font-weight:700;">$${sub.toFixed(2)}</td>
-                    <td style="padding:10px;"><button onclick="quitarDelCarritoPagina('${item.id}')" style="color:red; background:none; border:none; cursor:pointer;"><i class="fas fa-trash"></i></button></td></tr>`;
-            });
-            html += `</tbody></table></div><div style="text-align:right; padding:20px;"><strong>Total: $${total.toFixed(2)}</strong></div>`;
-            lista.innerHTML = html;
-        }
+          datosCarrito.forEach(item => {
+              const sub = item.precio * item.cantidad;
+              total += sub;
+              html += `<tr style="border-bottom:1px solid #eee;">
+                  <td style="padding:10px; display:flex; align-items:center; gap:10px;">
+                      <img src="${item.imagen}" style="width:40px; height:40px; border-radius:5px; object-fit:cover;">
+                      <span>${item.nombre}</span>
+                  </td>
+                  <td style="padding:10px;">$${parseFloat(item.precio).toFixed(2)}</td>
+                  <td style="padding:10px;">${item.cantidad}</td>
+                  <td style="padding:10px; font-weight:700;">$${sub.toFixed(2)}</td>
+                  <td style="padding:10px;"><button onclick="quitarDelCarritoPagina('${item.id}')" style="color:red; background:none; border:none; cursor:pointer;"><i class="fas fa-trash"></i></button></td></tr>`;
+          });
+          html += `</tbody></table></div><div style="text-align:right; padding:20px; font-size:1.2rem;"><strong>Total a pagar: $${total.toFixed(2)}</strong></div>`;
+          lista.innerHTML = html;
+      }
 
-        async function prepararPago() {
-            const datosCarrito = JSON.parse(localStorage.getItem('carrito')) || [];
-            if (datosCarrito.length === 0) return;
+      async function prepararPago() {
+          const datosCarrito = JSON.parse(localStorage.getItem('carrito')) || [];
+          if (datosCarrito.length === 0) return;
 
-            // Tomamos el primer producto para identificar al proveedor (parcela)
-            const idProductor = datosCarrito[0].productorId; 
-            
-            document.getElementById('modalPago').style.display = 'flex';
+          const idProductor = datosCarrito[0].productorId; 
+          if (!idProductor) {
+              alert("Error: No se encontró el ID del productor. Intenta añadir el producto de nuevo.");
+              return;
+          }
+          
+          document.getElementById('modalPago').style.display = 'flex';
 
-            // Consultar Firebase para obtener QR y datos bancarios del productor
-            try {
-                const snapshot = await db.ref(`proveedores/${idProductor}`).once('value');
-                const p = snapshot.val();
+          try {
+              const snapshot = await db.ref(`proveedores/${idProductor}`).once('value');
+              const p = snapshot.val();
 
-                if (p) {
-                    document.getElementById('nombreProveedorPago').innerText = `Pago para: ${p.nombreParcela}`;
-                    document.getElementById('textoBancario').innerHTML = `
-                        <strong>Banco:</strong> ${p.banco}<br>
-                        <strong>Cuenta:</strong> ${p.tipoCuenta} #${p.numeroCuenta}<br>
-                        <strong>Titular:</strong> ${p.titular}<br>
-                        <strong>C.I.:</strong> ${p.cedula}`;
-                    
-                    if (p.urlQR) {
-                        document.getElementById('imgQR').src = p.urlQR;
-                        document.getElementById('imgQR').style.display = 'block';
-                        document.getElementById('qrPlaceholder').style.display = 'none';
-                    }
-                }
-            } catch (e) {
-                console.error("Error cargando proveedor:", e);
-                alert("Error al cargar los datos de pago.");
-            }
-        }
+              if (p) {
+                  document.getElementById('nombreProveedorPago').innerText = `Pago para: ${p.nombreParcela || 'Productor Local'}`;
+                  document.getElementById('textoBancario').innerHTML = `
+                      <strong>Banco:</strong> ${p.banco || 'No registrado'}<br>
+                      <strong>Cuenta:</strong> ${p.tipoCuenta || ''} #${p.numeroCuenta || 'No registrada'}<br>
+                      <strong>Titular:</strong> ${p.titular || p.nombreParcela}<br>
+                      <strong>C.I./RUC:</strong> ${p.cedula || 'N/A'}`;
+                  
+                  if (p.qrUrl || p.urlQR) { // Revisamos ambas posibles llaves
+                      document.getElementById('imgQR').src = p.qrUrl || p.urlQR;
+                      document.getElementById('imgQR').style.display = 'block';
+                      document.getElementById('qrPlaceholder').style.display = 'none';
+                  } else {
+                      document.getElementById('imgQR').style.display = 'none';
+                      document.getElementById('qrPlaceholder').style.display = 'block';
+                  }
+              }
+          } catch (e) {
+              alert("Error al cargar los datos de pago.");
+          }
+      }
 
-        function cerrarModal() { document.getElementById('modalPago').style.display = 'none'; }
+      function cerrarModal() { document.getElementById('modalPago').style.display = 'none'; }
 
-        function quitarDelCarritoPagina(id) {
-            let cart = JSON.parse(localStorage.getItem('carrito')) || [];
-            cart = cart.filter(i => String(i.id) !== String(id));
-            localStorage.setItem('carrito', JSON.stringify(cart));
-            renderizarCarritoPagina();
-        }
+      function quitarDelCarritoPagina(id) {
+          let cart = JSON.parse(localStorage.getItem('carrito')) || [];
+          cart = cart.filter(i => String(i.id) !== String(id));
+          localStorage.setItem('carrito', JSON.stringify(cart));
+          renderizarCarritoPagina();
+          // Actualizar badge si existe en main.js
+          if(typeof actualizarContadorCarrito === 'function') actualizarContadorCarrito();
+      }
 
-        function confirmarPedidoFinal() {
-            const fileInput = document.getElementById('comprobantePago');
-            if (!fileInput.files[0]) return alert("Sube el comprobante.");
-            
-            alert("¡Pedido enviado! Validaremos tu comprobante con el productor.");
-            localStorage.removeItem('carrito');
-            window.location.href = 'index.html';
-        }
+      function confirmarPedidoFinal() {
+          const fileInput = document.getElementById('comprobantePago');
+          if (!fileInput.files[0]) return alert("Por favor, sube una foto de tu comprobante de transferencia.");
+          
+          alert("¡Pedido enviado con éxito! El productor recibirá tu comprobante para procesar la entrega.");
+          localStorage.removeItem('carrito');
+          window.location.href = 'index.html';
+      }
     </script>
 </body>
 </html>

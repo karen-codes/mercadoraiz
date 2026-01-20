@@ -1,4 +1,6 @@
-/* PALETA DE COLORES TIERRA - MERCADO RAÍZ */
+/* ================================================================
+   1. VARIABLES Y CONFIGURACIÓN BASE (Global)
+   ================================================================ */
 :root {
     --pueblo-cream: #FDFBF7;      /* Fondo Orgánico */
     --pueblo-sage: #5D7A54;       /* Verde Salvia */
@@ -21,7 +23,9 @@ body {
     line-height: 1.6;
 }
 
-/* --- HEADER Y NAVEGACIÓN --- */
+/* ================================================================
+   2. HEADER Y NAVEGACIÓN (Todas las páginas)
+   ================================================================ */
 .header {
     background: var(--white);
     padding: 0.8rem 0;
@@ -72,15 +76,17 @@ body {
     color: var(--pueblo-terracotta);
 }
 
-/* BOTÓN DE LOGIN EN HEADER */
 .btn-login-header {
     background-color: var(--pueblo-sage) !important;
     color: white !important;
     padding: 8px 20px !important;
     border-radius: 50px;
     font-size: 0.8rem !important;
+    font-weight: 700 !important;
     box-shadow: 0 4px 10px rgba(93, 122, 84, 0.2);
     margin-left: 10px;
+    text-decoration: none;
+    display: inline-block;
 }
 
 .btn-login-header:hover {
@@ -88,54 +94,72 @@ body {
     transform: translateY(-2px);
 }
 
-/* --- HERO SECTION --- */
+/* ================================================================
+   3. HERO SECTION Y FILTROS (Imagen del Nevado)
+   ================================================================ */
 .hero-professional {
     position: relative;
-    height: 70vh;
-    background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.2)), 
-                url('https://images.unsplash.com/photo-1589147101039-38827790b3b4?q=80&w=2000') center/cover no-repeat;
+    height: 75vh;
+    background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.5)), 
+                url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=2000') center/cover no-repeat;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     color: var(--white);
     text-align: center;
-}
-
-.hero-content {
-    max-width: 800px;
-    padding: 20px;
-}
-
-.hero-badge {
-    background: var(--pueblo-terracotta);
-    padding: 5px 20px;
-    border-radius: 50px;
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    margin-bottom: 20px;
-    display: inline-block;
+    padding: 0 20px;
 }
 
 .hero-content h1 {
     font-family: 'Playfair Display', serif;
-    font-size: 3rem;
-    margin-bottom: 20px;
+    font-size: 3.5rem;
+    margin-bottom: 10px;
+    text-shadow: 0 2px 15px rgba(0,0,0,0.4);
 }
 
-/* --- BUSCADOR --- */
+/* Diseño de Filtros Integrados (Papas, Hortalizas, Frutas) */
+.filter-container {
+    display: flex;
+    gap: 15px;
+    margin-top: 25px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.filter-btn {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    padding: 10px 25px;
+    border-radius: 50px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.filter-btn:hover, .filter-btn.active {
+    background: var(--pueblo-sage);
+    border-color: var(--pueblo-sage);
+    transform: translateY(-3px);
+}
+
+/* ================================================================
+   4. BUSCADOR (Cápsula Integrada)
+   ================================================================ */
 .search-box-professional {
     background: var(--white);
-    padding: 8px;
+    padding: 5px 5px 5px 20px;
     border-radius: 50px;
     display: flex;
+    width: 100%;
     max-width: 550px;
-    margin: 30px auto 0;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    margin-top: 30px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
     align-items: center;
 }
-
-.search-box-professional i { color: #888; margin-left: 15px; }
 
 .search-box-professional input {
     border: none;
@@ -143,61 +167,184 @@ body {
     flex: 1;
     outline: none;
     font-family: 'Montserrat', sans-serif;
+    background: transparent;
+    font-size: 1rem;
 }
 
 .search-box-professional button {
     background: var(--pueblo-sage);
     color: white;
     border: none;
-    padding: 10px 25px;
+    padding: 12px 28px;
     border-radius: 50px;
     cursor: pointer;
-    font-weight: 600;
-}
-
-/* --- CATEGORÍAS --- */
-.quick-categories {
-    padding: 40px 0;
-    margin-top: -40px;
-    position: relative;
-    z-index: 10;
-}
-
-.quick-categories .container {
-    max-width: 1100px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 20px;
-    padding: 0 20px;
-}
-
-.category-card {
-    background: var(--white);
-    padding: 20px;
-    border-radius: 15px;
-    text-align: center;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    font-weight: 700;
     transition: 0.3s;
-    border: 1px solid var(--pueblo-sand);
 }
 
-.category-card:hover { transform: translateY(-5px); border-color: var(--pueblo-sage); }
-.category-card i { font-size: 1.5rem; color: var(--pueblo-terracotta); margin-bottom: 10px; display: block; }
+.search-box-professional button:hover {
+    background: var(--pueblo-terracotta);
+}
 
-/* --- SECCIÓN PRODUCTOS --- */
-.carousel-section { padding: 60px 0; max-width: 1200px; margin: 0 auto; }
-.section-header { text-align: center; margin-bottom: 40px; }
-.section-header h2 { font-family: 'Playfair Display', serif; font-size: 2.2rem; }
+/* ================================================================
+   5. SECCIÓN PRODUCTOS (CARRUSEL VERTICAL PERFECCIONADO)
+   ================================================================ */
+.carousel-section { 
+    padding: 80px 0; 
+    max-width: 850px; 
+    margin: 0 auto; 
+}
 
-/* --- ESTILOS DE AUTENTICACIÓN (LOGIN) - NO TOCAR --- */
+.section-header h2 { 
+    font-family: 'Playfair Display', serif; 
+    font-size: 2.5rem; 
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.products-grid {
+    display: flex;
+    flex-direction: column; 
+    gap: 30px;
+    padding: 20px;
+}
+
+.product-card {
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    border: 1px solid var(--pueblo-sand);
+    display: flex; 
+    flex-direction: row; 
+    width: 100%;
+    height: 240px; /* Altura optimizada */
+    transition: 0.3s ease;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+}
+
+.product-image {
+    width: 40%;
+    height: 100%;
+    flex-shrink: 0;
+}
+
+.product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Evita que la imagen se estire */
+}
+
+.product-info {
+    padding: 30px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.product-info h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+}
+
+.product-price {
+    color: var(--pueblo-terracotta);
+    font-weight: 800;
+    font-size: 1.6rem;
+    margin-bottom: 20px;
+}
+
+.btn-add-cart {
+    width: fit-content;
+    padding: 12px 30px;
+    background-color: var(--pueblo-sage);
+    border-radius: 50px;
+    font-size: 0.9rem;
+}
+
+/* ================================================================
+   6. SECCIÓN PRODUCTOS (CARRUSEL VERTICAL OPTIMIZADO)
+   ================================================================ */
+.carousel-section { 
+    padding: 60px 0; 
+    max-width: 1000px; /* Un poco más ancho para lucir las fotos */
+    margin: 0 auto; 
+}
+
+.products-grid {
+    display: flex;
+    flex-direction: column; 
+    gap: 30px;
+    padding: 20px;
+}
+
+.product-card {
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    border: 1px solid var(--pueblo-sand);
+    display: flex; 
+    flex-direction: row; 
+    width: 100%;
+    height: 300px; /* Aumentamos la altura total de la tarjeta */
+    transition: transform 0.3s ease;
+}
+
+.product-image {
+    /* CAMBIO CLAVE: Ahora la imagen ocupa el 50% de la tarjeta */
+    width: 50%; 
+    height: 100%;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Mantiene la proporción sin deformar */
+    transition: transform 0.5s ease;
+}
+
+.product-card:hover .product-image img {
+    transform: scale(1.1); /* Efecto de zoom suave al pasar el mouse */
+}
+
+.product-info {
+    width: 50%; /* El texto ocupa el otro 50% */
+    padding: 40px; /* Más aire interno para elegancia */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: left;
+}
+
+/* Responsivo: En celulares la imagen vuelve a estar arriba y ser grande */
+@media (max-width: 768px) {
+    .product-card {
+        flex-direction: column;
+        height: auto;
+    }
+    .product-image, .product-info {
+        width: 100%;
+    }
+    .product-image {
+        height: 250px;
+    }
+}
+/* ================================================================
+   7. AUTENTICACIÓN (LOGIN) - RESPETADO ÍNTEGRAMENTE
+   ================================================================ */
 .auth-body {
     background: linear-gradient(rgba(45, 41, 38, 0.5), rgba(45, 41, 38, 0.5)), 
                 url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=2000') center/cover;
-    height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    height: 100vh; display: flex; align-items: center; justify-content: center;
 }
 .auth-wrapper { width: 100%; max-width: 450px; padding: 20px; }
 .auth-card { background: var(--white); padding: 40px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.2); }
@@ -212,192 +359,21 @@ body {
 .auth-footer { margin-top: 25px; text-align: center; font-size: 0.9rem; }
 .auth-switch a { color: var(--pueblo-terracotta); text-decoration: none; font-weight: 700; }
 
-/* --- CARRITO LATERAL (SIDE CART) --- */
+/* ================================================================
+   8. CARRITO Y FOOTER
+   ================================================================ */
 .side-cart {
-    position: fixed;
-    top: 0;
-    right: -400px;
-    width: 380px;
-    height: 100vh;
-    background: var(--white);
-    box-shadow: -5px 0 15px rgba(0,0,0,0.1);
-    z-index: 2000;
-    transition: right 0.4s ease;
-    display: flex;
-    flex-direction: column;
+    position: fixed; top: 0; right: -400px; width: 380px; height: 100vh;
+    background: var(--white); box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+    z-index: 2000; transition: right 0.4s ease; display: flex; flex-direction: column;
 }
 .side-cart.active { right: 0; }
-.cart-header { padding: 20px; background: var(--pueblo-charcoal); color: white; display: flex; justify-content: space-between; align-items: center; }
-.cart-body { flex: 1; padding: 20px; overflow-y: auto; }
-.cart-footer { padding: 20px; border-top: 1px solid var(--pueblo-sand); background: var(--pueblo-cream); }
-.btn-checkout { width: 100%; background: var(--pueblo-sage); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 700; cursor: pointer; }
-
-/* --- BOTÓN FLOTANTE TRIGGER --- */
-.floating-cart-trigger {
-    position: fixed;
-    bottom: 30px;
-    right: 30px;
-    background: var(--pueblo-terracotta);
-    color: white;
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-    cursor: pointer;
-    z-index: 1500;
-    transition: 0.3s;
-}
-.floating-cart-trigger:hover { transform: scale(1.1); background: var(--pueblo-sage); }
-.cart-badge { position: absolute; top: -5px; right: -5px; background: #e74c3c; color: white; font-size: 0.7rem; padding: 4px 8px; border-radius: 50%; border: 2px solid white; }
-
-/* --- OVERLAY --- */
-.cart-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.5);
-    display: none;
-    z-index: 1900;
-}
-.cart-overlay.active { display: block; }
-
-/* --- FOOTER CENTRADO --- */
 .main-footer {
-    background-color: var(--pueblo-charcoal);
-    color: var(--pueblo-cream);
-    padding: 60px 20px 40px;
-    text-align: center;
-    margin-top: 50px;
+    background-color: var(--pueblo-charcoal); color: var(--pueblo-cream);
+    padding: 60px 20px; text-align: center; margin-top: 50px;
 }
-.footer-brand-center h3 { font-family: 'Playfair Display', serif; font-size: 2rem; color: var(--pueblo-sage); margin-bottom: 10px; }
-.footer-socials-center { margin: 25px 0; display: flex; justify-content: center; gap: 30px; }
-.footer-socials-center a { color: var(--pueblo-cream); font-size: 1.5rem; transition: 0.3s; }
-.footer-socials-center a:hover { color: var(--pueblo-terracotta); transform: scale(1.2); }
-.footer-copy-center { margin-top: 30px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; font-size: 0.85rem; opacity: 0.7; }
+.footer-brand-center h3 { font-family: 'Playfair Display', serif; font-size: 2rem; color: var(--pueblo-sage); }
 
-/* UTILS */
+/* UTILIDADES */
+.link-proveedor { color: var(--pueblo-sage); text-decoration: none; font-weight: 600; }
 .hidden { display: none; }
-.text-center { text-align: center; }
-.mt-20 { margin-top: 20px; }
-
-/* Asegura que las imágenes no se salgan de su contenedor */
-.product-image {
-    width: 100%;
-    height: 200px; /* Ajusta la altura a tu gusto */
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: #f9f9f9;
-}
-
-.product-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover; /* Esto evita que se estire feo */
-}
-
-.product-card {
-    border: 1px solid #eee;
-    border-radius: 8px;
-    overflow: hidden; /* Corta cualquier cosa que sobresalga */
-}
-
-.link-proveedor {
-    color: #4a5d23; /* Usa el tono verde de tu logo */
-    text-decoration: none;
-    font-weight: 500;
-    transition: color 0.3s ease;
-}
-
-.link-proveedor:hover {
-    text-decoration: underline;
-    color: #2c3614; /* Un verde más oscuro al pasar el mouse */
-}
-
-/* Contenedor de la cuadrícula de productos */
-.products-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 30px;
-    padding: 20px 0;
-}
-
-/* Tarjeta de producto */
-.product-card {
-    background: white;
-    border-radius: 15px;
-    overflow: hidden;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
-    transition: transform 0.3s ease;
-    border: 1px solid #eee;
-    display: flex;
-    flex-direction: column;
-}
-
-.product-card:hover {
-    transform: translateY(-5px);
-}
-
-/* Imagen del producto: Crucial para que no se vea estirada */
-.product-image {
-    width: 100%;
-    height: 200px; /* Altura fija para uniformidad */
-    overflow: hidden;
-    position: relative;
-}
-
-.product-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover; /* Esto evita que la imagen se estire */
-}
-
-/* Información del producto */
-.product-info {
-    padding: 20px;
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-}
-
-.product-info h3 {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.2rem;
-    margin-bottom: 10px;
-    color: var(--pueblo-charcoal);
-}
-
-.product-price {
-    color: var(--pueblo-terracotta);
-    font-weight: 700;
-    font-size: 1.25rem;
-    margin-bottom: 15px;
-}
-
-.product-price .unit {
-    font-size: 0.9rem;
-    color: #888;
-}
-
-/* Botón Agregar */
-.btn-add-cart {
-    background-color: var(--pueblo-sage);
-    color: white;
-    border: none;
-    padding: 12px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 700;
-    transition: background 0.3s;
-    width: 100%;
-}
-
-.btn-add-cart:hover {
-    background-color: var(--pueblo-terracotta);
-}

@@ -42,44 +42,44 @@
             <div class="container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 40px; padding: 0 20px;">
                 
                 <div class="category-card" style="text-align: left; padding: 40px; height: auto; cursor: default;">
-                    <div style="background: var(--pueblo-cream); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
-                        <i class="fas fa-shopping-basket" style="font-size: 1.5rem; color: var(--pueblo-sage);"></i>
+                    <div style="background: #f4f1ea; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+                        <i class="fas fa-shopping-basket" style="font-size: 1.5rem; color: #8da281;"></i>
                     </div>
                     <h2 style="font-family: 'Playfair Display', serif; margin-bottom: 15px;">Soy Cliente</h2>
                     <p style="margin-bottom: 25px; font-size: 0.9rem; color: #666;">¿Tienes dudas sobre tu pedido o quieres saber más de un producto?</p>
                     
                     <form id="formCliente">
                         <div class="form-group">
-                            <input type="text" id="c_nombre" placeholder="Tu nombre" required class="admin-input">
+                            <input type="text" id="c_nombre" placeholder="Tu nombre" required class="admin-input" style="width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 5px;">
                         </div>
                         <div class="form-group">
-                            <input type="email" id="c_email" placeholder="Tu correo" required class="admin-input">
+                            <input type="email" id="c_email" placeholder="Tu correo" required class="admin-input" style="width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 5px;">
                         </div>
                         <div class="form-group">
-                            <textarea id="c_mensaje" placeholder="¿En qué podemos ayudarte?" rows="4" class="admin-input" style="resize: none;"></textarea>
+                            <textarea id="c_mensaje" placeholder="¿En qué podemos ayudarte?" rows="4" class="admin-input" style="width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 5px; resize: none;"></textarea>
                         </div>
-                        <button type="submit" class="btn-primary-admin" style="text-transform: none;">Enviar Consulta</button>
+                        <button type="submit" class="btn-primary-admin" style="background: #8da281; color: white; border: none; padding: 12px 20px; border-radius: 5px; width: 100%; cursor: pointer;">Enviar Consulta</button>
                     </form>
                 </div>
 
-                <div class="category-card" style="text-align: left; padding: 40px; height: auto; border-color: var(--pueblo-terracotta); cursor: default;">
-                    <div style="background: var(--pueblo-cream); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
-                        <i class="fas fa-tractor" style="font-size: 1.5rem; color: var(--pueblo-terracotta);"></i>
+                <div class="category-card" style="text-align: left; padding: 40px; height: auto; border-color: #c6714f; cursor: default;">
+                    <div style="background: #f4f1ea; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+                        <i class="fas fa-tractor" style="font-size: 1.5rem; color: #c6714f;"></i>
                     </div>
                     <h2 style="font-family: 'Playfair Display', serif; margin-bottom: 15px;">Soy Productor</h2>
                     <p style="margin-bottom: 25px; font-size: 0.9rem; color: #666;">¿Cultivas en Cayambe y quieres vender tus productos con nosotros?</p>
                     
                     <form id="formProductor">
                         <div class="form-group">
-                            <input type="text" id="p_finca" placeholder="Nombre de tu finca o asociación" required class="admin-input">
+                            <input type="text" id="p_finca" placeholder="Nombre de tu finca o asociación" required class="admin-input" style="width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 5px;">
                         </div>
                         <div class="form-group">
-                            <input type="text" id="p_comunidad" placeholder="Comunidad (Ej: Juan Montalvo)" required class="admin-input">
+                            <input type="text" id="p_comunidad" placeholder="Comunidad (Ej: Juan Montalvo)" required class="admin-input" style="width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 5px;">
                         </div>
                         <div class="form-group">
-                            <input type="tel" id="p_whatsapp" placeholder="WhatsApp de contacto" required class="admin-input">
+                            <input type="tel" id="p_whatsapp" placeholder="WhatsApp de contacto" required class="admin-input" style="width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 5px;">
                         </div>
-                        <button type="submit" class="btn-primary-admin" style="background: var(--pueblo-terracotta); text-transform: none;">Postularme como Proveedor</button>
+                        <button type="submit" class="btn-primary-admin" style="background: #c6714f; color: white; border: none; padding: 12px 20px; border-radius: 5px; width: 100%; cursor: pointer;">Postularme como Proveedor</button>
                     </form>
                 </div>
 
@@ -104,64 +104,56 @@
         </div>
     </footer>
 
-    <div id="cart-overlay" class="cart-overlay"></div>
-    <div id="side-cart" class="side-cart">
-        <div class="cart-header">
-            <h3>Tu Cosecha (Carrito)</h3>
-            <button id="close-cart" class="close-btn">&times;</button>
-        </div>
-        <div id="cart-items-container" class="cart-body"></div>
-        <div class="cart-footer">
-            <div class="cart-total">
-                <span>Total:</span>
-                <span id="cart-total-amount">$0.00</span>
-            </div>
-            <button class="btn-checkout">Finalizar Compra</button>
-        </div>
-    </div>
-
-    <div id="floating-cart-btn" class="floating-cart-trigger">
-        <i class="fas fa-shopping-basket"></i>
-        <span id="cart-count-badge" class="cart-badge">0</span>
-    </div>
-
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
 
     <script>
-      const firebaseConfig = {
-        apiKey: "AIzaSyBqakqg919pu0GjMkaJhntman0n4Q1jnw",
-        authDomain: "mercado-raiz.firebaseapp.com",
-        databaseURL: "https://mercado-raiz-default-rtdb.firebaseio.com",
-        projectId: "mercado-raiz",
-        storageBucket: "mercado-raiz.firebasestorage.app",
-        messagingSenderId: "886584284411",
-        appId: "1:886584284411:web:NDI3ZqYWUtYWNhNS00NzEwLWIxMDktWjNmViYzk4Njly"
-      };
+        const firebaseConfig = {
+            apiKey: "AIzaSyBqakqg919pu0GjMkaJhntman0n4Q1jnw",
+            authDomain: "mercado-raiz.firebaseapp.com",
+            databaseURL: "https://mercado-raiz-default-rtdb.firebaseio.com",
+            projectId: "mercado-raiz",
+            storageBucket: "mercado-raiz.firebasestorage.app",
+            appId: "1:886584284411:web:NDI3ZqYWUtYWNhNS00NzEwLWIxMDktWjNmViYzk4Njly"
+        };
 
-      if (!firebase.apps.length) {
-          firebase.initializeApp(firebaseConfig);
-      }
-      window.db = firebase.database(); 
-      window.auth = firebase.auth();
-    </script>
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
-    <script src="js/data.js"></script>
-    <script src="js/main.js"></script>
-    
-    <script>
-        // Lógica simple para manejar envíos de formulario (puedes expandirla luego)
-        document.getElementById('formCliente')?.addEventListener('submit', (e) => {
+        // GUARDAR CONSULTA DE CLIENTE EN FIREBASE
+        document.getElementById('formCliente').addEventListener('submit', (e) => {
             e.preventDefault();
-            alert("Gracias por contactarnos. Un asesor de Mercado Raíz te responderá pronto.");
-            e.target.reset();
+            const nuevaConsulta = {
+                nombre: document.getElementById('c_nombre').value,
+                email: document.getElementById('c_email').value,
+                mensaje: document.getElementById('c_mensaje').value,
+                fecha: new Date().toISOString(),
+                tipo: 'cliente'
+            };
+
+            db.ref('contactos/clientes').push(nuevaConsulta)
+                .then(() => {
+                    alert("Gracias por contactarnos. Tu mensaje ha sido enviado correctamente.");
+                    e.target.reset();
+                });
         });
 
-        document.getElementById('formProductor')?.addEventListener('submit', (e) => {
+        // GUARDAR POSTULACIÓN DE PRODUCTOR EN FIREBASE
+        document.getElementById('formProductor').addEventListener('submit', (e) => {
             e.preventDefault();
-            alert("¡Postulación recibida! Revisaremos los datos de tu finca y te contactaremos por WhatsApp.");
-            e.target.reset();
+            const nuevaPostulacion = {
+                finca: document.getElementById('p_finca').value,
+                comunidad: document.getElementById('p_comunidad').value,
+                whatsapp: document.getElementById('p_whatsapp').value,
+                fecha: new Date().toISOString(),
+                tipo: 'productor'
+            };
+
+            db.ref('contactos/postulaciones').push(nuevaPostulacion)
+                .then(() => {
+                    alert("¡Postulación recibida! Revisaremos los datos de tu finca y te contactaremos por WhatsApp.");
+                    e.target.reset();
+                });
         });
     </script>
 </body>
