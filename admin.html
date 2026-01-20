@@ -12,8 +12,11 @@
     
     <style>
         .hidden { display: none !important; }
-        #mapAdmin { height: 300px; width: 100%; border-radius: 12px; margin-top: 10px; border: 2px solid #eee; }
+        #mapAdmin { height: 250px; width: 100%; border-radius: 12px; margin-top: 10px; border: 2px solid #eee; z-index: 1; }
         .modal-pago { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; display:flex; align-items:center; justify-content:center; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .full-width { grid-column: span 2; }
+        input, textarea, select { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ddd; border-radius: 8px; }
     </style>
 </head>
 <body class="admin-body">
@@ -29,37 +32,77 @@
             <a href="javascript:void(0)" onclick="cargarSeccion('proveedores')" id="link-proveedores" class="nav-item">
                 <i class="fas fa-tractor"></i> <span>Proveedores</span>
             </a>
+            <a href="javascript:void(0)" onclick="cargarSeccion('productos')" id="link-productos" class="nav-item">
+                <i class="fas fa-boxes"></i> <span>Productos</span>
+            </a>
+            <a href="javascript:void(0)" onclick="cargarSeccion('pedidos')" id="link-pedidos" class="nav-item">
+                <i class="fas fa-shopping-basket"></i> <span>Pedidos</span>
+            </a>
+            <a href="javascript:void(0)" onclick="cargarSeccion('mensajeria')" id="link-mensajeria" class="nav-item">
+                <i class="fas fa-comment-dots"></i> <span>Mensajería</span>
+            </a>
             <hr>
+            <a href="index.html" class="nav-item"><i class="fas fa-store"></i> <span>Ver Tienda</span></a>
             <a href="javascript:void(0)" onclick="cerrarSesion()" class="nav-item"><i class="fas fa-power-off"></i> <span>Salir</span></a>
         </nav>
     </aside>
 
     <main class="main-content">
         <header class="header-admin">
-            <h1 id="seccion-titulo">Panel de Control</h1>
+            <h1 id="seccion-titulo">Cargando...</h1>
             <button class="btn-nuevo" onclick="abrirModal()">+ Nuevo Registro</button>
         </header>
         <div id="tabla-contenedor"></div>
     </main>
 
     <div id="modalRegistro" class="modal-pago hidden">
-        <div class="glass-card" style="background:white; padding:25px; border-radius:15px; width:90%; max-width:700px; max-height:90vh; overflow-y:auto;">
+        <div class="glass-card" style="background:white; padding:30px; border-radius:15px; width:95%; max-width:800px; max-height:90vh; overflow-y:auto;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                <h2 id="modalTitulo">Detalles del Registro</h2>
+                <h2 id="modalTitulo">Configuración de Perfil</h2>
                 <button onclick="cerrarModal()" style="font-size:2rem; border:none; background:none; cursor:pointer;">&times;</button>
             </div>
             
             <form id="formRegistro">
-                <div id="camposDinamicos">
-                    <label>Nombre de la Parcela</label>
-                    <input type="text" name="nombreParcela" required>
+                <div class="form-grid">
+                    <div>
+                        <label>Nombre de la Parcela</label>
+                        <input type="text" name="nombreParcela" required>
+                        
+                        <label>WhatsApp (con código país)</label>
+                        <input type="text" name="whatsapp" placeholder="593..." required>
+                        
+                        <label>Nuestra Historia</label>
+                        <textarea name="historia" rows="3"></textarea>
+                    </div>
                     
-                    <label>WhatsApp</label>
-                    <input type="text" name="whatsapp" required>
+                    <div>
+                        <label>Horarios de Atención</label>
+                        <input type="text" name="horarios" placeholder="Ej: Lun-Vie 8am-5pm">
+                        
+                        <label>Métodos de Pago (QR, Transferencia, Efectivo)</label>
+                        <input type="text" name="metodosPago" placeholder="Detalle sus medios de pago">
+                    </div>
+
+                    <div class="full-width" style="background:#f9f9f9; padding:15px; border-radius:10px; margin-top:10px;">
+                        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px;">
+                            <div>
+                                <label>Imagen Portada</label>
+                                <input type="file" id="inputPortada" accept="image/*">
+                            </div>
+                            <div>
+                                <label>Video Parcela</label>
+                                <input type="file" id="inputVideo" accept="video/*">
+                            </div>
+                            <div>
+                                <label>Imagen QR Pago</label>
+                                <input type="file" id="inputQR" accept="image/*">
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 
                 <div id="seccionMapa" class="hidden">
-                    <hr>
+                    <hr style="margin: 20px 0;">
                     <label><b>Ubicación en el Mapa (Clic para marcar)</b></label>
                     <input type="text" id="coordsInput" name="ubicacion" readonly placeholder="Coordenadas automáticas">
                     <div id="mapAdmin"></div>
