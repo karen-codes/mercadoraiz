@@ -1,0 +1,102 @@
+/**
+ * js/admin-modulos/admin-pedidos.js
+ * Gestión de Ventas y Comprobantes - Mercado Raíz 2026
+ */
+
+window.initPedidos = function(contenedor) {
+    // 1. Estructura de la sección
+    contenedor.innerHTML = `
+        <div class="admin-card">
+            <table class="tabla-admin">
+                <thead>
+                    <tr>
+                        <th>Fecha/Hora</th>
+                        <th>Cliente</th>
+                        <th>Total</th>
+                        <th>Estado</th>
+                        <th>Pago</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="lista-pedidos">
+                    <tr><td colspan="6" style="text-align:center;">Cargando pedidos...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    `;
+
+    escucharPedidos();
+};
+
+function escucharPedidos() {
+    // Ordenamos por timestamp para ver los más nuevos primero
+    window.db.ref('pedidos').orderByChild('timestamp').on('value', (snapshot) => {
+        const tbody = document.getElementById('lista-pedidos');
+        if (!tbody) return;
+        tbody.innerHTML = "";
+
+        if (!snapshot.exists()) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No hay pedidos registrados aún.</td></tr>';
+            return;
+        }
+
+        // Convertimos a array para poder invertir el orden (más recientes arriba)
+        const pedidos = [];
+        snapshot.forEach(child => {
+            pedidos.push({ id: child.key, ...child.val() });
+        });
+        pedidos.reverse();
+
+        pedidos.forEach((p) => {
+            const claseEstado = p.estado === 'Pagado' ? 'status-pagado' : 'status-pendiente';
+            
+            tbody.innerHTML += `
+                <tr>
+                    <td><small>${p.fecha}<br>${p.hora}</small></td>
+                    <td>
+                        <strong>${p.cliente?.nombre || 'Anónimo'}</strong><br>
+                        <small>${p.cliente?.telefono || ''}</small>
+                    </td>
+                    <td><strong>$${parseFloat(p.total || 0).toFixed(2)}</strong></td>
+                    <td><span class="status-badge ${claseEstado}">${p.estado}</span></td>
+                    <td>
+                        ${p.urlPago ? 
+                            `<button class="btn-save" style="padding:5px 10px; background:#3498db;" onclick="window.open('${p.urlPago}', '_blank')">
+                                <i class="fas fa-receipt"></i> Ver Ticket
+                             </button>` : 
+                            '<small style="color:gray;">Sin comprobante</small>'
+                        }
+                    </td>
+                    <td>
+                        <div style="display:flex; gap:5px;">
+                            <button class="btn-save" style="padding:5px 10px; background:#27ae60;" onclick="cambiarEstadoPedido('${p.id}', 'Pagado')" title="Marcar como Pagado">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            <button class="btn-save" style="padding:5px 10px; background:#e74c3c;" onclick="eliminarPedido('${p.id}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        });
+    });
+}
+
+/**
+ * Actualiza el estado del pedido (Pendiente -> Pagado)
+ */
+window.cambiarEstadoPedido = function(id, nuevoEstado) {
+    window.db.ref(`pedidos/${id}`).update({ estado: nuevoEstado })
+        .then(() => alert("Estado actualizado"))
+        .catch(e => console.error("Error:", e));
+};
+
+/**
+ * Elimina un pedido de la base de datos
+ */
+window.eliminarPedido = function(id) {
+    if (confirm("¿Seguro que deseas eliminar este registro de pedido?")) {
+        window.db.ref(`pedidos/${id}`).remove();
+    }
+};

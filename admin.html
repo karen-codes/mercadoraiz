@@ -8,19 +8,6 @@
     <link rel="stylesheet" href="css/admin.styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    
-    <style>
-        .hidden { display: none !important; }
-        #mapAdmin { height: 250px; width: 100%; border-radius: 12px; margin-top: 10px; border: 2px solid #ddd; z-index: 1; }
-        .modal-pago { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:9999; display:flex; align-items:center; justify-content:center; }
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .full-width { grid-column: span 2; }
-        input, textarea, select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 6px; font-family: inherit; margin-top: 5px; }
-        label { font-weight: bold; font-size: 0.85rem; color: #444; display: block; margin-top: 10px; }
-        .btn-save { background: #27ae60; color: white; border: none; padding: 10px 25px; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        .btn-cancel { background: #eee; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; }
-        .glass-card { background:white; padding:30px; border-radius:15px; width:95%; max-width:850px; max-height:90vh; overflow-y:auto; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
-    </style>
 </head>
 <body class="admin-body">
 
@@ -38,170 +25,177 @@
             <a href="javascript:void(0)" onclick="cargarSeccion('productos')" id="link-productos" class="nav-item">
                 <i class="fas fa-boxes"></i> <span>Productos</span>
             </a>
+            <a href="javascript:void(0)" onclick="cargarSeccion('pagos')" id="link-pagos" class="nav-item">
+                <i class="fas fa-file-invoice-dollar"></i> <span>Pagos</span>
+            </a>
             <a href="javascript:void(0)" onclick="cargarSeccion('pedidos')" id="link-pedidos" class="nav-item">
                 <i class="fas fa-shopping-basket"></i> <span>Pedidos</span>
-            </a>
-            <a href="javascript:void(0)" onclick="cargarSeccion('mensajes')" id="link-mensajes" class="nav-item">
-                <i class="fas fa-envelope"></i> <span>Mensajes</span>
             </a>
             <a href="javascript:void(0)" onclick="cargarSeccion('usuarios')" id="link-usuarios" class="nav-item">
                 <i class="fas fa-users"></i> <span>Clientes</span>
             </a>
             <hr>
-            <a href="index.html" class="nav-item"><i class="fas fa-store"></i> <span>Ver Tienda</span></a>
+            <a href="index.html" class="nav-item"><i class="fas fa-store"></i> <span>Tienda</span></a>
             <a href="javascript:void(0)" onclick="cerrarSesion()" class="nav-item"><i class="fas fa-power-off"></i> <span>Salir</span></a>
         </nav>
     </aside>
 
     <main class="main-content">
-        <header class="header-admin" style="display: flex; justify-content: space-between; align-items: center; padding: 20px;">
+        <header class="header-admin">
             <h1 id="seccion-titulo">Panel de Control</h1>
             <div id="btn-nuevo-contenedor"></div>
         </header>
         
-        <div id="tabla-contenedor" style="padding: 20px;"></div>
+        <div id="tabla-contenedor"></div>
     </main>
 
-    <div id="modalProveedor" class="modal-pago hidden">
-        <div class="glass-card">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
-                <h2 id="modalTitulo">Perfil del Productor</h2>
-                <button onclick="cerrarModal()" style="font-size:1.5rem; border:none; background:none; cursor:pointer;">&times;</button>
-            </div>
-            
-            <form id="formProveedor">
-                <input type="hidden" id="prov-id"> 
-                <input type="hidden" id="prov-foto-url-actual">
-                <input type="hidden" id="prov-video-url-actual">
-
-                <div class="form-grid">
-                    <div>
-                        <label>Nombre de la Parcela / Finca</label>
-                        <input type="text" name="prov-nombre" id="prov-nombre" required placeholder="Ej: Finca Las Rosas">
-                        
-                        <label>Comunidad / Sector</label>
-                        <input type="text" name="prov-comunidad" id="prov-comunidad" required placeholder="Ej: Cayambe Centro">
-                        
-                        <label>WhatsApp (Ej: 593987654321)</label>
-                        <input type="text" name="prov-tel" id="prov-tel" placeholder="593987654321">
-
-                        <label>Descripción Corta (Home)</label>
-                        <input type="text" name="prov-desc" id="prov-desc" maxlength="100" placeholder="Ej: Fresas orgánicas">
-                    </div>
-                    
-                    <div>
-                        <label>Nuestra Historia</label>
-                        <textarea name="prov-historia" id="prov-historia" rows="4" placeholder="Origen de la finca..."></textarea>
-                        
-                        <label>Horarios de Atención</label>
-                        <input type="text" name="prov-horario" id="prov-horario" placeholder="Ej: Lunes a Viernes 08:00 - 16:00">
-                    </div>
-
-                    <div class="full-width" style="background:#f0f7f4; padding:15px; border-radius:8px; border:1px solid #d4e8df;">
-                        <h4 style="margin:0 0 10px 0; color:#2e7d32;"><i class="fas fa-university"></i> Datos Bancarios</h4>
-                        <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:10px;">
-                            <div>
-                                <label>Banco</label>
-                                <input type="text" name="prov-banco" id="prov-banco">
-                            </div>
-                            <div>
-                                <label>Número de Cuenta</label>
-                                <input type="text" name="prov-num-cta" id="prov-num-cta">
-                            </div>
-                            <div>
-                                <label>Identificación (CI/RUC)</label>
-                                <input type="text" name="prov-dni" id="prov-dni">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="full-width" style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
-                        <div>
-                            <label><i class="fas fa-image"></i> Foto de Perfil</label>
-                            <input type="file" id="prov-foto" accept="image/*">
-                        </div>
-                        <div>
-                            <label><i class="fas fa-video"></i> Video Nativo</label>
-                            <input type="file" id="prov-video" accept="video/*">
-                        </div>
-                    </div>
-
-                    <div class="full-width">
-                        <label><i class="fas fa-map-marker-alt"></i> Ubicación GPS (Haz clic en el mapa)</label>
-                        <input type="text" id="prov-coords" readonly placeholder="Esperando clic...">
-                        <div id="mapAdmin"></div>
-                    </div>
-                </div>
-
-                <div style="margin-top:25px; display:flex; gap:10px; justify-content:flex-end; border-top: 1px solid #eee; padding-top: 20px;">
-                    <button type="button" onclick="cerrarModal()" class="btn-cancel">Cancelar</button>
-                    <button type="submit" id="btn-guardar-prov" class="btn-save">Guardar Productor</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
     <div id="modalProducto" class="modal-pago hidden">
-        <div class="glass-card" style="max-width: 600px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+        <div class="glass-card">
+            <div class="modal-header">
                 <h2>Gestión de Producto</h2>
-                <button onclick="cerrarModal()" style="font-size:1.5rem; border:none; background:none; cursor:pointer;">&times;</button>
+                <button onclick="cerrarModal()" class="btn-close">&times;</button>
             </div>
             <form id="formProducto">
                 <input type="hidden" id="prod-id">
+                <input type="hidden" id="prod-img-actual">
+                
                 <div class="form-grid">
                     <div class="full-width">
                         <label>Nombre del Producto</label>
-                        <input type="text" name="prod-nombre" id="prod-nombre" required>
+                        <input type="text" id="prod-nombre" required placeholder="Ej: Tomate Riñón">
                     </div>
                     <div>
-                        <label>Precio (USD)</label>
-                        <input type="number" step="0.01" name="prod-precio" id="prod-precio" required>
+                        <label>Precio ($)</label>
+                        <input type="number" step="0.01" id="prod-precio" required>
                     </div>
                     <div>
-                        <label>Unidad</label>
-                        <select name="prod-unidad" id="prod-unidad">
-                            <option value="Libra">Libra</option>
-                            <option value="Kilo">Kilo</option>
-                            <option value="Litro">Litro</option>
-                            <option value="Unidad">Unidad/Atado</option>
-                        </select>
+                        <label>Unidad de Venta</label>
+                        <input type="text" id="prod-unidad" placeholder="Ej: Libra, Kg, Atado" required>
                     </div>
                     <div>
                         <label>Categoría</label>
-                        <select name="prod-categoria" id="prod-categoria" required>
-                            <option value="">-- Seleccione --</option>
+                        <select id="prod-categoria">
                             <option value="Verduras">Verduras</option>
                             <option value="Frutas">Frutas</option>
-                            <option value="Procesados">Procesados (Mermeladas/Vinos)</option>
                             <option value="Lácteos">Lácteos</option>
-                            <option value="Granos">Granos y Cereales</option>
+                            <option value="Procesados">Procesados</option>
                         </select>
                     </div>
-                    <div class="full-width">
-                        <label>Productor / Dueño</label>
-                        <select name="prod-origin" id="prod-origin" required>
-                            </select>
+                    <div>
+                        <label>Productor / Origen</label>
+                        <select id="prod-origin" required>
+                            <option value="">Cargando proveedores...</option>
+                        </select>
                     </div>
                     <div class="full-width">
                         <label>Imagen del Producto</label>
                         <input type="file" id="prod-foto" accept="image/*">
                     </div>
+                    <div class="full-width">
+                        <button type="submit" class="btn-save" style="width: 100%;">Guardar Producto</button>
+                    </div>
                 </div>
-                <div style="margin-top:25px; display:flex; gap:10px; justify-content:flex-end;">
-                    <button type="button" onclick="cerrarModal()" class="btn-cancel">Cancelar</button>
-                    <button type="submit" id="btn-guardar-prod" class="btn-save">Guardar Producto</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="modalProveedor" class="modal-pago hidden">
+        <div class="glass-card" style="max-width: 800px;">
+            <div class="modal-header">
+                <h2>Datos del Productor</h2>
+                <button onclick="cerrarModal()" class="btn-close">&times;</button>
+            </div>
+            <form id="formProveedor">
+                <input type="hidden" id="prov-id">
+                <input type="hidden" id="prov-foto-url-actual">
+                <input type="hidden" id="prov-coords">
+
+                <div class="form-grid">
+                    <div>
+                        <label>Nombre / Finca</label>
+                        <input type="text" id="prov-nombre" required>
+                    </div>
+                    <div>
+                        <label>Comunidad / Sector</label>
+                        <input type="text" id="prov-comunidad" required>
+                    </div>
+                    <div>
+                        <label>WhatsApp (Sin +)</label>
+                        <input type="tel" id="prov-tel" required>
+                    </div>
+                    <div>
+                        <label>Cédula/RUC</label>
+                        <input type="text" id="prov-dni">
+                    </div>
+                    <div>
+                        <label>Banco</label>
+                        <input type="text" id="prov-banco" placeholder="Ej: Banco Pichincha">
+                    </div>
+                    <div>
+                        <label>Nº de Cuenta</label>
+                        <input type="text" id="prov-num-cta">
+                    </div>
+                    <div class="full-width">
+                        <label>Historia / Bio</label>
+                        <textarea id="prov-historia" rows="2"></textarea>
+                    </div>
+                    <div class="full-width">
+    <label><i class="fas fa-video"></i> Video de la Finca (MP4 sugerido)</label>
+    <input type="file" id="prov-video" accept="video/*">
+    <input type="hidden" id="prov-video-url-actual">
+    <small style="color: gray;">Este video se mostrará en el perfil público del productor.</small>
+</div>
+
+<div class="full-width">
+    <label>Días y Horarios de Entrega</label>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; background: #f9f9f9; padding: 10px; border-radius: 8px;">
+        <label><input type="checkbox" class="check-dia" value="Lunes"> Lunes</label>
+        <label><input type="checkbox" class="check-dia" value="Martes"> Martes</label>
+        <label><input type="checkbox" class="check-dia" value="Miércoles"> Miércoles</label>
+        <label><input type="checkbox" class="check-dia" value="Jueves"> Jueves</label>
+        <label><input type="checkbox" class="check-dia" value="Viernes"> Viernes</label>
+        <label><input type="checkbox" class="check-dia" value="Sábado"> Sábado</label>
+    </div>
+    <div style="margin-top: 10px; display: flex; gap: 10px; align-items: center;">
+        <span>Rango:</span>
+        <input type="time" id="hora-inicio" value="08:00"> 
+        <span>a</span>
+        <input type="time" id="hora-fin" value="17:00">
+    </div>
+</div>
+                    <div class="full-width">
+                        <label>Foto de Perfil</label>
+                        <input type="file" id="prov-foto" accept="image/*">
+                    </div>
+                    
+                    <div class="full-width">
+                        <label>Ubicación GPS (Arrastra el marcador)</label>
+                        <div id="mapAdmin" style="height: 250px; border-radius: 8px; margin-top: 10px;"></div>
+                    </div>
+
+                    <div class="full-width">
+                        <button type="submit" class="btn-save" style="width: 100%; margin-top: 20px;">Guardar Productor</button>
+                    </div>
                 </div>
             </form>
         </div>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-storage-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
     
-    <script src="js/data.js"></script>     
-    <script src="js/admin.js"></script>    
-    </body>
+    <script src="js/data.js"></script>
+    <script src="js/utils.js"></script> <script src="js/auth.js"></script>
+    
+    <script src="js/admin-modulos/admin-dashboard.js"></script>
+    <script src="js/admin-modulos/admin-proveedor.js"></script>
+    <script src="js/admin-modulos/admin-productos.js"></script>
+    <script src="js/admin-modulos/admin-pedidos.js"></script>
+    <script src="js/admin-modulos/admin-usuarios.js"></script>
+    <script src="js/admin-modulos/admin-pagos.js"></script>
+    
+    <script src="js/admin-modulos/admin-core.js"></script>
+</body>
 </html>
