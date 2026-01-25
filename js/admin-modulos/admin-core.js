@@ -47,6 +47,11 @@ window.cargarSeccion = function(seccion) {
             titulo.innerText = "Control de Ventas";
             if (typeof initPedidos === 'function') initPedidos(contenedor);
             break;
+        
+        case 'mensajes': 
+            titulo.innerText = "Bandeja de Mensajes";
+            if (typeof initMensajes === 'function') initMensajes(contenedor);
+            break;
 
         case 'pagos': 
             titulo.innerText = "Liquidaciones a Productores";
@@ -63,6 +68,30 @@ window.cargarSeccion = function(seccion) {
     }
 }
 
+/**
+ * Abre un modal genérico para mensajes
+ */
+window.abrirModal = function() {
+    // Reutilizamos el modal de productos pero lo limpiamos para el mensaje
+    const modal = document.getElementById('modalProducto');
+    if (modal) {
+        modal.classList.remove('hidden');
+        // Ocultamos el formulario de productos para que no se mezcle
+        document.getElementById('formProducto').style.display = 'none';
+        
+        // Creamos o usamos un contenedor para el texto del mensaje
+        let detalle = document.getElementById('camposDinamicos');
+        if(!detalle) {
+            const div = document.createElement('div');
+            div.id = 'camposDinamicos';
+            modal.querySelector('.glass-card').appendChild(div);
+        }
+    }
+};
+
+// Y en tu cerrarModal existente, asegúrate de volver a mostrar el formulario de productos
+// agregando esta línea al final de window.cerrarModal:
+// document.getElementById('formProducto').style.display = 'block';
 /**
  * Gestión Global de Modales
  */

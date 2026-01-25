@@ -1,9 +1,11 @@
 /**
- * js/mensajes.js - Gestión de Comunicación Mercado Raíz 2026
- * Versión Final: Filtro Doble (Sugerencias vs Solicitudes de Ingreso)
+ * js/tienda/mensajes.js - Gestión de Comunicación Mercado Raíz 2026
+ * Versión Corregida: Sin conflictos de redodeclaración de DB
  */
 
-const db = firebase.database();
+// SOLUCIÓN AL ERROR: Usamos una variable global compartida o la instancia de Firebase
+// No usamos 'const db' para evitar el error "Identifier 'db' has already been declared"
+var dbMensajes = window.db || (typeof firebase !== 'undefined' ? firebase.database() : null);
 
 // 1. RENDERIZADO DE LA TABLA CON FILTROS
 window.renderizarTablaMensajes = function(contenedor) {
@@ -14,9 +16,9 @@ window.renderizarTablaMensajes = function(contenedor) {
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
                 <h3><i class="fas fa-envelope"></i> Bandeja de Entrada</h3>
                 <div id="filtrosMensajes">
-                    <button onclick="filtrarMensajes('todos')" class="btn-filtro active">Todos</button>
-                    <button onclick="filtrarMensajes('Sugerencia')" class="btn-filtro">Quejas/Sugerencias</button>
-                    <button onclick="filtrarMensajes('Solicitud')" class="btn-filtro">Solicitudes de Ingreso</button>
+                    <button onclick="filtrarMensajes(event, 'todos')" class="btn-filtro active">Todos</button>
+                    <button onclick="filtrarMensajes(event, 'Sugerencia')" class="btn-filtro">Quejas/Sugerencias</button>
+                    <button onclick="filtrarMensajes(event, 'Solicitud')" class="btn-filtro">Solicitudes de Ingreso</button>
                 </div>
             </div>
             <div class="table-responsive">
@@ -24,7 +26,7 @@ window.renderizarTablaMensajes = function(contenedor) {
                     <thead>
                         <tr>
                             <th>Estado</th>
-                            <th>Tipo de Formulario</th>
+                            <th>Tipo</th>
                             <th>Remitente / Parcela</th>
                             <th>Asunto / Ubicación</th>
                             <th>Fecha</th>
@@ -44,7 +46,12 @@ window.renderizarTablaMensajes = function(contenedor) {
 
 // 2. CARGA DINÁMICA DE DATOS
 function cargarDatosMensajes(filtro) {
-    db.ref('mensajes').orderByChild('timestamp').on('value', (snapshot) => {
+    if (!dbMensajes) {
+        console.error("Base de datos no inicializada.");
+        return;
+    }
+
+    dbMensajes.ref('mensajes').orderByChild('timestamp').on('value', (snapshot) => {
         const tbody = document.getElementById('lista-mensajes-body');
         if (!tbody) return;
         
@@ -58,7 +65,7 @@ function cargarDatosMensajes(filtro) {
 
                 const leidoEstilo = msg.leido ? 'opacity: 0.7;' : 'font-weight: bold; background: #fffdf0;';
                 const etiquetaTipo = msg.tipo === 'Solicitud' 
-                    ? '<span style="background:#d4edda; color:#155724; padding:3px 8px; border-radius:10px; font-size:10px;">SOLICITUD INGRESO</span>' 
+                    ? '<span style="background:#d4edda; color:#155724; padding:3px 8px; border-radius:10px; font-size:10px;">SOLICITUD</span>' 
                     : '<span style="background:#fff3cd; color:#856404; padding:3px 8px; border-radius:10px; font-size:10px;">QUEJA/SUG.</span>';
                 
                 html += `
@@ -66,11 +73,11 @@ function cargarDatosMensajes(filtro) {
                         <td>${msg.leido ? '✅' : '📩'}</td>
                         <td>${etiquetaTipo}</td>
                         <td>
-                            <strong>${msg.nombre || msg.nombreParcela}</strong><br>
-                            <small>${msg.email || msg.numero}</small>
+                            <strong>${msg.nombre || msg.nombreParcela || 'Anónimo'}</strong><br>
+                            <small>${msg.email || msg.numero || ''}</small>
                         </td>
                         <td>${msg.asunto || msg.direccion || 'Sin asunto'}</td>
-                        <td>${new Date(msg.timestamp).toLocaleDateString()}</td>
+                        <td>${msg.timestamp ? new Date(msg.timestamp).toLocaleDateString() : 'S/F'}</td>
                         <td>
                             <button onclick="verMensajeCompleto('${id}')" class="btn-editar">Ver Detalle</button>
                         </td>
@@ -84,42 +91,52 @@ function cargarDatosMensajes(filtro) {
     });
 }
 
-// 3. DETALLE DEL MENSAJE (ADAPTADO A LOS 2 FORMULARIOS)
+// 3. DETALLE DEL MENSAJE
 window.verMensajeCompleto = async function(id) {
     try {
-        const snapshot = await db.ref(`mensajes/${id}`).once('value');
+        const snapshot = await dbMensajes.ref(`mensajes/${id}`).once('value');
         const msg = snapshot.val();
         if(!msg) return;
 
-        abrirModal(); 
-        document.getElementById('modalTitulo').innerText = msg.tipo === 'Solicitud' ? "Nueva Solicitud de Productor" : "Queja o Sugerencia Recibida";
-        
-        // Configuración de interfaz del modal
-        if(document.getElementById('seccionMapa')) document.getElementById('seccionMapa').classList.add('hidden');
-        if(document.getElementById('btnGuardar')) document.getElementById('btnGuardar').style.display = 'none';
+        // Llamamos a la función global abrirModal definida en admin-core
+        if (typeof window.abrirModal === "function") {
+            window.abrirModal();
+        } else {
+            // Backup si no existe la función
+            document.getElementById('modalProducto')?.classList.remove('hidden');
+        }
 
-        const contenedor = document.getElementById('camposDinamicos');
+        const tituloModal = document.querySelector('#modalProducto h2');
+        if(tituloModal) tituloModal.innerText = msg.tipo === 'Solicitud' ? "Nueva Solicitud de Productor" : "Queja o Sugerencia";
         
-        // Contenido diferenciado por tipo de formulario
+        // Ocultar formulario de productos
+        const formProd = document.getElementById('formProducto');
+        if(formProd) formProd.style.display = 'none';
+
+        // Buscar o crear contenedor de detalles
+        let contenedor = document.getElementById('detalle-mensaje-contenido');
+        if(!contenedor) {
+            contenedor = document.createElement('div');
+            contenedor.id = 'detalle-mensaje-contenido';
+            document.querySelector('#modalProducto .glass-card').appendChild(contenedor);
+        }
+        
         let detalleHTML = '';
         if(msg.tipo === 'Solicitud') {
             detalleHTML = `
-                <div style="background:#e8f5e9; padding:15px; border-radius:8px; margin-bottom:15px;">
-                    <h4 style="margin-top:0; color:#2e7d32;">Datos del Aspirante</h4>
-                    <p><strong>Nombre de Parcela:</strong> ${msg.nombreParcela}</p>
-                    <p><strong>Dirección:</strong> ${msg.direccion}</p>
-                    <p><strong>Teléfono/WhatsApp:</strong> ${msg.numero}</p>
-                    <p><strong>¿Por qué quiere ser parte?:</strong></p>
-                    <div style="background:white; padding:10px; border-radius:5px; border:1px solid #c8e6c9;">${msg.porqueQuiereSerParte || msg.descripcion}</div>
+                <div style="background:#e8f5e9; padding:15px; border-radius:8px; margin-bottom:15px; color: #333;">
+                    <p><strong>Finca/Parcela:</strong> ${msg.nombreParcela}</p>
+                    <p><strong>Ubicación:</strong> ${msg.direccion}</p>
+                    <p><strong>WhatsApp:</strong> ${msg.numero}</p>
+                    <p><strong>Motivación:</strong></p>
+                    <div style="background:white; padding:10px; border-radius:5px; border:1px solid #c8e6c9;">${msg.porqueQuiereSerParte || msg.descripcion || 'Sin descripción'}</div>
                 </div>
             `;
         } else {
             detalleHTML = `
-                <div style="background:#fff9c4; padding:15px; border-radius:8px; margin-bottom:15px;">
-                    <h4 style="margin-top:0; color:#f57f17;">Detalle de Queja/Sugerencia</h4>
+                <div style="background:#fff9c4; padding:15px; border-radius:8px; margin-bottom:15px; color: #333;">
                     <p><strong>Remitente:</strong> ${msg.nombre}</p>
                     <p><strong>Correo:</strong> ${msg.email}</p>
-                    <p><strong>Número:</strong> ${msg.numero}</p>
                     <p><strong>Asunto:</strong> ${msg.asunto}</p>
                     <p><strong>Mensaje:</strong></p>
                     <div style="background:white; padding:10px; border-radius:5px; border:1px solid #fff59d;">${msg.mensaje}</div>
@@ -130,18 +147,19 @@ window.verMensajeCompleto = async function(id) {
         contenedor.innerHTML = `
             ${detalleHTML}
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <a href="https://wa.me/${msg.numero}" target="_blank" 
-                   style="text-decoration:none; background:#25D366; color:white; text-align:center; padding:10px; border-radius:5px;">
-                   Contactar por WhatsApp
+                <a href="https://wa.me/${msg.numero?.replace(/\D/g,'')}" target="_blank" 
+                   style="text-decoration:none; background:#25D366; color:white; text-align:center; padding:12px; border-radius:8px; font-weight:bold;">
+                   <i class="fab fa-whatsapp"></i> Contactar
                 </a>
                 <button onclick="eliminarMensaje('${id}')" 
-                        style="background:#e74c3c; color:white; border:none; padding:10px; border-radius:5px; cursor:pointer;">
-                   Archivar / Eliminar
+                        style="background:#e74c3c; color:white; border:none; padding:12px; border-radius:8px; cursor:pointer; font-weight:bold;">
+                   <i class="fas fa-trash"></i> Eliminar
                 </button>
             </div>
         `;
 
-        await db.ref(`mensajes/${id}`).update({ leido: true });
+        // Marcar como leído en Firebase
+        await dbMensajes.ref(`mensajes/${id}`).update({ leido: true });
 
     } catch (error) {
         console.error("Error al leer mensaje:", error);
@@ -149,15 +167,21 @@ window.verMensajeCompleto = async function(id) {
 };
 
 // 4. FUNCIONES AUXILIARES
-window.filtrarMensajes = function(tipo) {
+window.filtrarMensajes = function(event, tipo) {
     document.querySelectorAll('.btn-filtro').forEach(b => b.classList.remove('active'));
     event.target.classList.add('active');
     cargarDatosMensajes(tipo);
 };
 
 window.eliminarMensaje = async function(id) {
-    if (confirm("¿Deseas eliminar permanentemente este registro de la base de datos?")) {
-        await db.ref(`mensajes/${id}`).remove();
-        cerrarModal();
+    if (confirm("¿Deseas eliminar permanentemente este registro?")) {
+        await dbMensajes.ref(`mensajes/${id}`).remove();
+        if(typeof window.cerrarModal === "function") window.cerrarModal();
+        
+        // Limpiar el contenido específico del mensaje al cerrar
+        const contenido = document.getElementById('detalle-mensaje-contenido');
+        if(contenido) contenido.innerHTML = '';
+        const formProd = document.getElementById('formProducto');
+        if(formProd) formProd.style.display = 'block';
     }
 };

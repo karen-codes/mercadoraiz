@@ -108,53 +108,59 @@
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
 
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyBqakqg919pu0GjMkaJhntman0n4Q1jnw",
-            authDomain: "mercado-raiz.firebaseapp.com",
-            databaseURL: "https://mercado-raiz-default-rtdb.firebaseio.com",
-            projectId: "mercado-raiz",
-            storageBucket: "mercado-raiz.firebasestorage.app",
-            appId: "1:886584284411:web:NDI3ZqYWUtYWNhNS00NzEwLWIxMDktWjNmViYzk4Njly"
+    const firebaseConfig = {
+        apiKey: "AIzaSyBqakqg919pu0GjMkaJhntman0n4Q1jnw",
+        authDomain: "mercado-raiz.firebaseapp.com",
+        databaseURL: "https://mercado-raiz-default-rtdb.firebaseio.com",
+        projectId: "mercado-raiz",
+        storageBucket: "mercado-raiz.firebasestorage.app",
+        appId: "1:886584284411:web:NDI3ZqYWUtYWNhNS00NzEwLWIxMDktWjNmViYzk4Njly"
+    };
+
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // 1. FORMULARIO CLIENTE (Quejas/Sugerencias)
+    document.getElementById('formCliente').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const nuevaConsulta = {
+            nombre: document.getElementById('c_nombre').value,
+            email: document.getElementById('c_email').value,
+            mensaje: document.getElementById('c_mensaje').value,
+            asunto: "Consulta General", // Campo esperado por el Admin
+            timestamp: Date.now(),      // Usamos timestamp numérico para ordenar mejor
+            leido: false,
+            tipo: 'Sugerencia'          // Coincide con el filtro del Admin
         };
 
-        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+        // Guardamos en la ruta unificada 'mensajes'
+        db.ref('mensajes').push(nuevaConsulta)
+            .then(() => {
+                alert("Gracias por contactarnos. Tu mensaje ha sido enviado correctamente.");
+                e.target.reset();
+            });
+    });
 
-        // GUARDAR CONSULTA DE CLIENTE EN FIREBASE
-        document.getElementById('formCliente').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const nuevaConsulta = {
-                nombre: document.getElementById('c_nombre').value,
-                email: document.getElementById('c_email').value,
-                mensaje: document.getElementById('c_mensaje').value,
-                fecha: new Date().toISOString(),
-                tipo: 'cliente'
-            };
+    // 2. FORMULARIO PRODUCTOR (Solicitud de Ingreso)
+    document.getElementById('formProductor').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const nuevaPostulacion = {
+            nombreParcela: document.getElementById('p_finca').value, // Esperado por Admin
+            direccion: document.getElementById('p_comunidad').value, // Esperado por Admin
+            numero: document.getElementById('p_whatsapp').value,    // Esperado por Admin
+            porqueQuiereSerParte: "Postulación desde formulario web",
+            timestamp: Date.now(),
+            leido: false,
+            tipo: 'Solicitud'           // Coincide con el filtro del Admin
+        };
 
-            db.ref('contactos/clientes').push(nuevaConsulta)
-                .then(() => {
-                    alert("Gracias por contactarnos. Tu mensaje ha sido enviado correctamente.");
-                    e.target.reset();
-                });
-        });
-
-        // GUARDAR POSTULACIÓN DE PRODUCTOR EN FIREBASE
-        document.getElementById('formProductor').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const nuevaPostulacion = {
-                finca: document.getElementById('p_finca').value,
-                comunidad: document.getElementById('p_comunidad').value,
-                whatsapp: document.getElementById('p_whatsapp').value,
-                fecha: new Date().toISOString(),
-                tipo: 'productor'
-            };
-
-            db.ref('contactos/postulaciones').push(nuevaPostulacion)
-                .then(() => {
-                    alert("¡Postulación recibida! Revisaremos los datos de tu finca y te contactaremos por WhatsApp.");
-                    e.target.reset();
-                });
-        });
-    </script>
+        // Guardamos en la misma ruta 'mensajes'
+        db.ref('mensajes').push(nuevaPostulacion)
+            .then(() => {
+                alert("¡Postulación recibida! Revisaremos los datos de tu finca y te contactaremos.");
+                e.target.reset();
+            });
+    });
+</script>
 </body>
 </html>
