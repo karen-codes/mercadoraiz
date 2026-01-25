@@ -8,33 +8,32 @@ let proveedores = [];
 let carrito = JSON.parse(localStorage.getItem('carrito')) || [];
 
 document.addEventListener("DOMContentLoaded", () => {
-    // 1. Inicialización de Interfaz
     actualizarInterfazSesion();
     actualizarContadorCarrito();
 
-    // 2. Escucha de Datos en Tiempo Real (Firebase)
     if (window.db) {
-        // Escuchar Proveedores primero para poder cruzar datos en el carrusel
+        // 1. Cargar Proveedores
         window.db.ref('proveedores').on('value', (snapshot) => {
             const data = snapshot.val();
             proveedores = data ? Object.keys(data).map(key => ({...data[key], id: key})) : [];
             
-            // Renderizar sección de productores si existe el contenedor
             if (document.getElementById('contenedor-productores')) {
                 renderizarProductoresHome(proveedores);
             }
 
-            // Una vez tenemos los proveedores, cargamos los productos
+            // 2. Cargar Productos (Anidado para asegurar que proveedores existan)
             window.db.ref('productos').on('value', (prodSnapshot) => {
                 const prodData = prodSnapshot.val();
                 productos = prodData ? Object.keys(prodData).map(key => ({...prodData[key], id: key})) : [];
                 
-                // Renderizado condicional según la página
                 if (document.getElementById("carrusel-container")) {
-                    renderizarCarruselHome(productos);
+                    // Si usas una función específica para renderizar el carrusel
+                    if (typeof renderizarCarruselHome === 'function') {
+                        renderizarCarruselHome(productos);
+                    }
                 }
+                
                 if (document.getElementById("productsGrid")) {
-                    // Esta función suele estar en js/catalogo.js, pero la invocamos aquí
                     if (typeof renderizarCatalogo === 'function') renderizarCatalogo(productos);
                 }
                 
@@ -45,95 +44,60 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 /***********************************
- * RENDERIZADO HOME (Vitrinas)
+ * LÓGICA DE CARRITO (CENTRALIZADA)
  ***********************************/
-
-function renderizarProductoresHome(lista) {
-    const contenedor = document.getElementById('contenedor-productores');
-    if (!contenedor) return;
-
-    contenedor.innerHTML = lista.map(p => `
-        <div class="card-productor">
-            <div class="img-container">
-                <img src="${p.urlFotoPerfil || 'assets/images/no-image.jpg'}" alt="${p.nombreParcela}">
-            </div>
-            <div class="info">
-                <span class="comunidad-tag">${p.comunidad}</span>
-                <h3>${p.nombreParcela}</h3>
-                <p>${p.descripcionCorta || 'Productor local de Cayambe'}</p>
-                <a href="perfil-proveedor.html?id=${p.id}" class="btn-ver">Conocer Historia</a>
-            </div>
-        </div>
-    `).join('');
-}
 
 /**
- * Carga los productos destacados en el carrusel principal
- * Solo muestra la imagen para un diseño más limpio.
+ * Función Maestra para añadir al carrito
+ * id: ID del producto en Firebase
+ * nombre: Nombre a mostrar
+ * precio: Valor numérico
+ * imagen: URL de la foto
+ * idProductor: ID del dueño del producto
  */
-function cargarCarruselDestacados() {
-    const contenedor = document.getElementById('carrusel-container');
-    if (!contenedor) return;
+function addToCart(id, nombre, precio, imagen, idProductor) {
+    // Validar que tengamos datos mínimos
+    if (!id) return;
 
-    // Leemos de la rama 'productos' que es donde guardas en el admin
-    db.ref('productos').limitToLast(10).on('value', (snapshot) => {
-        contenedor.innerHTML = "";
-        
-        if (!snapshot.exists()) {
-            contenedor.innerHTML = "<p>Próximamente nuevas cosechas...</p>";
-            return;
-        }
-
-        snapshot.forEach((child) => {
-            const p = child.val();
-            // Creamos el elemento del carrusel solo con la imagen
-            const slide = document.createElement('div');
-            slide.className = 'carousel-item'; // Asegúrate que esta clase tenga un ancho definido en CSS
-            
-            slide.innerHTML = `
-                <div class="product-card-simple" style="margin: 0 10px;">
-                    <img src="${p.imagenUrl}" 
-                         alt="${p.nombre}" 
-                         title="${p.nombre}"
-                         style="width:280px; height:380px; object-fit:cover; border-radius:15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
-                </div>
-            `;
-            contenedor.appendChild(slide);
-        });
-    });
-}
-
-// Ejecutar al cargar la página
-document.addEventListener('DOMContentLoaded', cargarCarruselDestacados);
-
-/***********************************
- * LÓGICA DE CARRITO GLOBAL
- ***********************************/
-
-function agregarAlCarritoClick(id) {
-    const prod = productos.find(p => p.id === id);
-    if (!prod) return;
-
+    // Buscar si ya existe para incrementar cantidad
     const itemEnCarrito = carrito.find(item => item.id === id);
+
     if (itemEnCarrito) {
         itemEnCarrito.cantidad++;
     } else {
         carrito.push({
-            id: prod.id,
-            nombre: prod.nombreProducto,
-            precio: parseFloat(prod.precio),
-            unidad: prod.unidadMedida,
-            idProductor: prod.idProductor,
+            id: id,
+            nombre: nombre || "Producto",
+            precio: parseFloat(precio) || 0,
+            imagen: imagen || 'assets/images/no-image.jpg',
+            idProductor: idProductor || "general",
             cantidad: 1
         });
     }
     
-    // Feedback visual y guardado
+    // Guardar y Notificar
     localStorage.setItem('carrito', JSON.stringify(carrito));
     actualizarContadorCarrito();
     
-    // Notificación simple
-    alert(`¡${prod.nombreProducto} añadido!`);
+    // Notificación visual rápida
+    alert(`¡${nombre} añadido a tu canasta!`);
+}
+
+/**
+ * Mantiene compatibilidad con botones antiguos que usan agregarAlCarritoClick
+ */
+function agregarAlCarritoClick(id) {
+    const prod = productos.find(p => p.id === id);
+    if (!prod) return;
+
+    // Sincronizamos los nombres de campos de tu Firebase (p.nombre y p.urlFotoProducto)
+    addToCart(
+        prod.id, 
+        prod.nombre || prod.nombreProducto, 
+        prod.precio, 
+        prod.urlFotoProducto || prod.imagenUrl, 
+        prod.idProductor
+    );
 }
 
 function actualizarContadorCarrito() {
@@ -146,20 +110,43 @@ function actualizarContadorCarrito() {
 }
 
 /***********************************
- * SESIÓN Y UTILIDADES
+ * RENDERIZADO HOME
+ ***********************************/
+
+function renderizarProductoresHome(lista) {
+    const contenedor = document.getElementById('contenedor-productores');
+    if (!contenedor) return;
+
+    contenedor.innerHTML = lista.map(p => `
+        <div class="card-productor">
+            <div class="img-container">
+                <img src="${p.fotoUrl || p.urlFotoPerfil || 'assets/images/no-image.jpg'}" alt="${p.nombreParcela}">
+            </div>
+            <div class="info">
+                <span class="comunidad-tag">${p.comunidad || 'Cayambe'}</span>
+                <h3>${p.nombreParcela}</h3>
+                <p>${p.descripcionCorta || 'Productor local de la red Mercado Raíz'}</p>
+                <a href="perfil-proveedor.html?id=${p.id}" class="btn-ver">Conocer Historia</a>
+            </div>
+        </div>
+    `).join('');
+}
+
+/***********************************
+ * UTILIDADES
  ***********************************/
 
 function actualizarInterfazSesion() {
     const sesion = JSON.parse(localStorage.getItem('sesionActiva'));
-    const loginLink = document.getElementById('loginLink');
-    const userMenu = document.getElementById('userMenu');
+    const authContainer = document.getElementById('authContainer');
 
-    if (sesion && loginLink) {
-        loginLink.style.display = 'none';
-        if (userMenu) {
-            userMenu.style.display = 'flex';
-            userMenu.innerHTML = `<i class="fas fa-user-circle"></i> Hola, ${sesion.nombre.split(' ')[0]}`;
-        }
+    if (sesion && authContainer) {
+        authContainer.innerHTML = `
+            <div id="userMenu" style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+                <i class="fas fa-user-circle"></i> 
+                <span>Hola, ${sesion.nombre.split(' ')[0]}</span>
+            </div>
+        `;
     }
 }
 

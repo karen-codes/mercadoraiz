@@ -4,9 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nuestros Productores | Mercado Raíz</title>
+    
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-storage-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
+
+    <script src="js/data.js"></script>
 </head>
 <body>
     <header class="header">
@@ -14,7 +23,6 @@
             <a href="index.html" class="logo">
                 <i class="fas fa-seedling"></i> Mercado Raíz
             </a>
-
             <nav class="main-nav">
                 <a href="index.html">Inicio</a>
                 <a href="productos.html">Productos</a>
@@ -39,7 +47,7 @@
                 <p>Conoce a las familias que cultivan tus alimentos con respeto y tradición.</p>
             </div>
 
-            <div id="providersGrid" class="container" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px; padding: 0 20px;">
+            <div id="providersGrid" class="container" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 30px; padding: 40px 20px;">
                 <p class="text-center" id="loading-msg">Cargando nuestra comunidad...</p>
             </div>
         </section>
@@ -62,74 +70,65 @@
         </div>
     </footer>
 
-    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
-
-    <script>
-      const firebaseConfig = {
-        apiKey: "AIzaSyBqakqg919pu0GjMkaJhntman0n4Q1jnw",
-        authDomain: "mercado-raiz.firebaseapp.com",
-        databaseURL: "https://mercado-raiz-default-rtdb.firebaseio.com",
-        projectId: "mercado-raiz",
-        storageBucket: "mercado-raiz.firebasestorage.app",
-        messagingSenderId: "886584284411",
-        appId: "1:886584284411:web:NDI3ZqYWUtYWNhNS00NzEwLWIxMDktWjNmViYzk4Njly"
-      };
-
-      if (!firebase.apps.length) {
-          firebase.initializeApp(firebaseConfig);
-      }
-      window.db = firebase.database(); 
-      window.auth = firebase.auth();
-    </script>
-
-    <script src="js/data.js"></script>
     <script src="js/main.js"></script>
     
     <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const grid = document.getElementById("providersGrid");
-            
-            // CORRECCIÓN: La ruta correcta según tu base de datos es 'proveedores'
-            const providersRef = db.ref('proveedores');
+    document.addEventListener("DOMContentLoaded", () => {
+        const grid = document.getElementById("providersGrid");
+        
+        // Verificación de emergencia: ¿data.js cargó bien 'db'?
+        if (typeof window.db === 'undefined') {
+            console.error("Error crítico: 'db' no está definido. Revisa data.js");
+            grid.innerHTML = "<p>Error de conexión con la base de datos.</p>";
+            return;
+        }
 
-            providersRef.on('value', (snapshot) => {
-                const data = snapshot.val();
-                grid.innerHTML = ""; // Limpiar el grid
+        // Usamos la referencia global db definida en data.js
+        window.db.ref('proveedores').on('value', (snapshot) => {
+            const data = snapshot.val();
+            grid.innerHTML = ""; 
 
-                if (data) {
-                    Object.keys(data).forEach(id => {
-                        const p = data[id];
-                        
-                        // CORRECCIÓN: Usar los nombres de campos que guardas en proveedores.js
-                        const nombre = p.nombreParcela || "Productor Local";
-                        const foto = p.urlFotoPerfil || 'assets/images/default-finca.jpg';
-                        const comunidad = p.comunidad || "Cayambe";
-                        const desc = p.descripcionCorta || "Dedicados al cultivo tradicional.";
+            if (data) {
+                Object.keys(data).forEach(id => {
+                    const p = data[id];
+                    
+                    // Sincronización con los nombres de campos en tu captura de Realtime Database
+                    const nombre = p.nombreParcela || "Productor Local";
+                    const foto = p.fotoUrl || 'https://via.placeholder.com/450x250?text=Mercado+Raiz'; 
+                    const comunidad = p.comunidad || "Cayambe";
+                    const historia = p.historia ? p.historia.substring(0, 100) + "..." : "Cosecha fresca y orgánica.";
 
-                        const card = `
-                            <div class="category-card" style="padding: 0; overflow: hidden; height: auto; text-align: left; background: white; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-                                <div style="width: 100%; height: 200px; overflow: hidden;">
-                                    <img src="${foto}" alt="${nombre}" style="width: 100%; height: 100%; object-fit: cover;">
-                                </div>
-                                <div style="padding: 20px;">
-                                    <h3 style="font-family: 'Playfair Display', serif; margin-bottom: 10px; color: #333;">${nombre}</h3>
-                                    <p style="color: #666; font-size: 0.85rem; margin-bottom: 10px; line-height: 1.4;">${desc}</p>
-                                    <p style="color: #888; font-size: 0.9rem; margin-bottom: 20px;">
-                                        <i class="fas fa-map-marker-alt" style="color: #8da281;"></i> ${comunidad}
-                                    </p>
-                                    <a href="perfil-proveedor.html?id=${id}" class="btn-terracotta" style="display: block; text-align: center; text-decoration: none; background: #c6714f; color: white; padding: 10px; border-radius: 6px;">Ver Perfil</a>
+                    const card = `
+                        <div class="category-card" style="padding: 0; overflow: hidden; background: white; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+                            <div style="width: 100%; height: 230px; position: relative;">
+                                <img src="${foto}" alt="${nombre}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='https://via.placeholder.com/450x250?text=Imagen+no+disponible'">
+                                <div style="position: absolute; top: 15px; right: 15px; background: rgba(255,255,255,0.9); padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; color: #c6714f;">
+                                    <i class="fas fa-check-circle"></i> Verificado
                                 </div>
                             </div>
-                        `;
-                        grid.innerHTML += card;
-                    });
-                } else {
-                    grid.innerHTML = "<p class='text-center' style='grid-column: 1/-1;'>Aún no tenemos productores registrados en la base de datos.</p>";
-                }
-            });
+                            <div style="padding: 25px;">
+                                <h3 style="font-family: 'Playfair Display', serif; margin-bottom: 10px; color: #2d3436;">${nombre}</h3>
+                                <p style="color: #636e72; font-size: 0.9rem; margin-bottom: 20px; min-height: 3em;">${historia}</p>
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="color: #8da281; font-weight: 700; font-size: 0.85rem;">
+                                        <i class="fas fa-map-marker-alt"></i> ${comunidad}
+                                    </span>
+                                    <a href="perfil-proveedor.html?id=${id}" class="btn-terracotta" style="text-decoration: none; padding: 8px 15px; border-radius: 6px; font-size: 0.9rem;">
+                                        Ver Perfil
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    grid.innerHTML += card;
+                });
+            } else {
+                grid.innerHTML = "<p class='text-center'>No se encontraron productores registrados.</p>";
+            }
+        }, (error) => {
+            console.error("Error de lectura en Firebase:", error);
         });
+    });
     </script>
 </body>
 </html>

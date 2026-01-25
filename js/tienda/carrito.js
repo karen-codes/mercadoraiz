@@ -1,117 +1,162 @@
 /**
- * js/carrito.js - Gestión de Compras y Pagos
- * Mercado Raíz 2026
+ * js/tienda/carrito.js - Gestión de Interfaz y Pagos
  */
 
-let carrito = JSON.parse(localStorage.getItem('carrito')) || [];
-
-// 1. RENDERIZAR EL CARRITO
-function dibujarCarrito() {
+// 1. Dibujar el carrito en la tabla
+window.dibujarCarrito = function() {
     const tabla = document.getElementById('lista-carrito');
-    const totalEl = document.getElementById('total-carrito');
-    if (!tabla) return;
+    const totalTxt = document.getElementById('total-precio');
+    const footer = document.getElementById('cart-footer-actions');
+    
+    // Obtenemos el carrito global (definido en main.js) o de localStorage
+    const carritoActual = JSON.parse(localStorage.getItem('carrito')) || [];
 
-    if (carrito.length === 0) {
-        tabla.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:30px;">Tu canasta está vacía.</td></tr>';
-        totalEl.innerText = "0.00";
+    if (carritoActual.length === 0) {
+        if (tabla) tabla.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:40px;">Tu canasta está fresca pero vacía.</td></tr>';
+        if (footer) footer.style.display = 'none';
+        if (totalTxt) totalTxt.innerText = "Total: $0.00";
         return;
     }
 
+    if (footer) footer.style.display = 'flex';
+    
     let total = 0;
-    tabla.innerHTML = carrito.map((item, index) => {
-        total += item.precio * item.cantidad;
+    tabla.innerHTML = carritoActual.map((item, index) => {
+        const subtotal = item.precio * item.cantidad;
+        total += subtotal;
         return `
-            <tr>
-                <td>${item.nombre}</td>
-                <td>$${item.precio.toFixed(2)}</td>
-                <td>
-                    <input type="number" value="${item.cantidad}" min="1" 
-                           onchange="actualizarCantidad(${index}, this.value)" style="width:50px;">
+            <tr style="border-bottom: 1px solid #eee;">
+                <td style="padding: 15px; display: flex; align-items: center; gap: 15px;">
+                    <img src="${item.imagen}" style="width: 50px; height: 50px; border-radius: 8px; object-fit: cover;">
+                    <span style="font-weight: bold;">${item.nombre}</span>
                 </td>
-                <td>$${(item.precio * item.cantidad).toFixed(2)}</td>
-                <td><button onclick="eliminarDelCarrito(${index})" style="color:red; border:none; background:none; cursor:pointer;"><i class="fas fa-times"></i></button></td>
+                <td style="padding: 15px;">$${parseFloat(item.precio).toFixed(2)}</td>
+                <td style="padding: 15px;">${item.cantidad}</td>
+                <td style="padding: 15px; font-weight: bold;">$${subtotal.toFixed(2)}</td>
+                <td style="padding: 15px;">
+                    <button onclick="window.eliminarDelCarrito(${index})" style="color: #e74c3c; background: none; border: none; cursor: pointer; font-size: 1.1rem;">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </td>
             </tr>
         `;
     }).join('');
 
-    totalEl.innerText = total.toFixed(2);
+    if (totalTxt) totalTxt.innerText = `Total: $${total.toFixed(2)}`;
+};
+
+// 2. Eliminar producto
+window.eliminarDelCarrito = function(index) {
+    let carritoActual = JSON.parse(localStorage.getItem('carrito')) || [];
+    carritoActual.splice(index, 1);
+    localStorage.setItem('carrito', JSON.stringify(carritoActual));
     
-    // Al cargar el carrito, buscamos los datos de pago del proveedor
-    cargarDatosPagoProveedor();
-}
+    window.dibujarCarrito();
+    // Actualizar el contador del header si existe la función en main.js
+    if (window.actualizarContadorCarrito) window.actualizarContadorCarrito();
+};
 
-// 2. OBTENER DATOS DE PAGO DEL PROVEEDOR (Vínculo Crítico)
-async function cargarDatosPagoProveedor() {
-    if (carrito.length === 0) return;
+// 3. Manejo del Modal de Pago
+window.abrirCheckout = function() {
+    const modal = document.getElementById('modalPago');
+    const content = document.getElementById('checkout-content');
+    const sesion = JSON.parse(localStorage.getItem('sesionActiva'));
 
-    // Tomamos el idProductor del primer item (asumiendo compra a un solo productor por vez)
-    const idProductor = carrito[0].idProductor;
-    const infoPagoDiv = document.getElementById('info-pago-proveedor');
-
-    try {
-        const snap = await db.ref(`proveedores/${idProductor}`).once('value');
-        const pro = snap.val();
-
-        if (pro && infoPagoDiv) {
-            infoPagoDiv.innerHTML = `
-                <div style="background:#f9f9f9; padding:15px; border-radius:10px; margin-top:20px; border:1px solid #ddd;">
-                    <h4 style="margin-top:0; color:#27ae60;"><i class="fas fa-university"></i> Datos de Pago para: ${pro.nombreParcela}</h4>
-                    <p><strong>Banco:</strong> ${pro.pagos.transferencia.banco}</p>
-                    <p><strong>Tipo:</strong> ${pro.pagos.transferencia.tipoCuenta}</p>
-                    <p><strong>Cta:</strong> ${pro.pagos.transferencia.numeroCuenta}</p>
-                    <p><strong>ID:</strong> ${pro.pagos.transferencia.identificacion}</p>
-                    <hr>
-                    <p style="font-size:0.9rem; color:#666;">Una vez hecha la transferencia, sube la foto del comprobante abajo.</p>
+    if (!sesion) {
+        content.innerHTML = `
+            <div style="text-align: center; padding: 20px;">
+                <i class="fas fa-lock" style="font-size: 3rem; color: #8da281; margin-bottom: 20px;"></i>
+                <h2 style="font-family: 'Playfair Display';">Inicio de Sesión Requerido</h2>
+                <p>Para procesar tu pago de forma segura, debes ingresar a tu cuenta.</p>
+                <a href="login.html" class="btn-terracotta" style="display: inline-block; margin-top: 20px; text-decoration: none; padding: 12px 30px; border-radius: 5px;">
+                    Iniciar Sesión Ahora
+                </a>
+            </div>
+        `;
+    } else {
+        content.innerHTML = `
+            <h2 style="font-family: 'Playfair Display'; color: #8da281; margin-bottom: 20px;">Finalizar Pedido</h2>
+            <div style="background: #f9fbf9; border: 2px solid #8da281; padding: 20px; border-radius: 15px; margin-bottom: 20px;">
+                <h3 style="margin-top:0; color: #27ae60;">Pago a Mercado Raíz</h3>
+                <p><strong>Banco:</strong> Produbanco</p>
+                <p><strong>Cuenta:</strong> Corriente - 123456789</p>
+                <p><strong>RUC:</strong> 1712345678001</p>
+                <hr style="border: 0; border-top: 1px solid #ddd; margin: 15px 0;">
+                <p style="font-size: 0.9rem;">Transfiere y adjunta la foto del comprobante abajo.</p>
+                <div style="text-align:center;">
+                    <img src="assets/images/qr-pago.png" style="width:160px; border-radius:10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
                 </div>
-            `;
-        }
-    } catch (e) {
-        console.error("Error al cargar datos de pago:", e);
-    }
-}
+            </div>
 
-// 3. FINALIZAR COMPRA Y SUBIR COMPROBANTE
-async function finalizarPedido() {
-    const btn = document.getElementById('btn-comprar');
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-weight: bold; margin-bottom: 10px;">Subir Comprobante:</label>
+                <input type="file" id="comprobante-file" accept="image/*" style="width: 100%;">
+            </div>
+
+            <button id="btn-comprar" onclick="window.ejecutarFinalizarPedido()" class="btn-terracotta" style="width: 100%; padding: 15px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold;">
+                Confirmar y Enviar Pedido
+            </button>
+        `;
+    }
+    modal.style.display = 'flex';
+};
+
+window.cerrarCheckout = function() {
+    document.getElementById('modalPago').style.display = 'none';
+};
+
+// 4. Lógica de envío final a Firebase
+window.ejecutarFinalizarPedido = async function() {
+    // 1. Recuperar sesión con múltiples validaciones
+    const rawSesion = localStorage.getItem('sesionActiva') || localStorage.getItem('user');
+    const sesion = rawSesion ? JSON.parse(rawSesion) : null;
+    
+    // 2. Validar que el usuario exista realmente
+    if (!sesion || (!sesion.uid && !sesion.id)) {
+        alert("Error de sesión: No se encontró tu identificador de usuario. Por favor, cierra sesión e ingresa nuevamente.");
+        return;
+    }
+
     const fotoInput = document.getElementById('comprobante-file');
-    const clienteNombre = document.getElementById('cliente-nombre').value;
-    const clienteWhatsApp = document.getElementById('cliente-tel').value;
+    const btn = document.getElementById('btn-comprar');
+    const carritoActual = JSON.parse(localStorage.getItem('carrito')) || [];
 
     if (!fotoInput.files[0]) {
-        alert("Por favor, sube la foto de tu comprobante de pago.");
+        alert("Por favor, adjunta la foto del comprobante de transferencia.");
         return;
     }
 
-    if (!clienteNombre || !clienteWhatsApp) {
-        alert("Completa tus datos de contacto.");
-        return;
-    }
+    try {
+        btn.disabled = true;
+        btn.innerText = "Procesando...";
 
-    btn.disabled = true;
-    btn.innerText = "Procesando pedido...";
+        // 3. Mapeo seguro de datos (evita el 'undefined' en Firebase)
+        const pedidoData = {
+            clienteUid: sesion.uid || sesion.id, // Usa cualquiera de los dos que esté disponible
+            clienteNombre: sesion.nombre || "Usuario Mercado Raíz",
+            clienteEmail: sesion.email || "S/N",
+            items: carritoActual,
+            total: carritoActual.reduce((sum, item) => sum + (item.precio * item.cantidad), 0),
+            metodoPago: "Transferencia Mercado Raíz",
+            fechaPedido: new Date().toISOString()
+        };
 
-    const pedidoData = {
-        cliente: clienteNombre,
-        telefono: clienteWhatsApp,
-        total: carrito.reduce((sum, item) => sum + (item.precio * item.cantidad), 0),
-        items: carrito,
-        idProductor: carrito[0].idProductor, // Vinculamos el pedido al productor
-        estado: "Pendiente"
-    };
+        console.log("Datos del pedido listos para enviar:", pedidoData);
 
-    // Llamamos a la función de data.js que ya revisamos
-    const resultado = await guardarPedidoFinal(pedidoData, fotoInput.files[0]);
+        const resultado = await window.guardarPedidoFinal(pedidoData, fotoInput.files[0]);
 
-    if (resultado.success) {
-        alert("¡Pedido enviado con éxito! El productor validará tu pago pronto.");
-        localStorage.removeItem('carrito');
-        window.location.href = "confirmacion.html";
-    } else {
-        alert("Error al enviar pedido: " + resultado.error);
+        if (resultado.success) {
+            localStorage.removeItem('carrito');
+            alert("¡Pedido enviado con éxito! Validaremos tu pago pronto.");
+            window.location.href = "index.html";
+        } else {
+            throw new Error(resultado.error);
+        }
+
+    } catch (error) {
+        console.error("Error crítico al finalizar pedido:", error);
+        alert("Error al finalizar: " + error.message);
         btn.disabled = false;
-        btn.innerText = "Reintentar";
+        btn.innerText = "Reintentar Compra";
     }
-}
-
-// Inicializar
-document.addEventListener('DOMContentLoaded', dibujarCarrito);
+};

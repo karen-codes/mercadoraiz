@@ -377,3 +377,17 @@ body {
 /* UTILIDADES */
 .link-proveedor { color: var(--pueblo-sage); text-decoration: none; font-weight: 600; }
 .hidden { display: none; }
+
+/* Asegura que el mapa siempre sea visible y esté por encima de otros elementos */
+#mapa-prov {
+    height: 300px !important;
+    width: 100% !important;
+    display: block !important;
+    background: #f0f0f0; /* Color de fondo mientras carga */
+}
+
+/* Evita que los iconos de Leaflet se rompan con otros estilos globales */
+.leaflet-container {
+    z-index: 10;
+}
+

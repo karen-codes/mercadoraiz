@@ -4,29 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Perfil del Productor | Mercado Raíz</title>
+    
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-storage-compat.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script src="js/data.js"></script>
+    <script src="js/tienda/proveedor.js"></script>
 </head>
 <body>
     <header class="header">
         <div class="header-container">
-            <a href="index.html" class="logo">
-                <i class="fas fa-seedling"></i> Mercado Raíz
-            </a>
-
+            <a href="index.html" class="logo"><i class="fas fa-seedling"></i> Mercado Raíz</a>
             <nav class="main-nav">
                 <a href="index.html">Inicio</a>
                 <a href="productos.html">Productos</a>
                 <a href="proveedor.html" class="active">Proveedores</a>
-                <a href="contacto.html">Contacto</a>
-                <a href="calidad.html">Calidad</a>
-                <a href="carrito.html">Carrito</a>
-                
                 <div class="auth-buttons" id="authContainer">
                     <a href="login.html" id="loginLink" class="btn-login-header">Iniciar Sesión</a>
-                    <a href="#" id="logoutLink" onclick="cerrarSesion()" class="btn-logout hidden">Cerrar Sesión</a>
                 </div>
             </nav>
         </div>
@@ -34,166 +36,127 @@
 
     <main class="container" style="padding-top: 40px; padding-bottom: 60px;">
         <div style="margin-bottom: 30px;">
-            <a href="proveedor.html" style="text-decoration: none; color: var(--pueblo-sage); font-weight: 700;">
+            <a href="proveedor.html" style="text-decoration: none; color: #8da281; font-weight: 700;">
                 <i class="fas fa-arrow-left"></i> Volver a Proveedores
             </a>
         </div>
 
         <div class="section-header" style="text-align: left; margin-bottom: 40px;">
-            <span class="hero-badge" id="p-comunidad" style="margin-bottom: 10px;">Comunidad</span>
-            <h1 id="p-nombre" style="font-family: 'Playfair Display', serif; font-size: 3.5rem; color: var(--pueblo-charcoal); margin-bottom: 5px;">Cargando...</h1>
-            <p id="p-descripcion" style="font-size: 1.4rem; color: var(--pueblo-sage); font-style: italic; margin-top: 0;"></p>
+            <span class="hero-badge" id="p-comunidad" style="margin-bottom: 10px; display: inline-block;">Comunidad</span>
+            <h1 id="p-nombre">Cargando...</h1>
+            <p id="p-descripcion" style="font-size: 1.2rem; color: #8da281; font-style: italic;"></p>
         </div>
 
-        <div class="perfil-grid" style="display: grid; grid-template-columns: 2fr 1fr; gap: 40px;">
-            <div class="col-main">
-                <section class="category-card" style="padding: 40px; height: auto; cursor: default; margin-bottom: 30px; text-align: left;">
-                    <h3 style="font-family: 'Playfair Display', serif; color: var(--pueblo-sage); margin-bottom: 20px; font-size: 1.8rem;">Nuestra Historia</h3>
-                    <p id="p-historia" style="line-height: 1.8; color: var(--pueblo-charcoal); white-space: pre-line;"></p>
+        <div class="perfil-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 40px;">
+            <div class="col-main" style="grid-column: span 2;">
+                <section class="category-card" style="padding: 30px; background: white; border-radius: 15px;">
+                    <h3 style="font-family: 'Playfair Display', serif; color: #c6714f; margin-bottom: 20px;">Nuestra Historia</h3>
+                    <p id="p-historia" style="line-height: 1.8; color: #636e72; white-space: pre-line;"></p>
                 </section>
 
-                <section class="category-card" style="padding: 40px; height: auto; cursor: default; text-align: left;">
-                    <h3 style="font-family: 'Playfair Display', serif; color: var(--pueblo-sage); margin-bottom: 20px; font-size: 1.8rem;">Labores en la Parcela</h3>
-                    <div id="video-container" style="border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1); background: #000;">
-                        <video id="p-video-local" controls width="100%" style="display: block;">
+                <section class="category-card" style="padding: 20px; background: white; border-radius: 15px; margin-top:30px;">
+                    <h3 style="font-family: 'Playfair Display', serif; color: #c6714f; margin-bottom: 20px;">Labores en la Parcela</h3>
+                    <div id="video-container" style="border-radius: 12px; overflow: hidden; background: #000; aspect-ratio: 16/9;">
+                        <video id="p-video-local" controls width="100%">
                             <source id="video-source" src="" type="video/mp4">
-                            Tu navegador no soporta videos.
                         </video>
                     </div>
                 </section>
             </div>
 
             <div class="col-side">
-                <section class="category-card" style="padding: 30px; height: auto; cursor: default; margin-bottom: 30px; text-align: left;">
-                    <h3 style="font-family: 'Playfair Display', serif; color: var(--pueblo-sage); margin-bottom: 15px;">Ubicación</h3>
-                    <div id="mapa-prov" style="height: 300px; border-radius: 15px; margin-bottom: 15px; border: 1px solid var(--pueblo-sand);"></div>
-                    <p id="p-parcela" style="font-weight: 700; color: var(--pueblo-terracotta); font-size: 0.9rem;">
+                <section class="category-card" style="padding: 25px; background: white; margin-bottom: 30px;">
+                    <h3 style="font-family: 'Playfair Display', serif; color: #c6714f; margin-bottom: 15px;">Ubicación</h3>
+                    <div id="mapa-prov" style="height: 300px; border-radius: 12px; border: 1px solid #eee;"></div>
+                    <p id="p-parcela" style="font-weight: 700; color: #c6714f; margin-top:15px;">
                         <i class="fas fa-map-marker-alt"></i> Cargando ubicación...
                     </p>
                 </section>
                 
-                <section class="category-card" style="padding: 30px; height: auto; cursor: default; text-align: left; background-color: var(--pueblo-sand);">
-                    <h3 style="font-family: 'Playfair Display', serif; color: var(--pueblo-sage); margin-bottom: 15px;">Información de Entrega</h3>
-                    <p style="margin-bottom: 10px;"><i class="fas fa-clock"></i> <strong>Cosecha/Horario:</strong> <span id="p-horario">Cargando...</span></p>
-                    <p><i class="fas fa-wallet"></i> <strong>Pagos:</strong> <span id="p-pagos">Efectivo / Transferencia</span></p>
+                <section class="category-card" style="padding: 25px; background-color: #fdfaf8; border: 1px dashed #c6714f;">
+                    <h3 style="font-family: 'Playfair Display', serif; color: #c6714f; margin-bottom: 15px;">Información de Entrega</h3>
+                    <p><i class="fas fa-clock"></i> <strong>Horario:</strong> <br><span id="p-horario"></span></p>
                 </section>
             </div>
         </div>
 
-        <div style="margin-top: 60px;">
-            <h2 class="section-title" style="font-family: 'Playfair Display', serif; font-size: 2.5rem; margin-bottom: 40px; text-align: center;">Productos de esta finca</h2>
-            <div class="products-grid" id="productos-productor-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 30px;">
-                </div>
+        <div style="margin-top: 80px;">
+            <h2 style="text-align: center; font-family: 'Playfair Display';">Productos de esta finca</h2>
+            <div id="productos-productor-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 25px;"></div>
         </div>
     </main>
 
-    <footer class="main-footer">
-        <div class="footer-content">
-            <div class="footer-brand-center">
-                <h3>Mercado Raíz</h3>
-                <p>Cayambe, Ecuador - Conectando el corazón del campo con tu hogar.</p>
-            </div>
-            <div class="footer-socials-center">
-                <a href="#"><i class="fab fa-facebook"></i></a>
-                <a href="#"><i class="fab fa-instagram"></i></a>
-                <a href="#"><i class="fab fa-whatsapp"></i></a>
-            </div>
-            <div class="footer-copy-center">
-                <p>&copy; 2026 Mercado Raíz - Identidad y Sabor de Nuestra Tierra.</p>
-            </div>
-        </div>
-    </footer>
-
-    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-storage-compat.js"></script>
+    <script src="js/main.js"></script>
 
     <script>
-      const firebaseConfig = {
-        apiKey: "AIzaSyBqakqg919pu0GjMkaJhntman0n4Q1jnw",
-        authDomain: "mercado-raiz.firebaseapp.com",
-        databaseURL: "https://mercado-raiz-default-rtdb.firebaseio.com",
-        projectId: "mercado-raiz",
-        storageBucket: "mercado-raiz.firebasestorage.app",
-        messagingSenderId: "886584284411",
-        appId: "1:886584284411:web:NDI3ZqYWUtYWNhNS00NzEwLWIxMDktWjNmViYzk4Njly"
-      };
+        document.addEventListener("DOMContentLoaded", () => {
+            if (typeof db === 'undefined') {
+                console.error("La base de datos no está inicializada.");
+                return;
+            }
 
-      if (!firebase.apps.length) {
-          firebase.initializeApp(firebaseConfig);
-      }
-      window.db = firebase.database(); 
-      window.auth = firebase.auth();
-      window.storage = firebase.storage();
+            const urlParams = new URLSearchParams(window.location.search);
+            const providerId = urlParams.get('id');
 
-      // --- LOGICA DE CARGA DE DATOS ---
-      const urlParams = new URLSearchParams(window.location.search);
-      const providerId = urlParams.get('id');
+            if (!providerId) {
+                window.location.href = 'proveedor.html';
+                return;
+            }
 
-      if (providerId) {
-          // 1. Datos del Proveedor (Historia, Horario, etc.)
-          db.ref('proveedores/' + providerId).on('value', (snapshot) => {
-              const p = snapshot.val();
-              if (p) {
-                  document.getElementById('p-nombre').innerText = p.nombreParcela || "Productor";
-                  document.getElementById('p-comunidad').innerText = p.comunidad || "Cayambe";
-                  document.getElementById('p-descripcion').innerText = p.descripcionCorta || "";
-                  document.getElementById('p-historia').innerText = p.historia || "Próximamente más sobre nuestra historia.";
-                  document.getElementById('p-horario').innerText = p.horario || "Lun-Vie 8:00 - 17:00";
-                  document.getElementById('p-parcela').innerHTML = `<i class="fas fa-map-marker-alt"></i> Parcela: ${p.nombreParcela}`;
-                  
-                  if (p.videoUrl) {
-                      const v = document.getElementById('p-video-local');
-                      document.getElementById('video-source').src = p.videoUrl;
-                      v.load();
-                  }
-              }
-          });
+            // CARGAR DATOS DEL PROVEEDOR
+            db.ref('proveedores/' + providerId).on('value', (snapshot) => {
+                const p = snapshot.val();
+                if (p) {
+                    if (typeof llenarDatosProveedor === 'function') {
+                        llenarDatosProveedor(p);
+                    }
+                    document.getElementById('p-parcela').innerHTML = `<i class="fas fa-map-marker-alt"></i> Parcela: ${p.nombreParcela || 'No definida'}`;
+                }
+            });
 
-          // 2. Productos de esta finca específica
-          db.ref('productos').on('value', (snapshot) => {
-              const grid = document.getElementById('productos-productor-grid');
-              grid.innerHTML = "";
-              let count = 0;
-              
-              snapshot.forEach(child => {
-                  const prod = child.val();
-                  if (prod.productorId === providerId) {
-                      count++;
-                      grid.innerHTML += `
-                        <div class="product-card">
-                            <div class="product-image">
-                                <img src="${prod.imagenUrl}" alt="${prod.nombre}">
-                            </div>
-                            <div class="product-info" style="padding:15px; text-align:center;">
-                                <h4 style="margin:0; font-family:'Playfair Display';">${prod.nombre}</h4>
-                                <p style="color:#c6714f; font-weight:bold; margin:10px 0;">$${parseFloat(prod.precio).toFixed(2)}</p>
-                                <button onclick="agregarAlCarrito('${child.key}', '${prod.nombre}', ${prod.precio}, '${prod.imagenUrl}')" 
-                                        style="background:#8da281; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer;">
-                                    Añadir
-                                </button>
-                            </div>
-                        </div>
-                      `;
-                  }
-              });
-              if(count === 0) grid.innerHTML = "<p style='grid-column:1/-1; text-align:center;'>No hay productos registrados actualmente.</p>";
-          });
-      }
+            // CARGAR PRODUCTOS DEL PRODUCTOR
+            db.ref('productos').on('value', (snapshot) => {
+                const grid = document.getElementById('productos-productor-grid');
+                grid.innerHTML = "";
+                let count = 0;
 
-      function agregarAlCarrito(id, nombre, precio, imagen) {
-          if (typeof addToCart === 'function') {
-              addToCart(id, nombre, precio, imagen);
-          } else {
-              console.log("Añadido:", nombre);
-          }
-      }
+                snapshot.forEach(child => {
+                    const prod = child.val();
+                    // Comprobamos que el producto pertenezca al proveedor actual
+                    if (prod.idProductor === providerId) {
+                        count++;
+                        // Sincronizamos los nombres de variables con los de la función addToCart de main.js
+                        const img = prod.urlFotoProducto || prod.imagenUrl || 'img/default.jpg';
+                        
+                        grid.innerHTML += `
+                            <div class="product-card" style="background:white; border-radius:12px; border:1px solid #eee; overflow:hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                                <img src="${img}" style="width:100%; height:180px; object-fit:cover;">
+                                <div style="padding:15px; text-align:center;">
+                                    <h4 style="font-family:'Playfair Display'; margin: 10px 0;">${prod.nombre}</h4>
+                                    <p style="color:#c6714f; font-weight:bold; margin-bottom: 15px;">$${parseFloat(prod.precio || 0).toFixed(2)} / ${prod.unidad || 'u'}</p>
+                                    
+                                    <button onclick="agregarAlCarritoLocal('${child.key}', '${prod.nombre}', ${prod.precio}, '${img}', '${providerId}')" 
+                                            class="btn-add-cart" 
+                                            style="background:#8da281; color:white; border:none; padding:10px 20px; border-radius:25px; cursor:pointer; width: 100%; font-weight: 700; transition: 0.3s;">
+                                        <i class="fas fa-cart-plus"></i> Añadir
+                                    </button>
+                                </div>
+                            </div>`;
+                    }
+                });
+                if (count === 0) grid.innerHTML = "<p style='grid-column:1/-1; text-align:center;'>Este productor aún no tiene productos disponibles.</p>";
+            });
+        });
+
+        // Función de puente corregida: ahora recibe y pasa el providerId
+        function agregarAlCarritoLocal(id, n, p, i, provId) {
+            if (typeof addToCart === 'function') {
+                // Llamamos a la función de main.js con todos los parámetros
+                addToCart(id, n, p, i, provId);
+            } else {
+                console.error("La función addToCart no está disponible en main.js");
+            }
+        }
     </script>
-
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="js/data.js"></script>
-    <script src="js/main.js"></script>
-    <script src="js/proveedor.js"></script>
 </body>
 </html>
