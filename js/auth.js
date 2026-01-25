@@ -3,41 +3,52 @@
  */
 
 const USUARIO_ADMIN = "admin@mercadoraiz.com";
-const CLAVE_ADMIN = "cayambe2026"; // Clave definida por el usuario
+const CLAVE_ADMIN = "cayambe2026"; 
 
 /**
  * Inicia sesión de forma segura
  */
 async function iniciarSesion(email, password) {
-    // 1. Verificación de Administrador (Local para velocidad y seguridad)
+    // 1. Verificación de Administrador
     if (email === USUARIO_ADMIN && password === CLAVE_ADMIN) {
         localStorage.setItem('session_active', 'true');
         localStorage.setItem('user_role', 'admin');
         localStorage.setItem('adminKey', 'cayambe2026'); 
         
-        // Redirección forzada para saltar bloqueos de GitHub Pages
+        // Guardamos también un objeto de sesión para el admin por consistencia
+        localStorage.setItem('sesionActiva', JSON.stringify({
+            uid: 'admin_root',
+            nombre: 'Administrador Mercado Raíz',
+            email: email,
+            role: 'admin'
+        }));
+
         window.location.replace("admin.html");
         return;
     }
 
-    // 2. Verificación de Clientes en Firebase Realtime Database
+    // 2. Verificación de Clientes en Firebase
     try {
         const snapshot = await window.db.ref('usuarios').once('value');
         const usuarios = snapshot.val();
         let usuarioEncontrado = null;
 
         if (usuarios) {
+            // Buscamos el usuario por email y password
             const entry = Object.entries(usuarios).find(([key, u]) => u.email === email && u.password === password);
             if (entry) {
-                usuarioEncontrado = { id: entry[0], ...entry[1] };
+                // entry[0] es la llave (ID) de Firebase, entry[1] son los datos
+                usuarioEncontrado = { uid: entry[0], ...entry[1] };
             }
         }
 
         if (usuarioEncontrado) {
             localStorage.setItem('session_active', 'true');
             localStorage.setItem('user_role', 'cliente');
+            
+            // IMPORTANTE: Guardamos como 'uid' para que el carrito lo reconozca siempre
             localStorage.setItem('sesionActiva', JSON.stringify({
-                id: usuarioEncontrado.id,
+                uid: usuarioEncontrado.uid, 
                 nombre: usuarioEncontrado.nombre, 
                 email: usuarioEncontrado.email,
                 telefono: usuarioEncontrado.telefono || ''
@@ -49,12 +60,12 @@ async function iniciarSesion(email, password) {
         }
     } catch (error) {
         console.error("Error crítico de Firebase:", error);
-        alert("Error de conexión. Verifica tu internet o la base de datos.");
+        alert("Error de conexión. Verifica tu internet.");
     }
 }
 
 /**
- * Registro de Clientes en la Nube
+ * Registro de Clientes
  */
 async function registrarUsuario(nombre, email, password, telefono = "") {
     try {
@@ -75,16 +86,18 @@ async function registrarUsuario(nombre, email, password, telefono = "") {
         const nuevoUsuario = {
             nombre: nombre,
             email: email,
-            password: password, // En una app real usar Firebase Auth, aquí por RTDB según pedido
+            password: password, 
             telefono: telefono,
-            fecha: new Date().toLocaleDateString('es-ES'),
+            fechaRegistro: new Date().toISOString(),
             timestamp: firebase.database.ServerValue.TIMESTAMP
         };
 
+        // Guardamos en Firebase
         await window.db.ref('usuarios').push(nuevoUsuario);
-        alert("¡Registro exitoso! Bienvenido a Mercado Raíz.");
         
-        // Regresar a login para que el navegador guarde la contraseña correctamente
+        alert("¡Registro exitoso! Ahora puedes iniciar sesión.");
+        
+        // Redirección limpia al login
         window.location.replace("login.html");
     } catch (error) {
         console.error("Error al registrar:", error);
@@ -93,9 +106,16 @@ async function registrarUsuario(nombre, email, password, telefono = "") {
 }
 
 /**
- * Cierre de sesión y limpieza de caché
+ * Cierre de sesión
  */
 function cerrarSesion() {
-    localStorage.clear(); // Limpia todo para mayor seguridad
+    // Limpiamos todo el rastro de la sesión
+    localStorage.removeItem('session_active');
+    localStorage.removeItem('user_role');
+    localStorage.removeItem('sesionActiva');
+    localStorage.removeItem('adminKey');
+    
+    // Opcional: localStorage.clear(); si quieres borrar también el carrito al salir
+    
     window.location.replace("index.html");
 }

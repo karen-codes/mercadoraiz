@@ -4,7 +4,6 @@
  */
 
 window.initPedidos = function(contenedor) {
-    // 1. Estructura de la sección
     contenedor.innerHTML = `
         <div class="admin-card">
             <table class="tabla-admin">
@@ -24,12 +23,10 @@ window.initPedidos = function(contenedor) {
             </table>
         </div>
     `;
-
     escucharPedidos();
 };
 
 function escucharPedidos() {
-    // Ordenamos por timestamp para ver los más nuevos primero
     window.db.ref('pedidos').orderByChild('timestamp').on('value', (snapshot) => {
         const tbody = document.getElementById('lista-pedidos');
         if (!tbody) return;
@@ -40,7 +37,6 @@ function escucharPedidos() {
             return;
         }
 
-        // Convertimos a array para poder invertir el orden (más recientes arriba)
         const pedidos = [];
         snapshot.forEach(child => {
             pedidos.push({ id: child.key, ...child.val() });
@@ -50,18 +46,25 @@ function escucharPedidos() {
         pedidos.forEach((p) => {
             const claseEstado = p.estado === 'Pagado' ? 'status-pagado' : 'status-pendiente';
             
+            // CORRECCIÓN CLAVE: Buscamos el nombre en múltiples lugares para asegurar que no salga "Anónimo"
+            const nombreMostrar = p.clienteNombre || p.cliente?.nombre || "Usuario Desconocido";
+            const contactoMostrar = p.clienteEmail || p.cliente?.email || "S/N";
+
             tbody.innerHTML += `
                 <tr>
-                    <td><small>${p.fecha}<br>${p.hora}</small></td>
                     <td>
-                        <strong>${p.cliente?.nombre || 'Anónimo'}</strong><br>
-                        <small>${p.cliente?.telefono || ''}</small>
+                        <small>${p.fechaPedido ? new Date(p.fechaPedido).toLocaleDateString() : (p.fecha || '')}</small><br>
+                        <small>${p.fechaPedido ? new Date(p.fechaPedido).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : (p.hora || '')}</small>
                     </td>
-                    <td><strong>$${parseFloat(p.total || 0).toFixed(2)}</strong></td>
+                    <td>
+                        <strong>${nombreMostrar}</strong><br>
+                        <small>${contactoMostrar}</small>
+                    </td>
+                    <td><strong style="color: #27ae60;">$${parseFloat(p.total || 0).toFixed(2)}</strong></td>
                     <td><span class="status-badge ${claseEstado}">${p.estado}</span></td>
                     <td>
-                        ${p.urlPago ? 
-                            `<button class="btn-save" style="padding:5px 10px; background:#3498db;" onclick="window.open('${p.urlPago}', '_blank')">
+                        ${p.comprobanteUrl || p.urlPago ? 
+                            `<button class="btn-save" style="padding:5px 10px; background:#3498db;" onclick="window.open('${p.comprobanteUrl || p.urlPago}', '_blank')">
                                 <i class="fas fa-receipt"></i> Ver Ticket
                              </button>` : 
                             '<small style="color:gray;">Sin comprobante</small>'
@@ -83,18 +86,12 @@ function escucharPedidos() {
     });
 }
 
-/**
- * Actualiza el estado del pedido (Pendiente -> Pagado)
- */
 window.cambiarEstadoPedido = function(id, nuevoEstado) {
     window.db.ref(`pedidos/${id}`).update({ estado: nuevoEstado })
         .then(() => alert("Estado actualizado"))
         .catch(e => console.error("Error:", e));
 };
 
-/**
- * Elimina un pedido de la base de datos
- */
 window.eliminarPedido = function(id) {
     if (confirm("¿Seguro que deseas eliminar este registro de pedido?")) {
         window.db.ref(`pedidos/${id}`).remove();

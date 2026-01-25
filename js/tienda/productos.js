@@ -1,11 +1,9 @@
 /**
- * js/tienda/productos.js - Versión Sincronizada con Firebase Realtime DB
+ * js/tienda/productos.js - Gestión de Productos y Carrito
  */
 
 window.renderizarTablaProductos = function(contenedor) {
     if (!contenedor) return;
-
-    // ... (Mantén el código del encabezado de la tabla que ya tienes)
 
     firebase.database().ref('productos').on('value', async (snapshot) => {
         const tbody = document.getElementById('lista-productos-body');
@@ -19,11 +17,10 @@ window.renderizarTablaProductos = function(contenedor) {
 
         if (datos) {
             Object.entries(datos).forEach(([id, p]) => {
-                // LLAVES CORRECTAS SEGÚN TU FIREBASE (image_a8b37c.png)
                 const imgUrl = p.imagenUrl || 'https://via.placeholder.com/50?text=Sin+Foto';
                 const nombreProducto = p.nombre || "Sin nombre";
                 
-                // LLAVE CORRECTA PARA PROVEEDOR (image_a8b376.png)
+                // Captura del ID del productor
                 const idProv = p.idProductor;
                 const productorData = proveedores[idProv] || {};
                 const nombreFinca = productorData.nombreParcela || "🚫 No asignado";
@@ -49,10 +46,15 @@ window.renderizarTablaProductos = function(contenedor) {
                         </td>
                         <td style="padding:12px;">
                             <strong style="color:#16a34a;">${precioFormateado}</strong>
-                            <span style="color:#636e72; font-size:0.8rem;">/ ${p.unidad || 'Unidad'}</span>
+                            <small style="color:#636e72; font-size:0.8rem;">/ ${p.unidad || 'Unidad'}</small>
                         </td>
                         <td style="padding:12px; text-align:right;">
-                            <button onclick="window.eliminarProducto('${id}')" style="background:none; border:none; color:#ef4444; cursor:pointer;">
+                            <button onclick="window.prepararParaCarrito('${id}', '${nombreProducto}', ${p.precio}, '${imgUrl}', '${idProv}')" 
+                                    style="background:#8da281; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold;">
+                                <i class="fas fa-shopping-basket"></i> Añadir
+                            </button>
+                            
+                            <button onclick="window.eliminarProducto('${id}')" style="background:none; border:none; color:#ef4444; cursor:pointer; margin-left:10px;">
                                 <i class="fas fa-trash-alt"></i>
                             </button>
                         </td>
@@ -61,7 +63,48 @@ window.renderizarTablaProductos = function(contenedor) {
             });
             tbody.innerHTML = html;
         } else {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:40px;">No hay productos.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:40px;">No hay productos disponibles.</td></tr>';
         }
     });
+};
+
+/**
+ * FUNCIÓN CLAVE: Agrega el producto al localStorage con el ID del Productor
+ */
+window.prepararParaCarrito = function(id, nombre, precio, imagen, idProductor) {
+    let carrito = JSON.parse(localStorage.getItem('carrito')) || [];
+    
+    // Verificar si el producto ya está en el carrito
+    const index = carrito.findIndex(item => item.id === id);
+    
+    if (index !== -1) {
+        carrito[index].cantidad += 1;
+    } else {
+        // CREAMOS EL OBJETO CON LA LLAVE idProductor PARA EL PANEL ADMIN
+        carrito.push({
+            id: id,
+            nombre: nombre,
+            precio: parseFloat(precio),
+            imagen: imagen,
+            idProductor: idProductor, // <--- ESTO ARREGLA TU PROBLEMA
+            cantidad: 1
+        });
+    }
+    
+    localStorage.setItem('carrito', JSON.stringify(carrito));
+    
+    // Feedback visual
+    if (window.actualizarContadorCarrito) window.actualizarContadorCarrito();
+    alert(`¡${nombre} añadido a tu canasta!`);
+};
+
+/**
+ * Función para eliminar producto (Admin)
+ */
+window.eliminarProducto = function(id) {
+    if (confirm("¿Estás seguro de eliminar este producto de la tienda?")) {
+        firebase.database().ref('productos').child(id).remove()
+            .then(() => alert("Producto eliminado."))
+            .catch(err => console.error("Error al eliminar:", err));
+    }
 };

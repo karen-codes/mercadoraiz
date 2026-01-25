@@ -9,7 +9,7 @@ let carrito = JSON.parse(localStorage.getItem('carrito')) || [];
 
 document.addEventListener("DOMContentLoaded", () => {
     actualizarInterfazSesion();
-    actualizarContadorCarrito();
+    window.actualizarContadorCarrito(); // Usamos la versión global
 
     if (window.db) {
         // 1. Cargar Proveedores
@@ -27,7 +27,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 productos = prodData ? Object.keys(prodData).map(key => ({...prodData[key], id: key})) : [];
                 
                 if (document.getElementById("carrusel-container")) {
-                    // Si usas una función específica para renderizar el carrusel
                     if (typeof renderizarCarruselHome === 'function') {
                         renderizarCarruselHome(productos);
                     }
@@ -48,18 +47,14 @@ document.addEventListener("DOMContentLoaded", () => {
  ***********************************/
 
 /**
- * Función Maestra para añadir al carrito
- * id: ID del producto en Firebase
- * nombre: Nombre a mostrar
- * precio: Valor numérico
- * imagen: URL de la foto
- * idProductor: ID del dueño del producto
+ * Función Maestra Global para añadir al carrito
  */
-function addToCart(id, nombre, precio, imagen, idProductor) {
-    // Validar que tengamos datos mínimos
+window.addToCart = function(id, nombre, precio, imagen, idProductor) {
+    // Recargar carrito del storage por si se cambió en otra pestaña
+    carrito = JSON.parse(localStorage.getItem('carrito')) || [];
+
     if (!id) return;
 
-    // Buscar si ya existe para incrementar cantidad
     const itemEnCarrito = carrito.find(item => item.id === id);
 
     if (itemEnCarrito) {
@@ -75,39 +70,43 @@ function addToCart(id, nombre, precio, imagen, idProductor) {
         });
     }
     
-    // Guardar y Notificar
     localStorage.setItem('carrito', JSON.stringify(carrito));
-    actualizarContadorCarrito();
+    window.actualizarContadorCarrito();
     
-    // Notificación visual rápida
+    // Alerta personalizada estilo Toast (opcional, mantengo tu alert por ahora)
     alert(`¡${nombre} añadido a tu canasta!`);
-}
+};
 
 /**
- * Mantiene compatibilidad con botones antiguos que usan agregarAlCarritoClick
+ * Mantiene compatibilidad con botones de productos.js
  */
-function agregarAlCarritoClick(id) {
+window.agregarAlCarritoClick = function(id) {
     const prod = productos.find(p => p.id === id);
-    if (!prod) return;
+    if (!prod) {
+        console.error("Producto no encontrado en la lista local:", id);
+        return;
+    }
 
-    // Sincronizamos los nombres de campos de tu Firebase (p.nombre y p.urlFotoProducto)
-    addToCart(
+    window.addToCart(
         prod.id, 
         prod.nombre || prod.nombreProducto, 
         prod.precio, 
-        prod.urlFotoProducto || prod.imagenUrl, 
+        prod.urlFotoProducto || prod.imagenUrl || prod.fotoUrl, 
         prod.idProductor
     );
-}
+};
 
-function actualizarContadorCarrito() {
-    const count = carrito.reduce((sum, item) => sum + item.cantidad, 0);
+window.actualizarContadorCarrito = function() {
+    // Siempre leer el storage más reciente
+    const carritoActual = JSON.parse(localStorage.getItem('carrito')) || [];
+    const count = carritoActual.reduce((sum, item) => sum + item.cantidad, 0);
     const badge = document.getElementById('cart-count-badge');
+    
     if (badge) {
         badge.innerText = count;
         badge.style.display = count > 0 ? 'flex' : 'none';
     }
-}
+};
 
 /***********************************
  * RENDERIZADO HOME
@@ -142,9 +141,10 @@ function actualizarInterfazSesion() {
 
     if (sesion && authContainer) {
         authContainer.innerHTML = `
-            <div id="userMenu" style="display:flex; align-items:center; gap:10px; cursor:pointer;">
-                <i class="fas fa-user-circle"></i> 
-                <span>Hola, ${sesion.nombre.split(' ')[0]}</span>
+            <div id="userMenu" style="display:flex; align-items:center; gap:10px; cursor:pointer; color: var(--terracotta);">
+                <i class="fas fa-user-circle" style="font-size: 1.2rem;"></i> 
+                <span style="font-weight: bold;">Hola, ${sesion.nombre.split(' ')[0]}</span>
+                <button onclick="window.cerrarSesion()" style="background:none; border:none; color:#888; cursor:pointer; font-size:0.8rem; margin-left:5px;">(Salir)</button>
             </div>
         `;
     }
