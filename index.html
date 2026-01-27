@@ -20,18 +20,13 @@
                 <a href="index.html" class="active">Inicio</a>
                 <a href="productos.html">Productos</a>
                 <a href="proveedor.html">Proveedores</a>
-                <a href="calidad.html">Calidad</a>
                 <a href="contacto.html">Contacto</a>
-                <a href="carrito.html" class="nav-cart-link">
-                    <i class="fas fa-shopping-basket"></i> Mi Carrito
-                </a>
+                <a href="calidad.html">Calidad</a>
+                <a href="carrito.html">Carrito</a>
                 
                 <div class="auth-buttons" id="authContainer">
                     <a href="login.html" id="loginLink" class="btn-login-header">Iniciar Sesión</a>
-                    <span id="userMenu" style="display:none; color: #7a5c4f; font-weight: bold; margin-left: 15px;"></span>
-                    <button id="logoutLink" onclick="cerrarSesion()" class="btn-logout" style="display:none;">
-                        <i class="fas fa-power-off"></i>
-                    </button>
+                    <a href="#" id="logoutLink" onclick="cerrarSesion()" class="btn-logout hidden">Cerrar Sesión</a>
                 </div>
             </nav>
         </div>
@@ -110,7 +105,6 @@
         window.db = firebase.database();
         window.auth = firebase.auth();
 
-        // Carga dinámica del carrusel (Solo imágenes)
         document.addEventListener("DOMContentLoaded", () => {
             const track = document.getElementById('carrusel-container');
             
@@ -119,14 +113,14 @@
                 if(snapshot.exists()){
                     snapshot.forEach(child => {
                         const p = child.val();
-                        // Ajustamos a p.imagenUrl que es lo que guardas en el admin
                         const imgUrl = p.imagenUrl || 'img/default-product.jpg';
                         
+                        // SE ELIMINARON LOS STYLES FIJOS (width:280px, etc.)
                         track.innerHTML += `
                             <div class="carousel-item">
                                 <div class="product-card-simple">
                                     <img src="${imgUrl}" alt="${p.nombre || 'Producto'}" 
-                                         style="width:280px; height:380px; object-fit:cover; border-radius:15px; cursor:pointer;"
+                                         class="img-responsive-carrusel"
                                          onclick="window.location.href='productos.html'">
                                 </div>
                             </div>
@@ -138,21 +132,16 @@
             });
         });
 
-        // Funciones de navegación
         let currentScroll = 0;
         function moverCarrusel(dir) {
             const track = document.getElementById('carrusel-container');
-            const step = 300; 
+            // Paso adaptativo: más corto en móvil
+            const step = window.innerWidth < 768 ? 220 : 300; 
             const maxScroll = track.scrollWidth - track.parentElement.clientWidth;
             currentScroll += (dir * step);
             if (currentScroll < 0) currentScroll = 0;
             if (currentScroll > maxScroll) currentScroll = maxScroll;
             track.style.transform = `translateX(-${currentScroll}px)`;
-        }
-
-        function toggleCart() {
-            document.getElementById('side-cart').classList.toggle('open');
-            document.getElementById('cart-overlay').classList.toggle('active');
         }
     </script>
 </body>

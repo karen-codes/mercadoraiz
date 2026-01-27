@@ -354,3 +354,90 @@ body {
 .leaflet-container {
     z-index: 10;
 }
+
+/* ================================================================
+   AJUSTES DINÁMICOS DEL CARRUSEL
+   ================================================================ */
+
+/* Contenedor principal para posicionar las flechas */
+.carousel-container {
+    position: relative; /* Permite que las flechas se peguen a los lados */
+    display: flex;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 50px; /* Espacio para que las flechas no tapen la imagen */
+}
+
+/* La ventana que recorta lo que no se ve */
+.carousel-window {
+    width: 100%;
+    overflow: hidden;
+    border-radius: 20px;
+}
+
+/* El riel que se mueve */
+.carousel-track {
+    display: flex;
+    gap: 20px; /* Espacio entre productos */
+    transition: transform 0.5s ease-in-out;
+}
+
+/* Tamaño de las tarjetas dentro del carrusel */
+.carousel-item {
+    flex: 0 0 calc(25% - 15px); /* Muestra 4 productos exactos en escritorio */
+    min-width: 250px;
+}
+
+/* Ajuste de las imágenes para que no sean gigantes */
+.img-responsive-carrusel {
+    width: 100%;
+    height: 300px; /* Altura fija para que todas se vean iguales */
+    object-fit: cover;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+}
+
+.img-responsive-carrusel:hover {
+    transform: scale(1.03);
+}
+
+/* Flechas a los lados (Izquierda y Derecha) */
+.carousel-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--pueblo-sage);
+    color: white;
+    border: none;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+.carousel-btn.prev { left: 0; }
+.carousel-btn.next { right: 0; }
+
+.carousel-btn:hover {
+    background: var(--pueblo-terracotta);
+}
+
+/* Responsivo para Celular */
+@media (max-width: 768px) {
+    .carousel-item {
+        flex: 0 0 80%; /* En celular se ve una y un pedacito de la otra */
+    }
+    .img-responsive-carrusel {
+        height: 250px;
+    }
+    .carousel-container {
+        padding: 0 40px;
+    }
+}
