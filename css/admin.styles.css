@@ -1,5 +1,5 @@
 /* ==========================================================================
-   MERCADO RAÍZ 2026 - SISTEMA DE DISEÑO ADMINISTRATIVO
+   MERCADO RAÍZ 2026 - SISTEMA DE DISEÑO ADMINISTRATIVO COMPLETO
    ========================================================================== */
 
 :root {
@@ -32,6 +32,21 @@ body {
     min-height: 100vh;
 }
 
+/* --- MOBILE HEADER (Solo visible en celulares) --- */
+.mobile-header {
+    display: none; 
+    background: var(--secondary);
+    color: white;
+    padding: 15px 20px;
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 1001;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
 /* --- SIDEBAR --- */
 .sidebar {
     width: 260px;
@@ -40,7 +55,8 @@ body {
     padding: 20px 0;
     position: fixed;
     height: 100vh;
-    transition: all 0.3s;
+    transition: all 0.3s ease;
+    z-index: 1000;
 }
 
 .sidebar-header {
@@ -101,6 +117,7 @@ hr {
     margin-left: 260px;
     width: calc(100% - 260px);
     padding: 30px;
+    transition: all 0.3s ease;
 }
 
 .header-admin {
@@ -124,6 +141,33 @@ hr {
     margin-bottom: 20px;
 }
 
+/* --- TABLAS RESPONSIVE --- */
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    border-radius: var(--radius);
+}
+
+.tabla-admin {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--white);
+}
+
+.tabla-admin th {
+    background: #f8f9fa;
+    padding: 15px;
+    text-align: left;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+.tabla-admin td {
+    padding: 15px;
+    border-top: 1px solid var(--border);
+}
+
 /* --- MODALES --- */
 .modal-pago {
     position: fixed;
@@ -137,13 +181,14 @@ hr {
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 20px;
 }
 
 .glass-card {
     background: var(--white);
     padding: 30px;
     border-radius: 15px;
-    width: 90%;
+    width: 100%;
     max-width: 800px;
     max-height: 90vh;
     overflow-y: auto;
@@ -206,29 +251,6 @@ input:focus, select:focus {
     cursor: pointer;
 }
 
-/* --- TABLAS --- */
-.tabla-admin {
-    width: 100%;
-    border-collapse: collapse;
-    background: var(--white);
-    border-radius: var(--radius);
-    overflow: hidden;
-}
-
-.tabla-admin th {
-    background: #f8f9fa;
-    padding: 15px;
-    text-align: left;
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    color: var(--text-muted);
-}
-
-.tabla-admin td {
-    padding: 15px;
-    border-top: 1px solid var(--border);
-}
-
 /* --- UTILIDADES --- */
 #mapAdmin {
     height: 300px;
@@ -246,3 +268,57 @@ input:focus, select:focus {
 
 .status-pagado { background: #d4edda; color: #155724; }
 .status-pendiente { background: #fff3cd; color: #856404; }
+
+/* ==========================================================================
+   MEDIA QUERIES - RESPONSIVE DESIGN
+   ========================================================================== */
+
+@media (max-width: 992px) {
+    body {
+        flex-direction: column;
+    }
+
+    .mobile-header {
+        display: flex; /* Muestra barra superior en móvil */
+    }
+
+    .sidebar {
+        left: -260px; /* Esconde el sidebar a la izquierda */
+        top: 60px; /* Debajo del mobile header */
+        height: calc(100vh - 60px);
+    }
+
+    .sidebar.active {
+        left: 0; /* Aparece cuando se activa */
+    }
+
+    .main-content {
+        margin-left: 0;
+        width: 100%;
+        margin-top: 60px; /* Espacio para el header fijo */
+        padding: 20px 15px;
+    }
+
+    .header-admin {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr; /* Formulario en una sola columna */
+    }
+
+    .full-width {
+        grid-column: span 1;
+    }
+
+    /* Ajuste de fuentes para móvil */
+    #seccion-titulo {
+        font-size: 1.4rem;
+    }
+
+    .admin-card {
+        padding: 15px;
+    }
+}

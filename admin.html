@@ -11,6 +11,11 @@
 </head>
 <body class="admin-body">
 
+    <div class="mobile-header">
+        <div class="logo">M. <span>Raíz</span></div>
+        <i class="fas fa-bars" onclick="toggleSidebar()" style="font-size: 1.5rem; cursor: pointer;"></i>
+    </div>
+
     <aside class="sidebar">
         <div class="sidebar-header">
             <h2 class="logo">Mercado<span>Raíz</span></h2>
@@ -49,7 +54,7 @@
             <div id="btn-nuevo-contenedor"></div>
         </header>
         
-        <div id="tabla-contenedor"></div>
+        <div id="tabla-contenedor" class="table-responsive"></div>
     </main>
 
     <div id="modalProducto" class="modal-pago hidden">
