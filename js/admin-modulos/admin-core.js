@@ -15,6 +15,13 @@ window.cargarSeccion = function(seccion) {
     const linkActivo = document.getElementById(`link-${seccion}`);
     if (linkActivo) linkActivo.classList.add('active');
 
+    // --- MEJORA RESPONSIVE ---
+    // Si estamos en móvil, cerramos el sidebar automáticamente al seleccionar una opción
+    const sidebar = document.querySelector('.sidebar');
+    if (window.innerWidth <= 992 && sidebar) {
+        sidebar.classList.remove('active');
+    }
+
     // 2. Referencias a la interfaz
     const titulo = document.getElementById('seccion-titulo');
     const contenedor = document.getElementById('tabla-contenedor');
@@ -89,9 +96,6 @@ window.abrirModal = function() {
     }
 };
 
-// Y en tu cerrarModal existente, asegúrate de volver a mostrar el formulario de productos
-// agregando esta línea al final de window.cerrarModal:
-// document.getElementById('formProducto').style.display = 'block';
 /**
  * Gestión Global de Modales
  */
@@ -100,6 +104,14 @@ window.cerrarModal = function() {
     document.getElementById('modalProveedor')?.classList.add('hidden');
     document.getElementById('modalProducto')?.classList.add('hidden');
     
+    // Volver a mostrar el formulario de productos (por si se ocultó en abrirModal)
+    const formProd = document.getElementById('formProducto');
+    if(formProd) formProd.style.display = 'block';
+
+    // Limpiar campos dinámicos de mensajes
+    const camposDinamicos = document.getElementById('camposDinamicos');
+    if(camposDinamicos) camposDinamicos.innerHTML = "";
+
     // 2. Resetear formularios
     document.getElementById('formProveedor')?.reset();
     document.getElementById('formProducto')?.reset();
@@ -134,7 +146,6 @@ window.cerrarModal = function() {
 // Iniciar con la sección Dashboard al cargar
 document.addEventListener('DOMContentLoaded', () => {
     if (typeof firebase !== 'undefined') {
-        // Inicializamos la base de datos globalmente si no lo está
         if(!window.db) window.db = firebase.database();
         window.cargarSeccion('dashboard');
     } else {
@@ -142,7 +153,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+/**
+ * Función para abrir/cerrar menú en dispositivos móviles
+ */
 window.toggleSidebar = function() {
-    const sidebar = document.getElementById('sidebar');
-    sidebar.classList.toggle('active');
+    // Usamos querySelector para asegurar compatibilidad con la clase .sidebar
+    const sidebar = document.querySelector('.sidebar');
+    if (sidebar) {
+        sidebar.classList.toggle('active');
+    }
 };
