@@ -135,30 +135,34 @@
 
                 if (data) {
                     Object.keys(data).forEach(id => {
-                        const p = data[id];
-                        
-                        // Filtrar por categoría si no es "todos"
-                        if (catSeleccionada !== 'todos' && p.categoria !== catSeleccionada) return;
+                        const p = data[id];          
 
-                        const card = `
-                            <div class="product-card" style="background:white; border-radius:15px; box-shadow:0 4px 15px rgba(0,0,0,0.05); overflow:hidden; display:flex; flex-direction:column;">
-                                <div class="product-image-container">
-                                    <img src="${p.imagenUrl || 'img/default-product.jpg'}" alt="${p.nombre}">
-                                </div>
-                                <div style="padding:20px; flex-grow:1; display:flex; flex-direction:column;">
-                                    <span style="font-size:0.75rem; color:#8da281; font-weight:bold; text-transform:uppercase;">${p.categoria}</span>
-                                    <h3 style="font-family:'Playfair Display', serif; margin:5px 0 10px 0; font-size:1.2rem;">${p.nombre}</h3>
-                                    <p style="color:#666; font-size:0.85rem; margin-bottom:15px;">${p.descripcion || ''}</p>
-                                    <div style="margin-top:auto; display:flex; justify-content:space-between; align-items:center;">
-                                        <span style="font-weight:bold; color:#c6714f; font-size:1.2rem;">$${parseFloat(p.precio).toFixed(2)}</span>
-                                        <button onclick="agregarAlCarrito('${id}', '${p.nombre}', ${p.precio}, '${p.imagenUrl}')" 
-                                                style="background:#8da281; color:white; border:none; padding:8px 15px; border-radius:8px; cursor:pointer;">
-                                            <i class="fas fa-plus"></i> Añadir
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
+                    // Filtrar por categoría si no es "todos"
+                    if (catSeleccionada !== 'todos' && p.categoria !== catSeleccionada) return;
+
+const card = `
+    <div class="product-mini-card">
+        <div class="product-mini-image">
+            <img src="${p.imagenUrl || 'img/default-product.jpg'}" alt="${p.nombre}">
+        </div>
+        <div class="product-mini-info">
+            <span class="badge-categoria">${p.categoria}</span>
+            
+            <h4>${p.nombre}</h4>
+            
+            <a href="perfil-proveedor.html?id=${p.idProductor}" class="link-parcela">
+                <i class="fas fa-map-marker-alt"></i> ${p.nombreParcela || 'Ver Parcela'}
+            </a>
+
+            <p class="price">$${parseFloat(p.precio).toFixed(2)} / ${p.unidad || 'u'}</p>
+            
+            <button onclick="agregarAlCarrito('${id}', '${p.nombre}', ${p.precio}, '${p.imagenUrl}')" 
+                    class="btn-add-mini">
+                <i class="fas fa-cart-plus"></i> Añadir al Carrito
+            </button>
+        </div>
+    </div>
+`;
                         grid.innerHTML += card;
                     });
                 } else {
