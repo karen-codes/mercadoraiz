@@ -21,6 +21,7 @@ body {
     color: var(--pueblo-charcoal);
     font-family: 'Montserrat', sans-serif;
     line-height: 1.6;
+    overflow-x: hidden;
 }
 
 /* ================================================================
@@ -94,6 +95,14 @@ body {
     transform: translateY(-2px);
 }
 
+/* Mobile Header Adjustment */
+@media (max-width: 768px) {
+    .header-container { padding: 0 15px; }
+    .logo { font-size: 1.2rem; }
+    .main-nav { gap: 10px; }
+    .main-nav a { font-size: 0.7rem; }
+}
+
 /* ================================================================
    3. HERO SECTION Y FILTROS (Imagen del Nevado)
    ================================================================ */
@@ -118,7 +127,11 @@ body {
     text-shadow: 0 2px 15px rgba(0,0,0,0.4);
 }
 
-/* Diseño de Filtros Integrados (Papas, Hortalizas, Frutas) */
+@media (max-width: 768px) {
+    .hero-content h1 { font-size: 2rem; }
+    .hero-professional { height: 50vh; }
+}
+
 .filter-container {
     display: flex;
     gap: 15px;
@@ -187,11 +200,11 @@ body {
 }
 
 /* ================================================================
-   5. SECCIÓN PRODUCTOS (CARRUSEL VERTICAL PERFECCIONADO)
+   5. SECCIÓN PRODUCTOS (CONSOLIDADA Y RESPONSIVE)
    ================================================================ */
 .carousel-section { 
-    padding: 80px 0; 
-    max-width: 850px; 
+    padding: 60px 0; 
+    max-width: 1000px; 
     margin: 0 auto; 
 }
 
@@ -218,8 +231,8 @@ body {
     display: flex; 
     flex-direction: row; 
     width: 100%;
-    height: 240px; /* Altura optimizada */
-    transition: 0.3s ease;
+    height: 300px; 
+    transition: transform 0.3s ease;
 }
 
 .product-card:hover {
@@ -228,23 +241,30 @@ body {
 }
 
 .product-image {
-    width: 40%;
+    width: 50%; 
     height: 100%;
+    overflow: hidden;
     flex-shrink: 0;
 }
 
 .product-image img {
     width: 100%;
     height: 100%;
-    object-fit: cover; /* Evita que la imagen se estire */
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.product-card:hover .product-image img {
+    transform: scale(1.1);
 }
 
 .product-info {
-    padding: 30px;
-    flex: 1;
+    width: 50%;
+    padding: 40px;
     display: flex;
     flex-direction: column;
     justify-content: center;
+    text-align: left;
 }
 
 .product-info h3 {
@@ -264,82 +284,23 @@ body {
     width: fit-content;
     padding: 12px 30px;
     background-color: var(--pueblo-sage);
+    color: white;
+    border: none;
     border-radius: 50px;
     font-size: 0.9rem;
+    cursor: pointer;
 }
 
-/* ================================================================
-   6. SECCIÓN PRODUCTOS (CARRUSEL VERTICAL OPTIMIZADO)
-   ================================================================ */
-.carousel-section { 
-    padding: 60px 0; 
-    max-width: 1000px; /* Un poco más ancho para lucir las fotos */
-    margin: 0 auto; 
-}
-
-.products-grid {
-    display: flex;
-    flex-direction: column; 
-    gap: 30px;
-    padding: 20px;
-}
-
-.product-card {
-    background: white;
-    border-radius: 20px;
-    overflow: hidden;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-    border: 1px solid var(--pueblo-sand);
-    display: flex; 
-    flex-direction: row; 
-    width: 100%;
-    height: 300px; /* Aumentamos la altura total de la tarjeta */
-    transition: transform 0.3s ease;
-}
-
-.product-image {
-    /* CAMBIO CLAVE: Ahora la imagen ocupa el 50% de la tarjeta */
-    width: 50%; 
-    height: 100%;
-    overflow: hidden;
-    flex-shrink: 0;
-}
-
-.product-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover; /* Mantiene la proporción sin deformar */
-    transition: transform 0.5s ease;
-}
-
-.product-card:hover .product-image img {
-    transform: scale(1.1); /* Efecto de zoom suave al pasar el mouse */
-}
-
-.product-info {
-    width: 50%; /* El texto ocupa el otro 50% */
-    padding: 40px; /* Más aire interno para elegancia */
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    text-align: left;
-}
-
-/* Responsivo: En celulares la imagen vuelve a estar arriba y ser grande */
+/* Responsivo de Productos */
 @media (max-width: 768px) {
-    .product-card {
-        flex-direction: column;
-        height: auto;
-    }
-    .product-image, .product-info {
-        width: 100%;
-    }
-    .product-image {
-        height: 250px;
-    }
+    .product-card { flex-direction: column; height: auto; }
+    .product-image, .product-info { width: 100%; }
+    .product-image { height: 250px; }
+    .product-info { padding: 30px; text-align: center; align-items: center; }
 }
+
 /* ================================================================
-   7. AUTENTICACIÓN (LOGIN) - RESPETADO ÍNTEGRAMENTE
+   6. AUTENTICACIÓN (LOGIN) - RESPETADO ÍNTEGRAMENTE
    ================================================================ */
 .auth-body {
     background: linear-gradient(rgba(45, 41, 38, 0.5), rgba(45, 41, 38, 0.5)), 
@@ -360,7 +321,7 @@ body {
 .auth-switch a { color: var(--pueblo-terracotta); text-decoration: none; font-weight: 700; }
 
 /* ================================================================
-   8. CARRITO Y FOOTER
+   7. CARRITO Y FOOTER
    ================================================================ */
 .side-cart {
     position: fixed; top: 0; right: -400px; width: 380px; height: 100vh;
@@ -368,6 +329,11 @@ body {
     z-index: 2000; transition: right 0.4s ease; display: flex; flex-direction: column;
 }
 .side-cart.active { right: 0; }
+
+@media (max-width: 400px) {
+    .side-cart { width: 100%; }
+}
+
 .main-footer {
     background-color: var(--pueblo-charcoal); color: var(--pueblo-cream);
     padding: 60px 20px; text-align: center; margin-top: 50px;
@@ -378,16 +344,13 @@ body {
 .link-proveedor { color: var(--pueblo-sage); text-decoration: none; font-weight: 600; }
 .hidden { display: none; }
 
-/* Asegura que el mapa siempre sea visible y esté por encima de otros elementos */
 #mapa-prov {
     height: 300px !important;
     width: 100% !important;
     display: block !important;
-    background: #f0f0f0; /* Color de fondo mientras carga */
+    background: #f0f0f0;
 }
 
-/* Evita que los iconos de Leaflet se rompan con otros estilos globales */
 .leaflet-container {
     z-index: 10;
 }
-
