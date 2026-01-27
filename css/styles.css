@@ -37,12 +37,15 @@ body {
 }
 
 .header-container {
-    max-width: 1250px;
-    margin: 0 auto;
+
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 25px;
+    padding: 10px 20px; /* Añade margen interno para que no toque los bordes */
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .logo {
@@ -576,4 +579,32 @@ body {
     text-transform: uppercase;
     margin-bottom: 5px;
     display: block;
+}
+
+@media (max-width: 768px) {
+    /* Permitir que los enlaces se muevan a una segunda línea o se desplacen */
+    .main-nav {
+        display: flex;
+        overflow-x: auto; /* Permite deslizar el menú con el dedo si es muy largo */
+        white-space: nowrap;
+        padding: 10px 0;
+        gap: 15px;
+        width: 100%;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .header-container {
+        flex-direction: column; /* Logo arriba, Menú abajo */
+        padding: 15px;
+    }
+
+    .logo {
+        margin-bottom: 10px;
+        font-size: 1.2rem;
+    }
+
+    /* Ajustar botones de inicio de sesión para que no ocupen tanto espacio */
+    .auth-buttons {
+        margin-left: 10px;
+    }
 }
