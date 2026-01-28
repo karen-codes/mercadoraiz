@@ -608,3 +608,43 @@ body {
         margin-left: 10px;
     }
 }
+
+.toast-notification {
+    background: white;
+    color: #333;
+    padding: 15px 25px;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-left: 5px solid #8da281; /* Verde Salvia */
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.9rem;
+    animation: slideIn 0.3s ease-out, fadeOut 0.5s ease-in 2.5s forwards;
+    min-width: 280px;
+}
+
+.toast-notification i {
+    color: #8da281;
+    font-size: 1.2rem;
+}
+
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; visibility: hidden; }
+}
+
+/* Clase extra para errores (opcional) */
+.toast-notification.error {
+    border-left: 5px solid #e74c3c; /* Rojo para errores */
+}
+.toast-notification.error i {
+    color: #e74c3c;
+}

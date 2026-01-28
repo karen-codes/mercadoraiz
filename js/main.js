@@ -74,7 +74,32 @@ window.addToCart = function(id, nombre, precio, imagen, idProductor) {
     window.actualizarContadorCarrito();
     
     // Alerta personalizada estilo Toast (opcional, mantengo tu alert por ahora)
-    alert(`¡${nombre} añadido a tu canasta!`);
+    // Agregamos window. para que sea accesible desde carrito.js y otros archivos
+window.mostrarNotificacion = function(mensaje) {
+    const container = document.getElementById('notification-container');
+    
+    // Si por error el contenedor no existe en el HTML, lo creamos para que no falle
+    if (!container) {
+        const newContainer = document.createElement('div');
+        newContainer.id = 'notification-container';
+        newContainer.style.cssText = "position: fixed; bottom: 20px; right: 20px; z-index: 1000;";
+        document.body.appendChild(newContainer);
+    }
+
+    const notification = document.createElement('div');
+    notification.className = 'toast-notification';
+    
+    notification.innerHTML = `
+        <i class="fas fa-check-circle"></i>
+        <span>${mensaje}</span>
+    `;
+    
+    document.getElementById('notification-container').appendChild(notification);
+    
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+    }
 };
 
 /**
