@@ -650,97 +650,75 @@ body {
 }
 
 /* ================================================================
-   8. OPTIMIZACIÓN MÓVIL PARA TABLAS (CARRITO)
+   8. OPTIMIZACIÓN MÓVIL PARA CARRITO (MERCADO RAÍZ)
    ================================================================ */
-@media (max-width: 600px) {
-    /* Convertimos la tabla en bloques sueltos */
+@media (max-width: 768px) {
+    /* Forzamos que la tabla y sus componentes se apilen */
     .tabla-carrito, 
     .tabla-carrito thead, 
     .tabla-carrito tbody, 
-    .tabla-carrito th, 
-    .tabla-carrito td, 
-    .tabla-carrito tr { 
-        display: block; 
+    .tabla-carrito tr, 
+    .tabla-carrito td { 
+        display: block !important; 
+        width: 100% !important;
     }
 
-    /* Escondemos los títulos de la tabla original */
-    .tabla-carrito thead tr { 
-        position: absolute;
-        top: -9999px;
-        left: -9999px;
+    /* Ocultamos el encabezado original en móviles */
+    .tabla-carrito thead {
+        display: none !important;
     }
 
+    /* Cada fila ahora parece una tarjeta individual */
     .tabla-carrito tr {
-        border: 1px solid var(--pueblo-sand);
+        margin-bottom: 20px;
+        border: 1px solid var(--pueblo-sand) !important;
         border-radius: 15px;
-        margin-bottom: 15px;
-        background: white;
         padding: 10px;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+        background: #fff;
     }
 
+    /* Ajustamos las celdas para mostrar las etiquetas (data-label) */
     .tabla-carrito td {
-        border: none;
-        position: relative;
-        padding-left: 50% !important; /* Espacio para el nombre del dato */
         text-align: right !important;
-        padding: 10px 5px;
+        padding: 12px 10px !important;
+        position: relative;
+        border-bottom: 1px inset #f9f9f9;
+        display: flex !important;
+        justify-content: space-between;
+        align-items: center;
     }
 
-    /* El truco: Inyectamos el nombre del campo usando data-label */
+    .tabla-carrito td:last-child { border-bottom: none; }
+
+    /* Inyectamos el texto de "Producto", "Precio", etc. */
     .tabla-carrito td::before {
         content: attr(data-label);
-        position: absolute;
-        left: 10px;
-        width: 45%;
-        padding-right: 10px;
-        white-space: nowrap;
-        text-align: left;
         font-weight: 700;
-        color: var(--pueblo-terracotta);
+        color: var(--pueblo-sage);
         text-transform: uppercase;
         font-size: 0.75rem;
+        text-align: left;
     }
 
-    /* Ajuste para el botón de eliminar en móvil */
-    .btn-remove {
+    /* Ajuste para que la imagen y el nombre no se amontonen */
+    .tabla-carrito td div {
+        justify-content: flex-end;
+        text-align: right;
+    }
+
+    /* El botón de Proceed al Pago más grande en móvil */
+    #cart-footer-actions {
+        flex-direction: column-reverse;
+        text-align: center !important;
+    }
+    
+    #cart-footer-actions div {
+        width: 100%;
+        text-align: center !important;
+    }
+
+    .btn-terracotta {
         width: 100%;
         margin-top: 10px;
-        background: #fdf2f2;
-        border: 1px solid #f8d7da;
-        color: #e74c3c;
-        padding: 8px;
-    }
-}
-.btn-qty {
-    width:28px; 
-    height:28px; 
-    border-radius:50%; 
-    border:1px solid var(--pueblo-sage); 
-    background:white; 
-    color:var(--pueblo-sage); 
-    cursor:pointer; 
-    font-weight:bold;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.btn-remove-cart {
-    color: #e74c3c; 
-    background: none; 
-    border: none; 
-    cursor: pointer; 
-    font-size: 0.9rem;
-    font-weight: 600;
-}
-
-@media (max-width: 600px) {
-    .btn-remove-cart {
-        width: 100%;
-        background: #fff5f5;
-        padding: 10px;
-        border-radius: 8px;
-        margin-top: 5px;
     }
 }
