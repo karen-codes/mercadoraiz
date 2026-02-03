@@ -1,5 +1,5 @@
 /**
- * js/tienda/carrito.js - Gestión de Interfaz y Pagos
+ * js/tienda/carrito.js - Gestión de Interfaz y Pagos (SIN ALERTS)
  */
 
 // 1. Dibujar el carrito en la tabla
@@ -23,7 +23,6 @@ window.dibujarCarrito = function() {
     tabla.innerHTML = carritoActual.map((item, index) => {
         const subtotal = item.precio * item.cantidad;
         total += subtotal;
-        // Validación de ID Productor para evitar alertas molestas
         const prodId = item.idProductor || item.productorId || 'Sin ID';
         
         return `
@@ -36,7 +35,13 @@ window.dibujarCarrito = function() {
                     </div>
                 </td>
                 <td style="padding: 15px;">$${parseFloat(item.precio).toFixed(2)}</td>
-                <td style="padding: 15px;">${item.cantidad}</td>
+                <td style="padding: 15px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <button onclick="window.cambiarCantidad(${index}, -1)" style="width:25px; height:25px; border-radius:50%; border:1px solid #8da281; background:white; color:#8da281; cursor:pointer; font-weight:bold;">-</button>
+                        <span style="font-weight:bold; min-width:20px; text-align:center;">${item.cantidad}</span>
+                        <button onclick="window.cambiarCantidad(${index}, 1)" style="width:25px; height:25px; border-radius:50%; border:1px solid #8da281; background:white; color:#8da281; cursor:pointer; font-weight:bold;">+</button>
+                    </div>
+                </td>
                 <td style="padding: 15px; font-weight: bold;">$${subtotal.toFixed(2)}</td>
                 <td style="padding: 15px;">
                     <button onclick="window.eliminarDelCarrito(${index})" style="color: #e74c3c; background: none; border: none; cursor: pointer; font-size: 1.1rem;">
@@ -50,21 +55,52 @@ window.dibujarCarrito = function() {
     if (totalTxt) totalTxt.innerText = `Total: $${total.toFixed(2)}`;
 };
 
-// 2. Eliminar producto
+// 2. Función para aumentar o disminuir cantidad
+window.cambiarCantidad = function(index, cambio) {
+    let carritoActual = JSON.parse(localStorage.getItem('carrito')) || [];
+    
+    if (carritoActual[index]) {
+        carritoActual[index].cantidad += cambio;
+
+        if (carritoActual[index].cantidad <= 0) {
+            window.eliminarDelCarrito(index);
+            return;
+        }
+
+        localStorage.setItem('carrito', JSON.stringify(carritoActual));
+        window.dibujarCarrito();
+        if (window.actualizarContadorCarrito) window.actualizarContadorCarrito();
+        
+        if (window.mostrarNotificacion) {
+            window.mostrarNotificacion(cambio > 0 ? "Cantidad actualizada (+)" : "Cantidad actualizada (-)");
+        }
+    }
+};
+
+// 3. Eliminar producto
 window.eliminarDelCarrito = function(index) {
     let carritoActual = JSON.parse(localStorage.getItem('carrito')) || [];
+    const nombreProd = carritoActual[index] ? carritoActual[index].nombre : "Producto";
+    
     carritoActual.splice(index, 1);
     localStorage.setItem('carrito', JSON.stringify(carritoActual));
     
     window.dibujarCarrito();
     if (window.actualizarContadorCarrito) window.actualizarContadorCarrito();
+    
+    if (window.mostrarNotificacion) {
+        window.mostrarNotificacion(`${nombreProd} removido de la canasta`);
+    }
 };
 
-// 3. Manejo del Modal de Pago
+// 4. Manejo del Modal de Pago
 window.abrirCheckout = function() {
     const modal = document.getElementById('modalPago');
     const content = document.getElementById('checkout-content');
     const sesion = JSON.parse(localStorage.getItem('sesionActiva'));
+
+    // Forzamos un z-index controlado para el modal
+    if (modal) modal.style.zIndex = "9000";
 
     if (!sesion) {
         content.innerHTML = `
@@ -110,16 +146,14 @@ window.cerrarCheckout = function() {
 };
 
 window.ejecutarFinalizarPedido = async function() {
-    // 1. Recuperar sesión (Priorizamos 'sesionActiva' que es el estándar que fijamos en auth.js)
     const rawSesion = localStorage.getItem('sesionActiva');
     const sesion = rawSesion ? JSON.parse(rawSesion) : null;
-    
-    // Captura segura del UID
     const uidFinal = sesion ? (sesion.uid || sesion.id) : null;
 
     if (!uidFinal) {
-        alert("Tu sesión ha expirado o no es válida. Por favor, inicia sesión de nuevo para poder pagar.");
-        window.location.href = "login.html";
+        window.cerrarCheckout(); // Cerramos modal para que se vea la notificación
+        if (window.mostrarNotificacion) window.mostrarNotificacion("Tu sesión ha expirado.");
+        setTimeout(() => { window.location.href = "login.html"; }, 1500);
         return;
     }
 
@@ -128,12 +162,15 @@ window.ejecutarFinalizarPedido = async function() {
     const carritoActual = JSON.parse(localStorage.getItem('carrito')) || [];
 
     if (carritoActual.length === 0) {
-        alert("El carrito está vacío.");
+        window.cerrarCheckout();
+        if (window.mostrarNotificacion) window.mostrarNotificacion("La canasta está vacía.");
         return;
     }
 
     if (!fotoInput.files[0]) {
-        alert("Por favor, sube la foto del comprobante de transferencia.");
+        // Aquí lanzamos la notificación. Como el modal tiene z-index 9000 y 
+        // la notificación 99999, debería verse encima sin cerrar el modal.
+        if (window.mostrarNotificacion) window.mostrarNotificacion("Falta el comprobante de pago.");
         return;
     }
 
@@ -141,46 +178,40 @@ window.ejecutarFinalizarPedido = async function() {
         btn.disabled = true;
         btn.innerText = "Procesando...";
 
-        // 2. Mapeo de Liquidaciones (Para que aparezcan en admin-pagos.js)
         const liquidaciones = {};
         carritoActual.forEach(item => {
-            // Si el producto no tiene idProductor, usamos 'general' para que no rompa el admin
             const pId = item.idProductor || "productor_desconocido";
             const subtotal = (parseFloat(item.precio) || 0) * (parseInt(item.cantidad) || 0);
-            
             if (!liquidaciones[pId]) liquidaciones[pId] = 0;
             liquidaciones[pId] += subtotal;
         });
 
-        // 3. Objeto de pedido Final (Garantizamos que nada sea 'undefined')
         const pedidoData = {
-            clienteUid: uidFinal, // <--- Esto quita el error de tus capturas
+            clienteUid: uidFinal,
             clienteNombre: sesion.nombre || "Usuario Mercado Raíz",
             clienteEmail: sesion.email || "S/N",
             items: carritoActual,
             total: carritoActual.reduce((sum, item) => sum + (item.precio * item.cantidad), 0),
-            liquidaciones: liquidaciones, // Esto llena la pestaña 'Pagos' del admin
+            liquidaciones: liquidaciones,
             metodoPago: "Transferencia",
             estado: "Pendiente",
             fechaPedido: new Date().toISOString()
         };
 
-        console.log("Enviando pedido garantizado:", pedidoData);
-
-        // Llamada a la función de Firebase (data.js)
         const resultado = await window.guardarPedidoFinal(pedidoData, fotoInput.files[0]);
 
         if (resultado.success) {
             localStorage.removeItem('carrito');
-            alert("¡Pedido enviado con éxito! El administrador validará tu pago.");
-            window.location.href = "index.html";
+            window.cerrarCheckout();
+            if (window.mostrarNotificacion) window.mostrarNotificacion("¡Pedido enviado con éxito!");
+            setTimeout(() => { window.location.href = "index.html"; }, 2000);
         } else {
             throw new Error(resultado.error);
         }
 
     } catch (error) {
         console.error("Error crítico:", error);
-        alert("Error al procesar: " + error.message);
+        if (window.mostrarNotificacion) window.mostrarNotificacion("Error: " + error.message);
         btn.disabled = false;
         btn.innerText = "Reintentar Compra";
     }

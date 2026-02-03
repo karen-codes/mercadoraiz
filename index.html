@@ -1,13 +1,17 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mercado Raíz | Cayambe</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Playfair+Display:wght@700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
+
 <body>
 
     <header class="header">
@@ -23,7 +27,7 @@
                 <a href="contacto.html">Contacto</a>
                 <a href="calidad.html">Calidad</a>
                 <a href="carrito.html">Carrito</a>
-                
+
                 <div class="auth-buttons" id="authContainer">
                     <a href="login.html" id="loginLink" class="btn-login-header">Iniciar Sesión</a>
                     <a href="#" id="logoutLink" onclick="cerrarSesion()" class="btn-logout hidden">Cerrar Sesión</a>
@@ -37,11 +41,12 @@
             <div class="hero-content">
                 <span class="hero-badge">DIRECTO DE LA PACHA MAMA</span>
                 <h1>Conectando productores de Cayambe con mercados justos</h1>
-                <p>Descubre el sabor real de los productos cultivados con métodos tradicionales y respeto a la tierra.</p>
-                
+                <p>Descubre el sabor real de los productos cultivados con métodos tradicionales y respeto a la tierra.
+                </p>
+
                 <div class="search-box-professional">
                     <i class="fas fa-search"></i>
-                    <input type="text" id="searchInput" placeholder="¿Qué buscas hoy? Ej: Tomates, Queso...">
+                    <input type="text" id="input-busqueda" placeholder="¿Qué buscas hoy? Ej: Tomates, Queso...">
                     <button onclick="ejecutarBusqueda()">Buscar</button>
                 </div>
             </div>
@@ -57,10 +62,10 @@
                 <button class="carousel-btn prev" onclick="moverCarrusel(-1)">
                     <i class="fas fa-chevron-left"></i>
                 </button>
-                
+
                 <div class="carousel-window">
                     <div id="carrusel-container" class="carousel-track">
-                        </div>
+                    </div>
                 </div>
 
                 <button class="carousel-btn next" onclick="moverCarrusel(1)">
@@ -100,21 +105,21 @@
             storageBucket: "mercado-raiz.firebasestorage.app",
             appId: "1:886584284411:web:NDI3ZqYWUtYWNhNS00NzEwLWIxMDktWjNmViYzk4Njly"
         };
-        
+
         if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
         window.db = firebase.database();
         window.auth = firebase.auth();
 
         document.addEventListener("DOMContentLoaded", () => {
             const track = document.getElementById('carrusel-container');
-            
+
             db.ref('productos').limitToLast(8).on('value', (snapshot) => {
                 track.innerHTML = "";
-                if(snapshot.exists()){
+                if (snapshot.exists()) {
                     snapshot.forEach(child => {
                         const p = child.val();
                         const imgUrl = p.imagenUrl || 'img/default-product.jpg';
-                        
+
                         // SE ELIMINARON LOS STYLES FIJOS (width:280px, etc.)
                         track.innerHTML += `
                             <div class="carousel-item">
@@ -136,13 +141,31 @@
         function moverCarrusel(dir) {
             const track = document.getElementById('carrusel-container');
             // Paso adaptativo: más corto en móvil
-            const step = window.innerWidth < 768 ? 220 : 300; 
+            const step = window.innerWidth < 768 ? 220 : 300;
             const maxScroll = track.scrollWidth - track.parentElement.clientWidth;
             currentScroll += (dir * step);
             if (currentScroll < 0) currentScroll = 0;
             if (currentScroll > maxScroll) currentScroll = maxScroll;
             track.style.transform = `translateX(-${currentScroll}px)`;
         }
+
+        // Nueva función de búsqueda integrada
+        window.ejecutarBusqueda = function () {
+            const input = document.getElementById('input-busqueda');
+            const query = input.value.trim();
+
+            if (query !== "") {
+                // Redirige a productos llevando el término en la URL
+                window.location.href = `productos.html?buscar=${encodeURIComponent(query)}`;
+            } else {
+                // Validación simple antes de implementar las notificaciones Pro
+                input.style.border = "2px solid #AE6E24";
+                setTimeout(() => input.style.border = "none", 2000);
+            }
+        };
     </script>
+    <script src="js/main.js"></script>
+    <script src="js/auth.js"></script> 
 </body>
+
 </html>

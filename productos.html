@@ -98,22 +98,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
 
-    <script>
-      const firebaseConfig = {
-        apiKey: "AIzaSyBqakqg919pu0GjMkaJhntman0n4Q1jnw",
-        authDomain: "mercado-raiz.firebaseapp.com",
-        databaseURL: "https://mercado-raiz-default-rtdb.firebaseio.com",
-        projectId: "mercado-raiz",
-        storageBucket: "mercado-raiz.firebasestorage.app",
-        messagingSenderId: "886584284411",
-        appId: "1:886584284411:web:NDI3ZqYWUtYWNhNS00NzEwLWIxMDktWjNmViYzk4Njly"
-      };
-
-      if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
-      window.db = firebase.database(); 
-      window.auth = firebase.auth();
-    </script>
-
     <script src="js/data.js"></script>
     <script src="js/main.js"></script>
     
@@ -121,61 +105,75 @@
         document.addEventListener("DOMContentLoaded", () => {
             const grid = document.getElementById("productsGrid");
             const urlParams = new URLSearchParams(window.location.search);
+            
+            // Capturamos parámetros
             const catSeleccionada = urlParams.get('cat') || 'todos';
+            const terminoBusqueda = urlParams.get('buscar') ? urlParams.get('buscar').toLowerCase() : null;
 
             // Resaltar botón de categoría
             document.querySelectorAll('.filter-chips a').forEach(link => {
                 if(link.href.includes(`cat=${catSeleccionada}`)) link.classList.add('active');
             });
 
-            // Leer productos de Firebase
+            // Leer productos de Firebase (db está definido en data.js)
             db.ref('productos').on('value', (snapshot) => {
                 grid.innerHTML = "";
                 const data = snapshot.val();
 
                 if (data) {
+                    let contador = 0;
                     Object.keys(data).forEach(id => {
                         const p = data[id];          
 
-                    // Filtrar por categoría si no es "todos"
-                    if (catSeleccionada !== 'todos' && p.categoria !== catSeleccionada) return;
+                        // Filtro 1: Categoría
+                        if (catSeleccionada !== 'todos' && p.categoria !== catSeleccionada) return;
 
-const card = `
-    <div class="product-mini-card">
-        <div class="product-mini-image">
-            <img src="${p.imagenUrl || 'img/default-product.jpg'}" alt="${p.nombre}">
-        </div>
-        <div class="product-mini-info">
-            <span class="badge-categoria">${p.categoria}</span>
-            
-            <h4>${p.nombre}</h4>
-            
-            <a href="perfil-proveedor.html?id=${p.idProductor}" class="link-parcela">
-                <i class="fas fa-map-marker-alt"></i> ${p.nombreParcela || 'Ver Parcela'}
-            </a>
+                        // Filtro 2: Búsqueda por texto (Nombre o Parcela)
+                        if (terminoBusqueda) {
+                            const nombre = (p.nombre || "").toLowerCase();
+                            const parcela = (p.nombreParcela || "").toLowerCase();
+                            if (!nombre.includes(terminoBusqueda) && !parcela.includes(terminoBusqueda)) return;
+                        }
 
-            <p class="price">$${parseFloat(p.precio).toFixed(2)} / ${p.unidad || 'u'}</p>
-            
-            <button onclick="agregarAlCarrito('${id}', '${p.nombre}', ${p.precio}, '${p.imagenUrl}')" 
-                    class="btn-add-mini">
-                <i class="fas fa-cart-plus"></i> Añadir al Carrito
-            </button>
-        </div>
-    </div>
-`;
+                        contador++;
+                        const card = `
+                            <div class="product-mini-card">
+                                <div class="product-mini-image">
+                                    <img src="${p.imagenUrl || 'img/default-product.jpg'}" alt="${p.nombre}">
+                                </div>
+                                <div class="product-mini-info">
+                                    <span class="badge-categoria">${p.categoria}</span>
+                                    <h4>${p.nombre}</h4>
+                                    <a href="perfil-proveedor.html?id=${p.idProductor}" class="link-parcela">
+                                        <i class="fas fa-map-marker-alt"></i> ${p.nombreParcela || 'Ver Parcela'}
+                                    </a>
+                                    <p class="price">$${parseFloat(p.precio).toFixed(2)} / ${p.unidad || 'u'}</p>
+                                    <button onclick="agregarAlCarrito('${id}', '${p.nombre}', ${p.precio}, '${p.imagenUrl}')" 
+                                            class="btn-add-mini">
+                                        <i class="fas fa-cart-plus"></i> Añadir al Carrito
+                                    </button>
+                                </div>
+                            </div>
+                        `;
                         grid.innerHTML += card;
                     });
+
+                    if(contador === 0) {
+                        grid.innerHTML = `<div class="text-center" style="grid-column: 1/-1; padding: 50px;">
+                            <i class="fas fa-search-minus" style="font-size: 3rem; color: #ccc; margin-bottom: 15px;"></i>
+                            <p>No encontramos productos para "${terminoBusqueda || catSeleccionada}".</p>
+                        </div>`;
+                    }
+
                 } else {
-                    grid.innerHTML = "<p class='text-center' style='grid-column:1/-1;'>No hay productos disponibles en esta categoría.</p>";
+                    grid.innerHTML = "<p class='text-center' style='grid-column:1/-1;'>No hay productos disponibles.</p>";
                 }
             });
         });
 
-        // Función puente para el carrito (conecta con main.js)
         function agregarAlCarrito(id, nombre, precio, imagen) {
             if (typeof window.addToCart === 'function') {
                 window.addToCart(id, nombre, precio, imagen);
-                // Notificación visual simple
                 const btn = event.currentTarget;
                 const originalText = btn.innerHTML;
                 btn.innerHTML = "<i class='fas fa-check'></i> Listo";
@@ -184,8 +182,6 @@ const card = `
                     btn.innerHTML = originalText;
                     btn.style.background = "#8da281";
                 }, 1000);
-            } else {
-                console.error("La función addToCart no está definida en main.js");
             }
         }
     </script>
