@@ -1,5 +1,5 @@
 /**
- * js/tienda/carrito.js - Gestión de Interfaz y Pagos (SIN ALERTS)
+ * js/tienda/carrito.js - Gestión de Interfaz y Pagos (COMPLETO Y RESPONSIVE)
  */
 
 // 1. Dibujar el carrito en la tabla
@@ -27,23 +27,25 @@ window.dibujarCarrito = function() {
         
         return `
             <tr style="border-bottom: 1px solid #eee;">
-                <td style="padding: 15px; display: flex; align-items: center; gap: 15px;">
-                    <img src="${item.imagen}" style="width: 50px; height: 50px; border-radius: 8px; object-fit: cover;">
-                    <div>
-                        <span style="font-weight: bold; display: block;">${item.nombre}</span>
-                        <small style="color: #888;">Cod. Prod: ${prodId}</small>
+                <td data-label="Producto" style="padding: 15px;">
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <img src="${item.imagen}" style="width: 50px; height: 50px; border-radius: 8px; object-fit: cover;">
+                        <div>
+                            <span style="font-weight: bold; display: block;">${item.nombre}</span>
+                            <small style="color: #888;">Cod. Prod: ${prodId}</small>
+                        </div>
                     </div>
                 </td>
-                <td style="padding: 15px;">$${parseFloat(item.precio).toFixed(2)}</td>
-                <td style="padding: 15px;">
+                <td data-label="Precio" style="padding: 15px;">$${parseFloat(item.precio).toFixed(2)}</td>
+                <td data-label="Cantidad" style="padding: 15px;">
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <button onclick="window.cambiarCantidad(${index}, -1)" style="width:25px; height:25px; border-radius:50%; border:1px solid #8da281; background:white; color:#8da281; cursor:pointer; font-weight:bold;">-</button>
                         <span style="font-weight:bold; min-width:20px; text-align:center;">${item.cantidad}</span>
                         <button onclick="window.cambiarCantidad(${index}, 1)" style="width:25px; height:25px; border-radius:50%; border:1px solid #8da281; background:white; color:#8da281; cursor:pointer; font-weight:bold;">+</button>
                     </div>
                 </td>
-                <td style="padding: 15px; font-weight: bold;">$${subtotal.toFixed(2)}</td>
-                <td style="padding: 15px;">
+                <td data-label="Subtotal" style="padding: 15px; font-weight: bold;">$${subtotal.toFixed(2)}</td>
+                <td data-label="Acción" style="padding: 15px;">
                     <button onclick="window.eliminarDelCarrito(${index})" style="color: #e74c3c; background: none; border: none; cursor: pointer; font-size: 1.1rem;">
                         <i class="fas fa-trash-alt"></i>
                     </button>
@@ -99,7 +101,6 @@ window.abrirCheckout = function() {
     const content = document.getElementById('checkout-content');
     const sesion = JSON.parse(localStorage.getItem('sesionActiva'));
 
-    // Forzamos un z-index controlado para el modal
     if (modal) modal.style.zIndex = "9000";
 
     if (!sesion) {
@@ -151,7 +152,7 @@ window.ejecutarFinalizarPedido = async function() {
     const uidFinal = sesion ? (sesion.uid || sesion.id) : null;
 
     if (!uidFinal) {
-        window.cerrarCheckout(); // Cerramos modal para que se vea la notificación
+        window.cerrarCheckout();
         if (window.mostrarNotificacion) window.mostrarNotificacion("Tu sesión ha expirado.");
         setTimeout(() => { window.location.href = "login.html"; }, 1500);
         return;
@@ -168,8 +169,6 @@ window.ejecutarFinalizarPedido = async function() {
     }
 
     if (!fotoInput.files[0]) {
-        // Aquí lanzamos la notificación. Como el modal tiene z-index 9000 y 
-        // la notificación 99999, debería verse encima sin cerrar el modal.
         if (window.mostrarNotificacion) window.mostrarNotificacion("Falta el comprobante de pago.");
         return;
     }
