@@ -155,42 +155,57 @@ window.ejecutarFinalizarPedido = async function() {
     const btn = document.getElementById('btn-comprar');
     const carritoActual = JSON.parse(localStorage.getItem('carrito')) || [];
 
-    // 1. Cálculos de liquidación (Agrupar por productor)
+    // --- VALIDACIÓN DE ARCHIVO (Nueva y necesaria) ---
+    if (!fotoInput.files[0]) {
+        if (window.mostrarNotificacion) window.mostrarNotificacion("Por favor, adjunta la foto del comprobante");
+        return;
+    }
+
+    // --- CÁLCULO DEL TOTAL (Corrigiendo el ReferenceError) ---
+    let totalCalculado = 0;
     const liquidaciones = {};
+    
     carritoActual.forEach(item => {
         const pId = item.idProductor || "general";
         const subtotal = (parseFloat(item.precio) || 0) * (parseInt(item.cantidad) || 0);
+        totalCalculado += subtotal; // Aquí definimos el total que faltaba
+        
         if (!liquidaciones[pId]) liquidaciones[pId] = 0;
         liquidaciones[pId] += subtotal;
     });
 
-    // 2. CONSTRUCCIÓN DEL OBJETO (CORREGIDO)
     const pedidoData = {
         clienteUid: uidFinal,
-        clienteNombre: sesion.nombre || "Usuario Mercado Raíz",
-        items: carritoActual, // <--- AQUÍ se guardan todos los productos sin pisarse
-        total: carritoActual.reduce((sum, item) => sum + (item.precio * item.cantidad), 0),
-        liquidaciones: liquidaciones, // El mapa que usará el Admin Pagos
+        clienteNombre: sesion.nombre || "Usuario",
+        clienteEmail: sesion.email || "S/N",
+        items: carritoActual,
+        total: totalCalculado, // Usamos la variable recién calculada
+        liquidaciones: liquidaciones,
         metodoPago: "Transferencia",
-        estado: "Pendiente", // Importante: Debe pasar a "Pagado" para liquidar
-        fechaPedido: new Date().toISOString()
+        estado: "Pendiente",
+        fecha: new Date().toISOString()
     };
 
     try {
         btn.disabled = true;
         btn.innerText = "Procesando...";
         
-        // Llamada a database.js
+        // Llamada a database.js (Asegúrate de que esta función reciba el archivo)
         const resultado = await window.guardarPedidoFinal(pedidoData, fotoInput.files[0]);
 
         if (resultado.success) {
             localStorage.removeItem('carrito');
+            if (window.actualizarContadorCarrito) window.actualizarContadorCarrito();
             window.cerrarCheckout();
-            window.mostrarNotificacion("¡Pedido enviado con éxito!");
+            if (window.mostrarNotificacion) window.mostrarNotificacion("¡Pedido enviado con éxito!");
             setTimeout(() => { window.location.href = "index.html"; }, 2000);
+        } else {
+            throw new Error("Error en el servidor");
         }
     } catch (error) {
-        console.error(error);
+        console.error("Error al finalizar pedido:", error);
         btn.disabled = false;
+        btn.innerText = "Confirmar Pago y Pedido";
+        if (window.mostrarNotificacion) window.mostrarNotificacion("Error al enviar. Intenta de nuevo.");
     }
 };

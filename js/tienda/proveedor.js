@@ -69,3 +69,58 @@ function llenarDatosProveedor(pro) {
         }
     }
 }
+
+/**
+ * LÓGICA DE PRODUCTOS DEL PROVEEDOR
+ * Conecta los productos de la parcela con el carrito global
+ */
+function renderizarProductosProveedor(productosFiltrados, idProductor) {
+    const contenedor = document.getElementById('productos-proveedor');
+    if (!contenedor) return;
+
+    if (productosFiltrados.length === 0) {
+        contenedor.innerHTML = "<p class='text-center'>Próximamente más productos de esta tierra.</p>";
+        return;
+    }
+
+    contenedor.innerHTML = productosFiltrados.map(prod => {
+        // Aseguramos que los nombres de campos coincidan con tu Firebase
+        const img = prod.urlFotoProducto || prod.imagenUrl || prod.fotoUrl || 'assets/images/no-image.jpg';
+        const precio = parseFloat(prod.precio).toFixed(2);
+        
+        return `
+            <div class="product-mini-card">
+                <div class="product-mini-image">
+                    <img src="${img}" alt="${prod.nombre}">
+                </div>
+                <div class="product-mini-info">
+                    <h4>${prod.nombre}</h4>
+                    <p class="price">$${precio} / ${prod.unidad || 'u'}</p>
+                    <button onclick="agregarAlCarritoDesdePerfil('${prod.id}', '${prod.nombre}', ${prod.precio}, '${img}', '${idProductor}')" 
+                            class="btn-add-mini">
+                        <i class="fas fa-cart-plus"></i> Añadir
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// Esta función es la que hace el puente con el main.js corregido
+window.agregarAlCarritoDesdePerfil = function(id, nombre, precio, imagen, idProductor) {
+    if (typeof window.addToCart === 'function') {
+        window.addToCart(id, nombre, precio, imagen, idProductor);
+        
+        // Efecto visual en el botón (opcional, no rompe nada)
+        const btn = event.currentTarget;
+        const original = btn.innerHTML;
+        btn.innerHTML = "<i class='fas fa-check'></i>";
+        btn.style.background = "#c6714f";
+        setTimeout(() => {
+            btn.innerHTML = original;
+            btn.style.background = "";
+        }, 1000);
+    } else {
+        console.error("Error: main.js no está cargado correctamente.");
+    }
+};
