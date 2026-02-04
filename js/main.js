@@ -136,46 +136,57 @@ window.mostrarNotificacion = function(mensaje) {
  * LÓGICA DE CARRITO (CENTRALIZADA)
  ***********************************/
 
+// 1. La base: Esta guarda los datos reales
 window.addToCart = function(id, nombre, precio, imagen, idProductor) {
-    carrito = JSON.parse(localStorage.getItem('carrito')) || [];
-
+    // Aseguramos que el carrito sea un array
+    let carritoActual = JSON.parse(localStorage.getItem('carrito')) || [];
+    
     if (!id) return;
 
-    const itemEnCarrito = carrito.find(item => item.id === id);
+    const itemEnCarrito = carritoActual.find(item => item.id === id);
 
     if (itemEnCarrito) {
         itemEnCarrito.cantidad++;
     } else {
-        carrito.push({
+        carritoActual.push({
             id: id,
             nombre: nombre || "Producto",
             precio: parseFloat(precio) || 0,
             imagen: imagen || 'assets/images/no-image.jpg',
-            idProductor: idProductor || "general",
+            idProductor: idProductor || "general", // Si no hay ID, va a general
             cantidad: 1
         });
     }
     
-    localStorage.setItem('carrito', JSON.stringify(carrito));
-    window.actualizarContadorCarrito();
+    localStorage.setItem('carrito', JSON.stringify(carritoActual));
     
-    // Usamos la nueva función global
-    window.mostrarNotificacion(`¡${nombre} añadido!`);
+    // Actualizamos UI
+    if (typeof window.actualizarContadorCarrito === 'function') {
+        window.actualizarContadorCarrito();
+    }
+    
+    // Notificamos éxito
+    window.mostrarNotificacion(`¡${nombre} añadido con éxito!`);
 };
 
+// 2. El puente: Esta busca el producto en la lista global y llama a la anterior
 window.agregarAlCarritoClick = function(id) {
     const prod = productos.find(p => p.id === id);
     if (!prod) {
-        console.error("Producto no encontrado:", id);
+        console.error("Producto no encontrado en la lista global:", id);
         return;
     }
 
+    // Buscamos el ID del productor en cualquier variante que use la base de datos
+    const productorValido = prod.idProductor || prod.productorId || "general";
+    const nombreProd = prod.nombre || prod.nombreProducto || "Producto";
+
     window.addToCart(
         prod.id, 
-        prod.nombre || prod.nombreProducto, 
+        nombreProd, 
         prod.precio, 
         prod.urlFotoProducto || prod.imagenUrl || prod.fotoUrl, 
-        prod.idProductor
+        productorValido
     );
 };
 

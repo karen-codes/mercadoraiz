@@ -151,67 +151,46 @@ window.ejecutarFinalizarPedido = async function() {
     const sesion = rawSesion ? JSON.parse(rawSesion) : null;
     const uidFinal = sesion ? (sesion.uid || sesion.id) : null;
 
-    if (!uidFinal) {
-        window.cerrarCheckout();
-        if (window.mostrarNotificacion) window.mostrarNotificacion("Tu sesión ha expirado.");
-        setTimeout(() => { window.location.href = "login.html"; }, 1500);
-        return;
-    }
-
     const fotoInput = document.getElementById('comprobante-file');
     const btn = document.getElementById('btn-comprar');
     const carritoActual = JSON.parse(localStorage.getItem('carrito')) || [];
 
-    if (carritoActual.length === 0) {
-        window.cerrarCheckout();
-        if (window.mostrarNotificacion) window.mostrarNotificacion("La canasta está vacía.");
-        return;
-    }
+    // 1. Cálculos de liquidación (Agrupar por productor)
+    const liquidaciones = {};
+    carritoActual.forEach(item => {
+        const pId = item.idProductor || "general";
+        const subtotal = (parseFloat(item.precio) || 0) * (parseInt(item.cantidad) || 0);
+        if (!liquidaciones[pId]) liquidaciones[pId] = 0;
+        liquidaciones[pId] += subtotal;
+    });
 
-    if (!fotoInput.files[0]) {
-        if (window.mostrarNotificacion) window.mostrarNotificacion("Falta el comprobante de pago.");
-        return;
-    }
+    // 2. CONSTRUCCIÓN DEL OBJETO (CORREGIDO)
+    const pedidoData = {
+        clienteUid: uidFinal,
+        clienteNombre: sesion.nombre || "Usuario Mercado Raíz",
+        items: carritoActual, // <--- AQUÍ se guardan todos los productos sin pisarse
+        total: carritoActual.reduce((sum, item) => sum + (item.precio * item.cantidad), 0),
+        liquidaciones: liquidaciones, // El mapa que usará el Admin Pagos
+        metodoPago: "Transferencia",
+        estado: "Pendiente", // Importante: Debe pasar a "Pagado" para liquidar
+        fechaPedido: new Date().toISOString()
+    };
 
     try {
         btn.disabled = true;
         btn.innerText = "Procesando...";
-
-        const liquidaciones = {};
-        carritoActual.forEach(item => {
-            const pId = item.idProductor || "productor_desconocido";
-            const subtotal = (parseFloat(item.precio) || 0) * (parseInt(item.cantidad) || 0);
-            if (!liquidaciones[pId]) liquidaciones[pId] = 0;
-            liquidaciones[pId] += subtotal;
-        });
-
-        const pedidoData = {
-            clienteUid: uidFinal,
-            clienteNombre: sesion.nombre || "Usuario Mercado Raíz",
-            clienteEmail: sesion.email || "S/N",
-            items: carritoActual,
-            total: carritoActual.reduce((sum, item) => sum + (item.precio * item.cantidad), 0),
-            liquidaciones: liquidaciones,
-            metodoPago: "Transferencia",
-            estado: "Pendiente",
-            fechaPedido: new Date().toISOString()
-        };
-
+        
+        // Llamada a database.js
         const resultado = await window.guardarPedidoFinal(pedidoData, fotoInput.files[0]);
 
         if (resultado.success) {
             localStorage.removeItem('carrito');
             window.cerrarCheckout();
-            if (window.mostrarNotificacion) window.mostrarNotificacion("¡Pedido enviado con éxito!");
+            window.mostrarNotificacion("¡Pedido enviado con éxito!");
             setTimeout(() => { window.location.href = "index.html"; }, 2000);
-        } else {
-            throw new Error(resultado.error);
         }
-
     } catch (error) {
-        console.error("Error crítico:", error);
-        if (window.mostrarNotificacion) window.mostrarNotificacion("Error: " + error.message);
+        console.error(error);
         btn.disabled = false;
-        btn.innerText = "Reintentar Compra";
     }
 };

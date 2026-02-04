@@ -41,3 +41,34 @@ window.subirArchivoNativo = async function(archivo, carpeta) {
         throw error;
     }
 };
+
+// 4. NOTIFICACIONES FLOTANTES (Nuevo: Reemplaza los alerts)
+window.mostrarNotificacion = function(mensaje, tipo = 'success') {
+    // Buscar o crear el contenedor que definimos en el CSS
+    let container = document.getElementById('notif-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'notif-container';
+        document.body.appendChild(container);
+    }
+
+    // Crear el elemento de la notificación
+    const toast = document.createElement('div');
+    toast.className = `notificacion-toast ${tipo}`;
+    
+    // Iconos según el tipo
+    const icono = tipo === 'success' ? 'fa-check-circle' : (tipo === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle');
+    
+    toast.innerHTML = `
+        <i class="fas ${icono}"></i>
+        <span>${mensaje}</span>
+    `;
+
+    container.appendChild(toast);
+
+    // Auto-eliminar después de 3.5 segundos con animación de salida
+    setTimeout(() => {
+        toast.classList.add('fade-out');
+        setTimeout(() => toast.remove(), 500);
+    }, 3500);
+};

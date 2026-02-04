@@ -4,7 +4,6 @@
  */
 
 window.initDashboard = function(contenedor) {
-    // 1. Crear la estructura de tarjetas de resumen
     contenedor.innerHTML = `
         <div class="form-grid" style="margin-bottom: 30px;">
             <div class="admin-card" style="text-align: center; border-bottom: 5px solid var(--primary);">
@@ -40,19 +39,20 @@ window.initDashboard = function(contenedor) {
 
     calcularEstadisticas();
 };
-
 function calcularEstadisticas() {
-    // 1. Contar Productos
+    // 1. Contar Productos con validación
     window.db.ref('productos').on('value', snap => {
-        document.getElementById('dash-prod-count').innerText = snap.numChildren();
+        const el = document.getElementById('dash-prod-count');
+        if (el) el.innerText = snap.numChildren();
     });
 
-    // 2. Contar Usuarios
+    // 2. Contar Usuarios con validación
     window.db.ref('usuarios').on('value', snap => {
-        document.getElementById('dash-user-count').innerText = snap.numChildren();
+        const el = document.getElementById('dash-user-count');
+        if (el) el.innerText = snap.numChildren();
     });
 
-    // 3. Procesar Pedidos (Conteo y Suma de Ventas)
+    // 3. Procesar Pedidos con validación integral
     window.db.ref('pedidos').on('value', snap => {
         let totalPedidos = 0;
         let dineroTotal = 0;
@@ -61,8 +61,6 @@ function calcularEstadisticas() {
         snap.forEach(child => {
             const p = child.val();
             totalPedidos++;
-            
-            // Solo sumar al dinero total si el pedido está marcado como 'Pagado'
             if (p.estado === 'Pagado') {
                 dineroTotal += parseFloat(p.total || 0);
             } else {
@@ -70,14 +68,19 @@ function calcularEstadisticas() {
             }
         });
 
-        document.getElementById('dash-ped-count').innerText = totalPedidos;
-        document.getElementById('dash-ventas-total').innerText = window.formatearUSD(dineroTotal);
+        // Solo intentamos escribir si los elementos existen en el HTML actual
+        const elPed = document.getElementById('dash-ped-count');
+        const elVentas = document.getElementById('dash-ventas-total');
+        const elActividad = document.getElementById('dash-actividad');
 
-        // Actualizar Actividad Reciente
-        const actividad = document.getElementById('dash-actividad');
-        actividad.innerHTML = `
-            <div><i class="fas fa-clock" style="color: var(--warning);"></i> Tienes <strong>${pendientes}</strong> pedidos pendientes por procesar.</div>
-            <div><i class="fas fa-check-circle" style="color: var(--primary);"></i> El sistema está conectado y operando correctamente.</div>
-        `;
+        if (elPed) elPed.innerText = totalPedidos;
+        if (elVentas) elVentas.innerText = window.formatearUSD ? window.formatearUSD(dineroTotal) : `$${dineroTotal.toFixed(2)}`;
+        
+        if (elActividad) {
+            elActividad.innerHTML = `
+                <div><i class="fas fa-clock" style="color: var(--warning);"></i> Tienes <strong>${pendientes}</strong> pedidos pendientes por procesar.</div>
+                <div><i class="fas fa-check-circle" style="color: var(--primary);"></i> El sistema está conectado y operando correctamente.</div>
+            `;
+        }
     });
 }

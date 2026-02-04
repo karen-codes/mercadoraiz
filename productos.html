@@ -148,7 +148,7 @@
                                         <i class="fas fa-map-marker-alt"></i> ${p.nombreParcela || 'Ver Parcela'}
                                     </a>
                                     <p class="price">$${parseFloat(p.precio).toFixed(2)} / ${p.unidad || 'u'}</p>
-                                    <button onclick="agregarAlCarrito('${id}', '${p.nombre}', ${p.precio}, '${p.imagenUrl}')" 
+                                    <button onclick="agregarAlCarrito('${id}', '${p.nombre}', ${p.precio}, '${p.imagenUrl}', '${p.idProductor}')" 
                                             class="btn-add-mini">
                                         <i class="fas fa-cart-plus"></i> Añadir al Carrito
                                     </button>
@@ -171,9 +171,9 @@
             });
         });
 
-        function agregarAlCarrito(id, nombre, precio, imagen) {
+        function agregarAlCarrito(id, nombre, precio, imagen, idProductor) {
             if (typeof window.addToCart === 'function') {
-                window.addToCart(id, nombre, precio, imagen);
+                window.addToCart(id, nombre, precio, imagen, idProductor);
                 const btn = event.currentTarget;
                 const originalText = btn.innerHTML;
                 btn.innerHTML = "<i class='fas fa-check'></i> Listo";

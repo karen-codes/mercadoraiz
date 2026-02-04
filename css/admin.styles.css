@@ -384,3 +384,68 @@ input:focus, select:focus {
         margin: 5px auto;
     }
 }
+
+/* ==========================================================================
+   NOTIFICACIONES FLOTANTES (Métrica McCall: Usabilidad)
+   ========================================================================== */
+.notificacion-toast {
+    background: var(--white);
+    border-left: 5px solid var(--primary);
+    padding: 15px 25px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: slideIn 0.3s ease-out forwards;
+}
+
+.notificacion-toast.error { border-left-color: var(--danger); }
+.notificacion-toast.warning { border-left-color: var(--warning); }
+
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+/* --- CONTENEDOR PARA TOASTS --- */
+#notif-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000; /* Por encima de modales y sidebar */
+    width: 320px;
+    max-width: 90vw;
+    pointer-events: none; /* Permite hacer clic a través del contenedor si está vacío */
+}
+
+.notificacion-toast {
+    pointer-events: auto; /* Permite interactuar con la notificación si fuera necesario */
+    background: var(--white);
+    border-left: 5px solid var(--primary);
+    padding: 15px 20px;
+    border-radius: var(--radius);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: slideIn 0.3s ease-out forwards;
+    font-weight: 500;
+}
+
+/* Variaciones de color basadas en tus variables raíz */
+.notificacion-toast.error { border-left-color: var(--danger); }
+.notificacion-toast.warning { border-left-color: var(--warning); }
+.notificacion-toast.info { border-left-color: var(--info); }
+
+/* Animación de salida */
+.notificacion-toast.fade-out {
+    animation: slideOut 0.5s ease-in forwards;
+}
+
+@keyframes slideOut {
+    from { transform: translateX(0); opacity: 1; }
+    to { transform: translateX(100%); opacity: 0; }
+}

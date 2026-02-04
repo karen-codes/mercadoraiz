@@ -27,9 +27,12 @@ window.initPedidos = function(contenedor) {
 };
 
 function escucharPedidos() {
+    // Usamos .on para que la tabla se actualice sola si cambia algo en Firebase
     window.db.ref('pedidos').orderByChild('timestamp').on('value', (snapshot) => {
         const tbody = document.getElementById('lista-pedidos');
-        if (!tbody) return;
+        // PROTECCIÓN: Si el usuario cambió de pestaña, salimos suavemente sin error
+        if (!tbody) return; 
+        
         tbody.innerHTML = "";
 
         if (!snapshot.exists()) {
@@ -45,8 +48,6 @@ function escucharPedidos() {
 
         pedidos.forEach((p) => {
             const claseEstado = p.estado === 'Pagado' ? 'status-pagado' : 'status-pendiente';
-            
-            // CORRECCIÓN CLAVE: Buscamos el nombre en múltiples lugares para asegurar que no salga "Anónimo"
             const nombreMostrar = p.clienteNombre || p.cliente?.nombre || "Usuario Desconocido";
             const contactoMostrar = p.clienteEmail || p.cliente?.email || "S/N";
 
@@ -72,10 +73,10 @@ function escucharPedidos() {
                     </td>
                     <td>
                         <div style="display:flex; gap:5px;">
-                            <button class="btn-save" style="padding:5px 10px; background:#27ae60;" onclick="cambiarEstadoPedido('${p.id}', 'Pagado')" title="Marcar como Pagado">
+                            <button class="btn-save" style="padding:5px 10px; background:#27ae60;" onclick="window.cambiarEstadoPedido('${p.id}', 'Pagado')" title="Marcar como Pagado">
                                 <i class="fas fa-check"></i>
                             </button>
-                            <button class="btn-save" style="padding:5px 10px; background:#e74c3c;" onclick="eliminarPedido('${p.id}')">
+                            <button class="btn-save" style="padding:5px 10px; background:#e74c3c;" onclick="window.eliminarPedido('${p.id}')">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>
@@ -88,12 +89,29 @@ function escucharPedidos() {
 
 window.cambiarEstadoPedido = function(id, nuevoEstado) {
     window.db.ref(`pedidos/${id}`).update({ estado: nuevoEstado })
-        .then(() => alert("Estado actualizado"))
-        .catch(e => console.error("Error:", e));
+        .then(() => {
+            // Reemplazo de alert por notificación flotante
+            if (typeof window.mostrarNotificacion === 'function') {
+                window.mostrarNotificacion("Pedido marcado como Pagado", "success");
+            }
+        })
+        .catch(e => {
+            console.error("Error:", e);
+            if (typeof window.mostrarNotificacion === 'function') {
+                window.mostrarNotificacion("Error al actualizar pedido", "error");
+            }
+        });
 };
 
 window.eliminarPedido = function(id) {
+    // El confirm nativo lo dejamos por seguridad (es mejor que un click accidental elimine)
     if (confirm("¿Seguro que deseas eliminar este registro de pedido?")) {
-        window.db.ref(`pedidos/${id}`).remove();
+        window.db.ref(`pedidos/${id}`).remove()
+            .then(() => {
+                if (typeof window.mostrarNotificacion === 'function') {
+                    window.mostrarNotificacion("Pedido eliminado correctamente", "info");
+                }
+            })
+            .catch(e => console.error(e));
     }
 };
