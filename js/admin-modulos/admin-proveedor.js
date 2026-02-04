@@ -151,19 +151,19 @@ document.getElementById('formProveedor')?.addEventListener('submit', async (e) =
         const horarioStr = dias.length > 0 ? `${dias.join(', ')} (${horaIni} - ${horaFin})` : "No definido";
 
         const objetoProv = {
-            nombreParcela: document.getElementById('prov-nombre').value,
-            comunidad: document.getElementById('prov-comunidad').value,
-            telefono: document.getElementById('prov-tel').value,
-            dni: document.getElementById('prov-dni').value,
-            banco: document.getElementById('prov-banco').value,
-            numeroCuenta: document.getElementById('prov-num-cta').value,
-            historia: document.getElementById('prov-historia').value,
-            horarios: horarioStr,
-            coordenadas: document.getElementById('prov-coords').value,
-            fotoUrl: urlFoto,
-            videoUrl: urlVideo,
-            timestamp: firebase.database.ServerValue.TIMESTAMP
-        };
+    nombreParcela: document.getElementById('prov-nombre').value,
+    comunidad: document.getElementById('prov-comunidad').value,
+    telefono: document.getElementById('prov-tel').value, // Coincide con id="prov-tel"
+    dni: document.getElementById('prov-dni').value,
+    banco: document.getElementById('prov-banco').value,
+    numeroCuenta: document.getElementById('prov-numeroCuenta').value, // CORREGIDO: antes decía prov-num-cta
+    historia: document.getElementById('prov-historia').value,
+    horarios: horarioStr,
+    coordenadas: document.getElementById('prov-coords').value,
+    fotoUrl: urlFoto,
+    videoUrl: urlVideo,
+    timestamp: firebase.database.ServerValue.TIMESTAMP
+};
 
         if (idExistente) {
             await window.db.ref(`proveedores/${idExistente}`).update(objetoProv);
@@ -181,6 +181,8 @@ document.getElementById('formProveedor')?.addEventListener('submit', async (e) =
     }
 });
 
+// DENTRO DE: window.editarProveedor
+
 window.editarProveedor = async function(id) {
     const snap = await window.db.ref(`proveedores/${id}`).once('value');
     if (!snap.exists()) return;
@@ -194,11 +196,18 @@ window.editarProveedor = async function(id) {
     document.getElementById('prov-tel').value = p.telefono || "";
     document.getElementById('prov-dni').value = p.dni || "";
     document.getElementById('prov-banco').value = p.banco || "";
-    document.getElementById('prov-num-cta').value = p.numeroCuenta || "";
+    document.getElementById('prov-numeroCuenta').value = p.numeroCuenta || ""; // CORREGIDO
     document.getElementById('prov-historia').value = p.historia || "";
     document.getElementById('prov-coords').value = p.coordenadas || "";
     document.getElementById('prov-foto-url-actual').value = p.fotoUrl || "";
     document.getElementById('prov-video-url-actual').value = p.videoUrl || "";
+
+    // Lógica de horarios para desmarcar/marcar checks al editar (Opcional pero recomendado)
+    if (p.horarios) {
+        document.querySelectorAll('.check-dia').forEach(cb => {
+            cb.checked = p.horarios.includes(cb.value);
+        });
+    }
 
     const coords = (p.coordenadas || "-0.1807, -78.4678").split(',');
     window.inicializarMapa(parseFloat(coords[0]), parseFloat(coords[1]));
